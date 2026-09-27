@@ -20,342 +20,65 @@
             --sidebar-w: 260px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            font-size: 14px;
-        }
-
-        .auth-wrapper {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);
-            padding: 20px;
-        }
-
-        .auth-card {
-            background: #fff;
-            width: 100%;
-            max-width: 440px;
-            border-radius: 8px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-        }
-
-        .auth-header {
-            background: var(--primary);
-            color: #fff;
-            padding: 24px;
-            text-align: center;
-        }
-
-        .auth-header h1 {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .auth-header p {
-            font-size: 12px;
-            color: #93c5fd;
-            margin-top: 4px;
-        }
-
-        .auth-body {
-            padding: 28px;
-        }
-
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: var(--sidebar-w);
-            background: var(--primary);
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        .sidebar-brand {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar-brand h2 {
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .sidebar-brand span {
-            font-size: 11px;
-            color: #93c5fd;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 0;
-        }
-
-        .nav-category {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #94a3b8;
-            padding: 12px 20px 6px;
-            font-weight: 600;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            color: #cbd5e1;
-            text-decoration: none;
-            cursor: pointer;
-            gap: 12px;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: var(--primary-light);
-            color: #fff;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-
-        .topbar {
-            background: #fff;
-            border-bottom: 1px solid var(--border);
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-        }
-
-        .content-area {
-            padding: 24px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 16px;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .stat-value {
-            font-size: 22px;
-            font-weight: 700;
-            margin-top: 6px;
-        }
-
-        .card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            margin-bottom: 24px;
-        }
-
-        .card-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-            text-align: left;
-        }
-
-        th {
-            background: #f1f5f9;
-            font-size: 12px;
-            color: #475569;
-            text-transform: uppercase;
-        }
-
-        .badge {
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .badge-present, .badge-active, .badge-ready, .badge-approved, .badge-paid {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-        .badge-absent, .badge-rejected {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-        .badge-pending, .badge-hold {
-            background: #fef3c7;
-            color: #b45309;
-        }
-
-        .badge-shortage {
-            background: #ffedd5;
-            color: #c2410c;
-        }
-
-        .form-group {
-            margin-bottom: 14px;
-        }
-
-        label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); font-size: 14px; }
+        .auth-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%); padding: 20px; }
+        .auth-card { background: #fff; width: 100%; max-width: 440px; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; }
+        .auth-header { background: var(--primary); color: #fff; padding: 24px; text-align: center; }
+        .auth-header h1 { font-size: 20px; font-weight: 700; }
+        .auth-header p { font-size: 12px; color: #93c5fd; margin-top: 4px; }
+        .auth-body { padding: 28px; }
+        .app-container { display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-w); background: var(--primary); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-brand h2 { font-size: 16px; font-weight: 700; }
+        .sidebar-brand span { font-size: 11px; color: #93c5fd; }
+        .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+        .nav-category { font-size: 11px; text-transform: uppercase; color: #94a3b8; padding: 12px 20px 6px; font-weight: 600; }
+        .nav-link { display: flex; align-items: center; padding: 10px 20px; color: #cbd5e1; text-decoration: none; cursor: pointer; gap: 12px; }
+        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: #fff; }
+        .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .topbar { background: #fff; border-bottom: 1px solid var(--border); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+        .content-area { padding: 24px; flex: 1; overflow-y: auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+        .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        .stat-value { font-size: 22px; font-weight: 700; margin-top: 6px; }
+        .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 24px; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+        th { background: #f1f5f9; font-size: 12px; color: #475569; text-transform: uppercase; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; }
+        .badge-present, .badge-active, .badge-ready, .badge-approved, .badge-paid { background: #dcfce7; color: #15803d; }
+        .badge-absent, .badge-rejected { background: #fee2e2; color: #b91c1c; }
+        .badge-pending, .badge-hold { background: #fef3c7; color: #b45309; }
+        .badge-shortage { background: #ffedd5; color: #c2410c; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+        .btn { padding: 8px 16px; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; border-radius: 4px; }
         .btn-primary { background: var(--accent); color: #fff; }
         .btn-primary:hover { background: var(--primary-light); }
         .btn-success { background: var(--success); color: #fff; }
         .btn-danger { background: var(--danger); color: #fff; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 16px;
-        }
-
-        .modal-content {
-            background: #fff;
-            border-radius: 8px;
-            max-width: 850px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+        .modal-content { background: #fff; border-radius: 8px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .modal-body { padding: 20px; }
-        .modal-footer {
-            padding: 12px 20px;
-            background: #f8fafc;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
-
-        .shift-block {
-            background: #f8fafc;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 12px;
-            margin-top: 10px;
-        }
-
-        .shift-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 8px;
-        }
-
-        .camera-box {
-            background: #000;
-            width: 100%;
-            height: 280px;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 16px;
-        }
-
-        .camera-box video, .camera-box canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        .modal-footer { padding: 12px 20px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+        .shift-block { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; }
+        .shift-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+        .camera-box { background: #000; width: 100%; height: 280px; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
+        .camera-box video, .camera-box canvas { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <!-- 1. DUAL LOGIN VIEW -->
+    <!-- LOGIN INTERFACE -->
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
@@ -367,9 +90,7 @@
                     <button type="button" id="tabStaff" class="btn btn-primary" style="flex: 1;" onclick="setLoginType('STAFF')">Staff Login</button>
                     <button type="button" id="tabAdmin" class="btn btn-outline" style="flex: 1;" onclick="setLoginType('ADMIN')">Admin Login</button>
                 </div>
-
                 <div id="loginAlert" style="display:none; color: #dc2626; font-size: 13px; margin-bottom: 12px;"></div>
-
                 <form id="loginForm">
                     <div class="form-group">
                         <label id="lblIdentifier">Staff ID</label>
@@ -385,7 +106,7 @@
         </div>
     </div>
 
-    <!-- 2. MAIN APP SHELL -->
+    <!-- MAIN APPLICATION -->
     <div id="appShell" class="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -401,7 +122,7 @@
                 <a class="nav-link" onclick="switchRoute('admin-staff')">👥 Registered Staff</a>
                 <a class="nav-link" onclick="openModal('addStaffModal')">➕ Register New Staff</a>
 
-                <div class="nav-category">Examination Operations</div>
+                <div class="nav-category">Examinations</div>
                 <a class="nav-link" onclick="switchRoute('admin-exams')">📝 Examinations</a>
                 <a class="nav-link" onclick="switchRoute('admin-centres')">🏫 Exam Centres</a>
                 <a class="nav-link" onclick="switchRoute('admin-deployments')">📌 Staff Deployment</a>
@@ -409,6 +130,9 @@
                 <div class="nav-category">Verification & Treasury</div>
                 <a class="nav-link" onclick="switchRoute('admin-attendance')">🕒 Attendance Verification</a>
                 <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Payment Approvals</a>
+
+                <div class="nav-category">Analytics & Exports</div>
+                <a class="nav-link" onclick="switchRoute('admin-reports')">📑 Consolidated Reports</a>
             </div>
 
             <div id="staffNav" class="sidebar-nav" style="display: none;">
@@ -452,23 +176,19 @@
                         <div class="card-header"><strong>Centre Manpower Status</strong></div>
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Centre</th><th>Required / Assigned</th><th>Present</th><th>Shortage</th><th>Status</th></tr>
-                                </thead>
-                                <tbody id="centreStatusTableBody">
-                                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">No venues active today.</td></tr>
-                                </tbody>
+                                <thead><tr><th>Centre</th><th>Required / Assigned</th><th>Present</th><th>Shortage</th><th>Status</th></tr></thead>
+                                <tbody id="centreStatusTableBody"><tr><td colspan="5" style="text-align: center; color: #94a3b8;">No venues active today.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ALL STAFF -->
+                <!-- ALL STAFF (WITH EDIT BUTTON) -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Staff Management</h1>
-                            <p style="color: #64748b;">Registered staff directory synced directly with your Google Sheet.</p>
+                            <p style="color: #64748b;">Registered staff directory with automatic email credentials.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Register Staff</button>
                     </div>
@@ -476,7 +196,7 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>City</th><th>Mobile</th><th>DOB (Password)</th><th>Status</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>City</th><th>Mobile</th><th>Status</th><th>Actions</th></tr>
                                 </thead>
                                 <tbody id="staffTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No staff registered yet.</td></tr></tbody>
                             </table>
@@ -484,12 +204,12 @@
                     </div>
                 </div>
 
-                <!-- EXAMS -->
+                <!-- EXAMS (WITH EDIT BUTTON) -->
                 <div id="view-admin-exams" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Examinations</h1>
-                            <p style="color: #64748b;">Schedule multi-day examinations and custom shift timings.</p>
+                            <p style="color: #64748b;">Manage examinations and multi-shift timing schedules.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Create Examination</button>
                     </div>
@@ -497,20 +217,20 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Exam Name</th><th>Authority</th><th>Date Range</th><th>Shift Mode</th><th>Shift Timings</th></tr>
+                                    <tr><th>Exam Name</th><th>Authority</th><th>Dates</th><th>Shift Mode</th><th>Shift Timings</th><th>Actions</th></tr>
                                 </thead>
-                                <tbody id="examsTableBody"><tr><td colspan="5" style="text-align: center; color: #94a3b8;">No exams scheduled.</td></tr></tbody>
+                                <tbody id="examsTableBody"><tr><td colspan="6" style="text-align: center; color: #94a3b8;">No exams scheduled.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- CENTRES -->
+                <!-- CENTRES (WITH EDIT BUTTON) -->
                 <div id="view-admin-centres" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Examination Centres</h1>
-                            <p style="color: #64748b;">Manage venues, city, address, and map locations.</p>
+                            <p style="color: #64748b;">Venues, addresses, and GPS map locations.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Add Centre</button>
                     </div>
@@ -518,7 +238,7 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Centre Name</th><th>City</th><th>Address</th><th>Map Location</th><th>Status</th></tr>
+                                    <tr><th>Centre Name</th><th>City</th><th>Full Address</th><th>Map Link</th><th>Actions</th></tr>
                                 </thead>
                                 <tbody id="centresTableBody"><tr><td colspan="5" style="text-align: center; color: #94a3b8;">No centres added.</td></tr></tbody>
                             </table>
@@ -526,12 +246,12 @@
                     </div>
                 </div>
 
-                <!-- DEPLOYMENTS -->
+                <!-- DEPLOYMENTS (WITH EDIT BUTTON) -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Staff Deployment</h1>
-                            <p style="color: #64748b;">Deploy staff to exam venues by date and shift.</p>
+                            <p style="color: #64748b;">Deploy staff members with instant email assignment orders.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff</button>
                     </div>
@@ -539,15 +259,15 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Staff Name</th><th>Assigned Role</th><th>Exam</th><th>Shift</th><th>Centre Venue</th><th>Duty Date</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Exam</th><th>Shift</th><th>Centre Venue</th><th>Duty Date</th><th>Actions</th></tr>
                                 </thead>
-                                <tbody id="deploymentsTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No deployments recorded.</td></tr></tbody>
+                                <tbody id="deploymentsTableBody"><tr><td colspan="8" style="text-align: center; color: #94a3b8;">No deployments recorded.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ATTENDANCE & VERIFICATION -->
+                <!-- VERIFICATION -->
                 <div id="view-admin-attendance" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Attendance Verification</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Review photo punches and verified attendance sheets.</p>
@@ -574,6 +294,42 @@
                                     <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Duty Date</th><th>Total Fee</th><th>Status</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="paymentsTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No payment records.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONSOLIDATED REPORTS DASHBOARD -->
+                <div id="view-admin-reports" class="page-view" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <h1 style="font-size: 20px; font-weight: 700;">Consolidated Reports</h1>
+                            <p style="color: #64748b;">Complete historical records for Attendance, Payments, and Manpower.</p>
+                        </div>
+                        <button class="btn btn-outline" onclick="downloadCSVReport()">📥 Export to CSV</button>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                        <button class="btn btn-primary" id="repBtnAtt" onclick="switchReportTab('attendance')">Attendance Report</button>
+                        <button class="btn btn-outline" id="repBtnPay" onclick="switchReportTab('payments')">Payment Report</button>
+                    </div>
+
+                    <div class="card" id="repAttendanceCard">
+                        <div class="card-header"><strong>Historical Attendance Log</strong></div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Staff ID</th><th>Name</th><th>Exam</th><th>Centre</th><th>Date</th><th>Punch In</th><th>Punch Out</th><th>Working Hours</th><th>Sheet Status</th></tr></thead>
+                                <tbody id="repAttendanceTbody"><tr><td colspan="9" style="text-align: center; color: #94a3b8;">No attendance data.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" id="repPaymentCard" style="display: none;">
+                        <div class="card-header"><strong>Disbursement & Payment Ledger</strong></div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Exam Date</th><th>Duty Fee</th><th>Travel</th><th>Total Payable</th><th>Status</th><th>Ref No</th></tr></thead>
+                                <tbody id="repPaymentTbody"><tr><td colspan="9" style="text-align: center; color: #94a3b8;">No payment records.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -621,7 +377,9 @@
         </main>
     </div>
 
-    <!-- MODAL: ADD STAFF -->
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- 1. ADD STAFF MODAL -->
     <div id="addStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -649,54 +407,37 @@
                         <div class="form-group">
                             <label>EF CITY *</label>
                             <select name="ef_city" required>
-                                <option value="Chennai">Chennai (CHE)</option>
-                                <option value="Trichy">Trichy (TRI)</option>
-                                <option value="Vellore">Vellore (VEL)</option>
-                                <option value="Salem">Salem (SAL)</option>
-                                <option value="Krishnagiri">Krishnagiri (KRI)</option>
-                                <option value="Coimbatore">Coimbatore (COI)</option>
-                                <option value="Madurai">Madurai (MAD)</option>
-                                <option value="Theni">Theni (THE)</option>
-                                <option value="Tirunelveli">Tirunelveli (TIN)</option>
+                                <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
+                                <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
+                                <option value="Krishnagiri">Krishnagiri</option><option value="Coimbatore">Coimbatore</option>
+                                <option value="Madurai">Madurai</option><option value="Theni">Theni</option>
+                                <option value="Tirunelveli">Tirunelveli</option>
                             </select>
                         </div>
                     </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>EF FIRST NAME *</label><input type="text" name="ef_first_name" required></div>
                         <div class="form-group"><label>EF MIDDLE NAME</label><input type="text" name="ef_middle_name"></div>
                         <div class="form-group"><label>EF LAST NAME</label><input type="text" name="ef_last_name"></div>
                     </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>EF DOB (Password) *</label><input type="date" name="ef_dob" required></div>
-                        <div class="form-group">
-                            <label>EF GENDER *</label>
-                            <select name="ef_gender" required>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
+                        <div class="form-group"><label>EF GENDER *</label><select name="ef_gender" required><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
                         <div class="form-group"><label>EF MOBILE NUMBER *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile"></div>
                     </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>EF EMAIL ID *</label><input type="email" name="ef_email_id" required></div>
+                        <div class="form-group"><label>EF EMAIL ID *</label><input type="email" name="ef_email_id" required placeholder="official@domain.com"></div>
                         <div class="form-group"><label>EF AADHAR NUMBER *</label><input type="text" name="ef_aadhar_number" required placeholder="12-digit number"></div>
                     </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>VENUE REGION</label><input type="text" name="venue_region" value="South Zone"></div>
                         <div class="form-group"><label>VENUE STATE</label><input type="text" name="venue_state" value="Tamil Nadu"></div>
                     </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>EF FATHER NAME</label><input type="text" name="ef_father_name"></div>
                         <div class="form-group"><label>EF MOTHER NAME</label><input type="text" name="ef_mother_name"></div>
                         <div class="form-group"><label>EF QUALIFICATION</label><input type="text" name="ef_qualification" placeholder="e.g. B.E / B.Sc"></div>
                     </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>EF PRESENT ADDRESS</label><textarea name="ef_present_address" rows="2"></textarea></div>
                         <div class="form-group"><label>EF PERMANENT ADDRESS</label><textarea name="ef_permanent_address" rows="2"></textarea></div>
@@ -704,13 +445,50 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save & Sync with Google Sheet</button>
+                    <button type="submit" class="btn btn-primary">Save & Dispatch Credentials</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL: ADD EXAM (Updated with Date From - Date To & 3 Shifts) -->
+    <!-- 2. EDIT STAFF MODAL -->
+    <div id="editStaffModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Staff Details</h3>
+                <button class="btn btn-outline" onclick="closeModal('editStaffModal')">✕</button>
+            </div>
+            <form id="editStaffForm">
+                <input type="hidden" name="id" id="editStaffId">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Full Name *</label><input type="text" name="name" id="editStaffName" required></div>
+                        <div class="form-group"><label>Mobile Number *</label><input type="tel" name="ef_mobile_number" id="editStaffMobile" required></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Role</label><select name="role" id="editStaffRole">
+                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
+                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
+                            <option value="Security">Security</option><option value="CCTV Operator">CCTV Operator</option>
+                            <option value="Jammer Operator">Jammer Operator</option><option value="Technical Staff">Technical Staff</option>
+                            <option value="Centre Head">Centre Head</option><option value="Exam Coordinator">Exam Coordinator</option>
+                        </select></div>
+                        <div class="form-group"><label>City</label><input type="text" name="ef_city" id="editStaffCity"></div>
+                        <div class="form-group"><label>Status</label><select name="status" id="editStaffStatus"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+                    </div>
+                    <div class="form-group"><label>Qualification</label><input type="text" name="ef_qualification" id="editStaffQual"></div>
+                    <div class="form-group"><label>Present Address</label><textarea name="ef_present_address" id="editStaffPresentAddr" rows="2"></textarea></div>
+                    <div class="form-group"><label>Permanent Address</label><textarea name="ef_permanent_address" id="editStaffPermAddr" rows="2"></textarea></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editStaffModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. ADD EXAM MODAL -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -720,94 +498,32 @@
             <form id="addExamForm">
                 <div class="modal-body">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>Examination Name *</label>
-                            <input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV Exam">
-                        </div>
-                        <div class="form-group">
-                            <label>Exam Authority *</label>
-                            <input type="text" name="exam_authority" required placeholder="e.g. Government of Tamil Nadu">
-                        </div>
+                        <div class="form-group"><label>Examination Name *</label><input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV"></div>
+                        <div class="form-group"><label>Exam Authority *</label><input type="text" name="exam_authority" required placeholder="e.g. Government of Tamil Nadu"></div>
                     </div>
-
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>Exam Date From *</label>
-                            <input type="date" name="date_from" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Exam Date To *</label>
-                            <input type="date" name="date_to" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Shift Selection *</label>
-                            <select name="shift_mode" id="shiftModeSelect" required onchange="toggleShiftBlocks()">
-                                <option value="Shift 1">Shift 1</option>
-                                <option value="Shift 2">Shift 2</option>
-                                <option value="Shift 3">Shift 3</option>
-                                <option value="Full Day">Full Day</option>
-                                <option value="Multiple">Multiple Shifts (1, 2, 3)</option>
-                            </select>
-                        </div>
+                        <div class="form-group"><label>Date From *</label><input type="date" name="date_from" required></div>
+                        <div class="form-group"><label>Date To *</label><input type="date" name="date_to" required></div>
+                        <div class="form-group"><label>Shift Selection *</label><select name="shift_mode" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
                     </div>
 
-                    <!-- Shift 1 Details -->
-                    <div class="shift-block" id="blockShift1">
-                        <div class="shift-title">Shift 1 Timings</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                            <div class="form-group">
-                                <label>Candidate Reporting Time</label>
-                                <input type="time" name="s1_reporting_time" value="07:30">
-                            </div>
-                            <div class="form-group">
-                                <label>Exam Start Time</label>
-                                <input type="time" name="s1_start_time" value="09:00">
-                            </div>
-                            <div class="form-group">
-                                <label>Exam End Time</label>
-                                <input type="time" name="s1_end_time" value="11:00">
-                            </div>
-                        </div>
-                    </div>
+                    <div class="shift-block"><div class="shift-title">Shift 1 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Reporting</label><input type="time" name="s1_reporting_time" value="07:30"></div>
+                        <div class="form-group"><label>Start</label><input type="time" name="s1_start_time" value="09:00"></div>
+                        <div class="form-group"><label>End</label><input type="time" name="s1_end_time" value="11:00"></div>
+                    </div></div>
 
-                    <!-- Shift 2 Details -->
-                    <div class="shift-block" id="blockShift2">
-                        <div class="shift-title">Shift 2 Timings</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                            <div class="form-group">
-                                <label>Candidate Reporting Time</label>
-                                <input type="time" name="s2_reporting_time" value="11:30">
-                            </div>
-                            <div class="form-group">
-                                <label>Exam Start Time</label>
-                                <input type="time" name="s2_start_time" value="12:30">
-                            </div>
-                            <div class="form-group">
-                                <label>Exam End Time</label>
-                                <input type="time" name="s2_end_time" value="14:30">
-                            </div>
-                        </div>
-                    </div>
+                    <div class="shift-block"><div class="shift-title">Shift 2 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Reporting</label><input type="time" name="s2_reporting_time" value="11:30"></div>
+                        <div class="form-group"><label>Start</label><input type="time" name="s2_start_time" value="12:30"></div>
+                        <div class="form-group"><label>End</label><input type="time" name="s2_end_time" value="14:30"></div>
+                    </div></div>
 
-                    <!-- Shift 3 Details -->
-                    <div class="shift-block" id="blockShift3">
-                        <div class="shift-title">Shift 3 Timings</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                            <div class="form-group">
-                                <label>Candidate Reporting Time</label>
-                                <input type="time" name="s3_reporting_time" value="15:00">
-                            </div>
-                            <div class="form-group">
-                                <label>Exam Start Time</label>
-                                <input type="time" name="s3_start_time" value="16:00">
-                            </div>
-                            <div class="form-group">
-                                <label>Exam End Time</label>
-                                <input type="time" name="s3_end_time" value="18:00">
-                            </div>
-                        </div>
-                    </div>
-
+                    <div class="shift-block"><div class="shift-title">Shift 3 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Reporting</label><input type="time" name="s3_reporting_time" value="15:00"></div>
+                        <div class="form-group"><label>Start</label><input type="time" name="s3_start_time" value="16:00"></div>
+                        <div class="form-group"><label>End</label><input type="time" name="s3_end_time" value="18:00"></div>
+                    </div></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
@@ -817,7 +533,53 @@
         </div>
     </div>
 
-    <!-- MODAL: ADD CENTRE (Centre Name, City, Optional Full Address, Optional Map Location) -->
+    <!-- 4. EDIT EXAM MODAL -->
+    <div id="editExamModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Examination</h3>
+                <button class="btn btn-outline" onclick="closeModal('editExamModal')">✕</button>
+            </div>
+            <form id="editExamForm">
+                <input type="hidden" name="id" id="editExamId">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Exam Name *</label><input type="text" name="exam_name" id="editExamName" required></div>
+                        <div class="form-group"><label>Exam Authority *</label><input type="text" name="exam_authority" id="editExamAuth" required></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Date From *</label><input type="date" name="date_from" id="editExamDateFrom" required></div>
+                        <div class="form-group"><label>Date To *</label><input type="date" name="date_to" id="editExamDateTo" required></div>
+                        <div class="form-group"><label>Shift Mode *</label><select name="shift_mode" id="editExamShiftMode"><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
+                    </div>
+
+                    <div class="shift-block"><div class="shift-title">Shift 1 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Reporting</label><input type="time" name="s1_reporting_time" id="editExamS1Rep"></div>
+                        <div class="form-group"><label>Start</label><input type="time" name="s1_start_time" id="editExamS1Start"></div>
+                        <div class="form-group"><label>End</label><input type="time" name="s1_end_time" id="editExamS1End"></div>
+                    </div></div>
+
+                    <div class="shift-block"><div class="shift-title">Shift 2 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Reporting</label><input type="time" name="s2_reporting_time" id="editExamS2Rep"></div>
+                        <div class="form-group"><label>Start</label><input type="time" name="s2_start_time" id="editExamS2Start"></div>
+                        <div class="form-group"><label>End</label><input type="time" name="s2_end_time" id="editExamS2End"></div>
+                    </div></div>
+
+                    <div class="shift-block"><div class="shift-title">Shift 3 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Reporting</label><input type="time" name="s3_reporting_time" id="editExamS3Rep"></div>
+                        <div class="form-group"><label>Start</label><input type="time" name="s3_start_time" id="editExamS3Start"></div>
+                        <div class="form-group"><label>End</label><input type="time" name="s3_end_time" id="editExamS3End"></div>
+                    </div></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editExamModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Examination</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. ADD CENTRE MODAL -->
     <div id="addCentreModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
@@ -826,35 +588,16 @@
             </div>
             <form id="addCentreForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Centre Name *</label>
-                        <input type="text" name="centre_name" required placeholder="e.g. ABC College of Engineering">
-                    </div>
-
-                    <div class="form-group">
-                        <label>City *</label>
-                        <select name="city" required>
-                            <option value="Chennai">Chennai</option>
-                            <option value="Trichy">Trichy</option>
-                            <option value="Vellore">Vellore</option>
-                            <option value="Salem">Salem</option>
-                            <option value="Krishnagiri">Krishnagiri</option>
-                            <option value="Coimbatore">Coimbatore</option>
-                            <option value="Madurai">Madurai</option>
-                            <option value="Theni">Theni</option>
-                            <option value="Tirunelveli">Tirunelveli</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Full Address (Optional)</label>
-                        <textarea name="full_address" rows="2" placeholder="Street, landmark, pincode..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Google Maps Location Link / Coordinates (Optional)</label>
-                        <input type="text" name="map_location" placeholder="e.g. https://maps.app.goo.gl/... or 10.7905, 78.7047">
-                    </div>
+                    <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" required placeholder="e.g. ABC Engineering College"></div>
+                    <div class="form-group"><label>City *</label><select name="city" required>
+                        <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
+                        <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
+                        <option value="Krishnagiri">Krishnagiri</option><option value="Coimbatore">Coimbatore</option>
+                        <option value="Madurai">Madurai</option><option value="Theni">Theni</option>
+                        <option value="Tirunelveli">Tirunelveli</option>
+                    </select></div>
+                    <div class="form-group"><label>Full Address (Optional)</label><textarea name="full_address" rows="2" placeholder="Street, area, pincode..."></textarea></div>
+                    <div class="form-group"><label>Google Maps Link (Optional)</label><input type="text" name="map_location" placeholder="https://maps.app.goo.gl/..."></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addCentreModal')">Cancel</button>
@@ -864,7 +607,36 @@
         </div>
     </div>
 
-    <!-- MODAL: DEPLOY STAFF -->
+    <!-- 6. EDIT CENTRE MODAL -->
+    <div id="editCentreModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Edit Examination Centre</h3>
+                <button class="btn btn-outline" onclick="closeModal('editCentreModal')">✕</button>
+            </div>
+            <form id="editCentreForm">
+                <input type="hidden" name="id" id="editCentreId">
+                <div class="modal-body">
+                    <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" id="editCentreName" required></div>
+                    <div class="form-group"><label>City *</label><select name="city" id="editCentreCity" required>
+                        <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
+                        <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
+                        <option value="Krishnagiri">Krishnagiri</option><option value="Coimbatore">Coimbatore</option>
+                        <option value="Madurai">Madurai</option><option value="Theni">Theni</option>
+                        <option value="Tirunelveli">Tirunelveli</option>
+                    </select></div>
+                    <div class="form-group"><label>Full Address</label><textarea name="full_address" id="editCentreAddr" rows="2"></textarea></div>
+                    <div class="form-group"><label>Google Maps Link</label><input type="text" name="map_location" id="editCentreMap"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editCentreModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Centre</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 7. DEPLOY STAFF MODAL -->
     <div id="deployStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -873,74 +645,77 @@
             </div>
             <form id="deployStaffForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Select Examination *</label>
-                        <select name="exam_id" id="deployExamSelect" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Select Centre Venue *</label>
-                        <select name="centre_id" id="deployCentreSelect" required></select>
-                    </div>
-                    <div class="form-group">
-                        <label>Select Staff Member *</label>
-                        <select name="staff_id" id="deployStaffSelect" required></select>
-                    </div>
+                    <div class="form-group"><label>Select Examination *</label><select name="exam_id" id="deployExamSelect" required></select></div>
+                    <div class="form-group"><label>Select Centre Venue *</label><select name="centre_id" id="deployCentreSelect" required></select></div>
+                    <div class="form-group"><label>Select Staff Member *</label><select name="staff_id" id="deployStaffSelect" required></select></div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>Assigned Role *</label>
-                            <select name="assigned_role" required>
-                                <option value="Invigilator">Invigilator</option>
-                                <option value="Registration Staff">Registration Staff</option>
-                                <option value="Support Staff">Support Staff</option>
-                                <option value="Lab Supervisor">Lab Supervisor</option>
-                                <option value="Security">Security</option>
-                                <option value="Technical Staff">Technical Staff</option>
-                                <option value="Centre Head">Centre Head</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Duty Date *</label>
-                            <input type="date" name="duty_date" required id="deployDutyDate">
-                        </div>
-                        <div class="form-group">
-                            <label>Assigned Shift *</label>
-                            <select name="shift" required>
-                                <option value="Shift 1">Shift 1</option>
-                                <option value="Shift 2">Shift 2</option>
-                                <option value="Shift 3">Shift 3</option>
-                                <option value="Full Day">Full Day</option>
-                            </select>
-                        </div>
+                        <div class="form-group"><label>Assigned Role *</label><select name="assigned_role" required>
+                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
+                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
+                            <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
+                            <option value="Centre Head">Centre Head</option>
+                        </select></div>
+                        <div class="form-group"><label>Duty Date *</label><input type="date" name="duty_date" required id="deployDutyDate"></div>
+                        <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('deployStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Confirm Deployment</button>
+                    <button type="submit" class="btn btn-primary">Confirm & Email Deployment</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- JAVASCRIPT CONTROLLER -->
+    <!-- 8. EDIT DEPLOYMENT MODAL -->
+    <div id="editDeployModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Staff Deployment</h3>
+                <button class="btn btn-outline" onclick="closeModal('editDeployModal')">✕</button>
+            </div>
+            <form id="editDeployForm">
+                <input type="hidden" name="id" id="editDeployId">
+                <div class="modal-body">
+                    <div class="form-group"><label>Examination</label><select name="exam_id" id="editDeployExamSelect" required></select></div>
+                    <div class="form-group"><label>Centre Venue</label><select name="centre_id" id="editDeployCentreSelect" required></select></div>
+                    <div class="form-group"><label>Staff</label><select name="staff_id" id="editDeployStaffSelect" required></select></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Role</label><select name="assigned_role" id="editDeployRole">
+                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
+                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
+                            <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
+                            <option value="Centre Head">Centre Head</option>
+                        </select></div>
+                        <div class="form-group"><label>Date</label><input type="date" name="duty_date" id="editDeployDate" required></div>
+                        <div class="form-group"><label>Shift</label><select name="shift" id="editDeployShift"><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editDeployModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Deployment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONTROLLER JAVASCRIPT -->
     <script>
         let CURRENT_USER = null;
         let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
         let USER_ASSIGNMENT = null;
         let currentLoginType = 'STAFF';
+        let currentReportTab = 'attendance';
+        let cachedStaff = [], cachedExams = [], cachedCentres = [], cachedDeployments = [];
         let videoStream = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('liveClock').innerText = new Date().toLocaleDateString('en-GB', {
-                day: 'numeric', month: 'long', year: 'numeric'
-            });
-
+            document.getElementById('liveClock').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
             if (TOKEN) {
                 try {
                     CURRENT_USER = JSON.parse(localStorage.getItem('EMMS_USER'));
                     initSession();
-                } catch (e) {
-                    logout();
-                }
+                } catch (e) { logout(); }
             } else {
                 document.getElementById('authView').style.display = 'flex';
                 document.getElementById('appShell').style.display = 'none';
@@ -957,45 +732,13 @@
             const loginPassword = document.getElementById('loginPassword');
 
             if (type === 'STAFF') {
-                tabStaff.className = 'btn btn-primary';
-                tabAdmin.className = 'btn btn-outline';
-                lblIdentifier.innerText = 'Staff ID';
-                loginIdentifier.placeholder = 'e.g. LSTRI001';
-                lblPassword.innerText = 'Date of Birth (Password)';
-                loginPassword.placeholder = 'DDMMYYYY or YYYY-MM-DD';
+                tabStaff.className = 'btn btn-primary'; tabAdmin.className = 'btn btn-outline';
+                lblIdentifier.innerText = 'Staff ID'; loginIdentifier.placeholder = 'e.g. LSTRI001';
+                lblPassword.innerText = 'Date of Birth (Password)'; loginPassword.placeholder = 'DDMMYYYY or YYYY-MM-DD';
             } else {
-                tabAdmin.className = 'btn btn-primary';
-                tabStaff.className = 'btn btn-outline';
-                lblIdentifier.innerText = 'Admin Email Address';
-                loginIdentifier.placeholder = 'e.g. admin@gmail.com';
-                lblPassword.innerText = 'Admin Password';
-                loginPassword.placeholder = '••••••••';
-            }
-        }
-
-        // Shift selector toggle in Exam modal
-        function toggleShiftBlocks() {
-            const mode = document.getElementById('shiftModeSelect').value;
-            const b1 = document.getElementById('blockShift1');
-            const b2 = document.getElementById('blockShift2');
-            const b3 = document.getElementById('blockShift3');
-
-            if (mode === 'Shift 1' || mode === 'Full Day') {
-                b1.style.display = 'block';
-                b2.style.display = 'none';
-                b3.style.display = 'none';
-            } else if (mode === 'Shift 2') {
-                b1.style.display = 'none';
-                b2.style.display = 'block';
-                b3.style.display = 'none';
-            } else if (mode === 'Shift 3') {
-                b1.style.display = 'none';
-                b2.style.display = 'none';
-                b3.style.display = 'block';
-            } else {
-                b1.style.display = 'block';
-                b2.style.display = 'block';
-                b3.style.display = 'block';
+                tabAdmin.className = 'btn btn-primary'; tabStaff.className = 'btn btn-outline';
+                lblIdentifier.innerText = 'Admin Email Address'; loginIdentifier.placeholder = 'e.g. admin@gmail.com';
+                lblPassword.innerText = 'Admin Password'; loginPassword.placeholder = '••••••••';
             }
         }
 
@@ -1012,15 +755,12 @@
                     body: JSON.stringify({ identifier, password })
                 });
                 const data = await res.json();
-
                 if (!res.ok) {
                     alertBox.innerText = data.error || 'Authentication failed';
                     alertBox.style.display = 'block';
                     return;
                 }
-
-                TOKEN = data.token;
-                CURRENT_USER = data.user;
+                TOKEN = data.token; CURRENT_USER = data.user;
                 localStorage.setItem('EMMS_TOKEN', TOKEN);
                 localStorage.setItem('EMMS_USER', JSON.stringify(CURRENT_USER));
                 initSession();
@@ -1051,18 +791,14 @@
         function logout() {
             localStorage.removeItem('EMMS_TOKEN');
             localStorage.removeItem('EMMS_USER');
-            TOKEN = null;
-            CURRENT_USER = null;
-            if (videoStream) {
-                videoStream.getTracks().forEach(t => t.stop());
-            }
+            TOKEN = null; CURRENT_USER = null;
+            if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); }
             location.reload();
         }
 
         function switchRoute(route) {
             document.querySelectorAll('.page-view').forEach(v => v.style.display = 'none');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-
             const target = document.getElementById(`view-${route}`);
             if (target) target.style.display = 'block';
 
@@ -1073,6 +809,7 @@
             if (route === 'admin-deployments') loadDeploymentsList();
             if (route === 'admin-attendance') loadAttendanceSheets();
             if (route === 'admin-payments') loadPaymentsList();
+            if (route === 'admin-reports') loadReportsData();
             if (route === 'staff-duty') loadStaffAssignment();
         }
 
@@ -1080,17 +817,13 @@
             options.headers = options.headers || {};
             options.headers['Authorization'] = `Bearer ${TOKEN}`;
             const res = await fetch(url, options);
-            if (res.status === 401 || res.status === 403) {
-                logout();
-                return null;
-            }
+            if (res.status === 401 || res.status === 403) { logout(); return null; }
             return res.json();
         }
 
         async function loadAdminDashboard() {
             const data = await api('/api/admin/dashboard');
             if (!data) return;
-
             document.getElementById('dashTotalStaff').innerText = data.totalStaff;
             document.getElementById('dashTodayStaff').innerText = data.todayStaff;
             document.getElementById('dashPresent').innerText = data.present;
@@ -1103,97 +836,120 @@
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">No active exam venues today.</td></tr>`;
                 return;
             }
-
             tbody.innerHTML = data.centreStatus.map(c => {
                 const shortage = (c.assigned || 0) - (c.present || 0);
-                const statusBadge = shortage > 0 
-                    ? `<span class="badge badge-shortage">Shortage (${shortage})</span>`
-                    : `<span class="badge badge-present">Completed</span>`;
-                return `
-                    <tr>
-                        <td><strong>${c.centre_name}</strong></td>
-                        <td>${c.assigned || 0}</td>
-                        <td>${c.present || 0}</td>
-                        <td style="color: ${shortage > 0 ? '#ea580c' : '#16a34a'}; font-weight: 600;">${shortage}</td>
-                        <td>${statusBadge}</td>
-                    </tr>
-                `;
+                const statusBadge = shortage > 0 ? `<span class="badge badge-shortage">Shortage (${shortage})</span>` : `<span class="badge badge-present">Completed</span>`;
+                return `<tr><td><strong>${c.centre_name}</strong></td><td>${c.assigned || 0}</td><td>${c.present || 0}</td><td style="color: ${shortage > 0 ? '#ea580c' : '#16a34a'}; font-weight: 600;">${shortage}</td><td>${statusBadge}</td></tr>`;
             }).join('');
         }
 
+        // STAFF LIST WITH EDIT ACTION
         async function loadStaffList() {
-            const staff = await api('/api/staff');
+            cachedStaff = await api('/api/staff') || [];
             const tbody = document.getElementById('staffTableBody');
-            if (!staff || staff.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No staff registered yet.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = staff.map(s => `
+            if (cachedStaff.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No staff registered yet.</td></tr>`; return; }
+            tbody.innerHTML = cachedStaff.map((s, idx) => `
                 <tr>
                     <td><strong>${s.staff_id}</strong></td>
                     <td>${s.name}</td>
                     <td>${s.role}</td>
                     <td>${s.ef_city}</td>
                     <td>${s.ef_mobile_number || 'N/A'}</td>
-                    <td><code>${s.ef_dob || 'N/A'}</code></td>
                     <td><span class="badge badge-active">${s.status}</span></td>
+                    <td><button class="btn btn-outline btn-sm" onclick="openEditStaff(${idx})">✏️ Edit</button></td>
                 </tr>
             `).join('');
         }
 
-        async function loadExamsList() {
-            const exams = await api('/api/exams');
-            const tbody = document.getElementById('examsTableBody');
-            if (!exams || exams.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = exams.map(e => {
-                let timingSummary = [];
-                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time} (Rep: ${e.s1_reporting_time})`);
-                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time} (Rep: ${e.s2_reporting_time})`);
-                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time} (Rep: ${e.s3_reporting_time})`);
+        function openEditStaff(idx) {
+            const s = cachedStaff[idx];
+            document.getElementById('editStaffId').value = s.id;
+            document.getElementById('editStaffName').value = s.name;
+            document.getElementById('editStaffMobile').value = s.ef_mobile_number || '';
+            document.getElementById('editStaffRole').value = s.role;
+            document.getElementById('editStaffCity').value = s.ef_city || '';
+            document.getElementById('editStaffStatus').value = s.status || 'Active';
+            document.getElementById('editStaffQual').value = s.ef_qualification || '';
+            document.getElementById('editStaffPresentAddr').value = s.ef_present_address || '';
+            document.getElementById('editStaffPermAddr').value = s.ef_permanent_address || '';
+            openModal('editStaffModal');
+        }
 
+        // EXAMS LIST WITH EDIT ACTION
+        async function loadExamsList() {
+            cachedExams = await api('/api/exams') || [];
+            const tbody = document.getElementById('examsTableBody');
+            if (cachedExams.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>`; return; }
+            tbody.innerHTML = cachedExams.map((e, idx) => {
+                let timingSummary = [];
+                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time}`);
+                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time}`);
+                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time}`);
                 return `
                     <tr>
                         <td><strong>${e.exam_name}</strong></td>
                         <td>${e.exam_authority}</td>
                         <td>${e.date_from} to ${e.date_to}</td>
                         <td><span class="badge badge-ready">${e.shift_mode}</span></td>
-                        <td><small>${timingSummary.join('<br>') || 'N/A'}</small></td>
+                        <td><small>${timingSummary.join(' | ') || 'N/A'}</small></td>
+                        <td><button class="btn btn-outline btn-sm" onclick="openEditExam(${idx})">✏️ Edit</button></td>
                     </tr>
                 `;
             }).join('');
         }
 
+        function openEditExam(idx) {
+            const e = cachedExams[idx];
+            document.getElementById('editExamId').value = e.id;
+            document.getElementById('editExamName').value = e.exam_name;
+            document.getElementById('editExamAuth').value = e.exam_authority;
+            document.getElementById('editExamDateFrom').value = e.date_from;
+            document.getElementById('editExamDateTo').value = e.date_to;
+            document.getElementById('editExamShiftMode').value = e.shift_mode;
+            document.getElementById('editExamS1Rep').value = e.s1_reporting_time || '';
+            document.getElementById('editExamS1Start').value = e.s1_start_time || '';
+            document.getElementById('editExamS1End').value = e.s1_end_time || '';
+            document.getElementById('editExamS2Rep').value = e.s2_reporting_time || '';
+            document.getElementById('editExamS2Start').value = e.s2_start_time || '';
+            document.getElementById('editExamS2End').value = e.s2_end_time || '';
+            document.getElementById('editExamS3Rep').value = e.s3_reporting_time || '';
+            document.getElementById('editExamS3Start').value = e.s3_start_time || '';
+            document.getElementById('editExamS3End').value = e.s3_end_time || '';
+            openModal('editExamModal');
+        }
+
+        // CENTRES LIST WITH EDIT ACTION
         async function loadCentresList() {
-            const centres = await api('/api/centres');
+            cachedCentres = await api('/api/centres') || [];
             const tbody = document.getElementById('centresTableBody');
-            if (!centres || centres.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No centres registered.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = centres.map(c => `
+            if (cachedCentres.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No centres registered.</td></tr>`; return; }
+            tbody.innerHTML = cachedCentres.map((c, idx) => `
                 <tr>
                     <td><strong>${c.centre_name}</strong></td>
                     <td>${c.city}</td>
                     <td>${c.full_address || '<span style="color:#94a3b8;">Not specified</span>'}</td>
-                    <td>
-                        ${c.map_location ? `<a href="${c.map_location}" target="_blank" class="btn btn-outline" style="padding: 2px 8px; font-size:11px;">View Map</a>` : '<span style="color:#94a3b8;">Not added</span>'}
-                    </td>
-                    <td><span class="badge badge-ready">${c.status}</span></td>
+                    <td>${c.map_location ? `<a href="${c.map_location}" target="_blank" style="color:#2563eb;">View Map</a>` : '<span style="color:#94a3b8;">Not added</span>'}</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="openEditCentre(${idx})">✏️ Edit</button></td>
                 </tr>
             `).join('');
         }
 
+        function openEditCentre(idx) {
+            const c = cachedCentres[idx];
+            document.getElementById('editCentreId').value = c.id;
+            document.getElementById('editCentreName').value = c.centre_name;
+            document.getElementById('editCentreCity').value = c.city;
+            document.getElementById('editCentreAddr').value = c.full_address || '';
+            document.getElementById('editCentreMap').value = c.map_location || '';
+            openModal('editCentreModal');
+        }
+
+        // DEPLOYMENTS WITH EDIT ACTION
         async function loadDeploymentsList() {
-            const deployments = await api('/api/deployments');
+            cachedDeployments = await api('/api/deployments') || [];
             const tbody = document.getElementById('deploymentsTableBody');
-            if (!deployments || deployments.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No deployments recorded.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = deployments.map(d => `
+            if (cachedDeployments.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No deployments recorded.</td></tr>`; return; }
+            tbody.innerHTML = cachedDeployments.map((d, idx) => `
                 <tr>
                     <td><strong>${d.staff_id}</strong></td>
                     <td>${d.staff_name}</td>
@@ -1202,25 +958,107 @@
                     <td><span class="badge badge-ready">${d.shift}</span></td>
                     <td>${d.centre_name} (${d.city})</td>
                     <td>${d.duty_date}</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="openEditDeployment(${idx})">✏️ Edit</button></td>
                 </tr>
             `).join('');
         }
 
-        async function openDeployModal() {
+        async function openEditDeployment(idx) {
+            const d = cachedDeployments[idx];
             const [exams, centres, staff] = await Promise.all([
-                api('/api/exams'),
-                api('/api/centres'),
-                api('/api/staff')
+                api('/api/exams'), api('/api/centres'), api('/api/staff')
             ]);
 
-            const examSelect = document.getElementById('deployExamSelect');
-            const centreSelect = document.getElementById('deployCentreSelect');
-            const staffSelect = document.getElementById('deployStaffSelect');
+            document.getElementById('editDeployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}" ${e.id === d.exam_id ? 'selected' : ''}>${e.exam_name}</option>`).join('');
+            document.getElementById('editDeployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}" ${c.id === d.centre_id ? 'selected' : ''}>${c.centre_name} (${c.city})</option>`).join('');
+            document.getElementById('editDeployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}" ${s.id === d.staff_id ? 'selected' : ''}>${s.staff_id} - ${s.name}</option>`).join('');
 
-            examSelect.innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name} (${e.date_from} to ${e.date_to})</option>`).join('');
-            centreSelect.innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
-            staffSelect.innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
+            document.getElementById('editDeployId').value = d.id;
+            document.getElementById('editDeployRole').value = d.assigned_role;
+            document.getElementById('editDeployDate').value = d.duty_date;
+            document.getElementById('editDeployShift').value = d.shift;
+            openModal('editDeployModal');
+        }
 
+        // REPORTS CONTROLLER
+        function switchReportTab(tab) {
+            currentReportTab = tab;
+            const btnAtt = document.getElementById('repBtnAtt');
+            const btnPay = document.getElementById('repBtnPay');
+            const cardAtt = document.getElementById('repAttendanceCard');
+            const cardPay = document.getElementById('repPaymentCard');
+
+            if (tab === 'attendance') {
+                btnAtt.className = 'btn btn-primary'; btnPay.className = 'btn btn-outline';
+                cardAtt.style.display = 'block'; cardPay.style.display = 'none';
+            } else {
+                btnPay.className = 'btn btn-primary'; btnAtt.className = 'btn btn-outline';
+                cardPay.style.display = 'block'; cardAtt.style.display = 'none';
+            }
+        }
+
+        async function loadReportsData() {
+            const [attData, payData] = await Promise.all([
+                api('/api/admin/reports/attendance'),
+                api('/api/admin/reports/payments')
+            ]);
+
+            // Fill Attendance Report
+            const attTbody = document.getElementById('repAttendanceTbody');
+            attTbody.innerHTML = (attData && attData.length > 0) ? attData.map(a => `
+                <tr>
+                    <td><strong>${a.staff_id}</strong></td>
+                    <td>${a.staff_name}</td>
+                    <td>${a.exam_name}</td>
+                    <td>${a.centre_name}</td>
+                    <td>${a.duty_date}</td>
+                    <td>${a.punch_in_time || '--'}</td>
+                    <td>${a.punch_out_time || '--'}</td>
+                    <td>${a.working_hours || '--'}</td>
+                    <td><span class="badge badge-${(a.sheet_verification_status || 'pending').toLowerCase()}">${a.sheet_verification_status}</span></td>
+                </tr>
+            `).join('') : `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No attendance data.</td></tr>`;
+
+            // Fill Payment Report
+            const payTbody = document.getElementById('repPaymentTbody');
+            payTbody.innerHTML = (payData && payData.length > 0) ? payData.map(p => `
+                <tr>
+                    <td><strong>${p.staff_id}</strong></td>
+                    <td>${p.staff_name}</td>
+                    <td>${p.role}</td>
+                    <td>${p.duty_date}</td>
+                    <td>₹${p.duty_amount}</td>
+                    <td>₹${p.travel_allowance}</td>
+                    <td><strong>₹${p.total_payable.toLocaleString()}</strong></td>
+                    <td><span class="badge badge-${p.payment_status.toLowerCase()}">${p.payment_status}</span></td>
+                    <td><code>${p.reference_no || 'Pending'}</code></td>
+                </tr>
+            `).join('') : `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No payment records.</td></tr>`;
+        }
+
+        async function downloadCSVReport() {
+            const data = await api(`/api/admin/reports/${currentReportTab}`);
+            if (!data || data.length === 0) { alert('No data available to export.'); return; }
+            const keys = Object.keys(data[0]);
+            let csv = keys.join(',') + '\n';
+            data.forEach(row => {
+                csv += keys.map(k => `"${(row[k] || '').toString().replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `EMMS_${currentReportTab}_Report_${Date.now()}.csv`);
+            a.click();
+        }
+
+        async function openDeployModal() {
+            const [exams, centres, staff] = await Promise.all([
+                api('/api/exams'), api('/api/centres'), api('/api/staff')
+            ]);
+            document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name} (${e.date_from} to ${e.date_to})</option>`).join('');
+            document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
+            document.getElementById('deployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
             document.getElementById('deployDutyDate').value = new Date().toISOString().split('T')[0];
             openModal('deployStaffModal');
         }
@@ -1228,10 +1066,7 @@
         async function loadAttendanceSheets() {
             const sheets = await api('/api/admin/attendance-sheets');
             const tbody = document.getElementById('attendanceVerificationTableBody');
-            if (!sheets || sheets.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No sheets submitted yet.</td></tr>`;
-                return;
-            }
+            if (!sheets || sheets.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No attendance sheets submitted yet.</td></tr>`; return; }
             tbody.innerHTML = sheets.map(s => `
                 <tr>
                     <td><strong>${s.staff_id}</strong></td>
@@ -1239,36 +1074,25 @@
                     <td>${s.role}</td>
                     <td>${s.punch_in_time || '--'}</td>
                     <td>${s.punch_out_time || '--'}</td>
-                    <td>
-                        ${s.sheet_file ? `<a href="${s.sheet_file}" target="_blank" class="btn btn-outline" style="padding: 2px 8px; font-size:11px;">View Sheet</a>` : 'Not Uploaded'}
-                    </td>
+                    <td>${s.sheet_file ? `<a href="${s.sheet_file}" target="_blank" class="btn btn-outline btn-sm">View Sheet</a>` : 'Not Uploaded'}</td>
                     <td><span class="badge badge-${(s.sheet_verification_status || 'pending').toLowerCase()}">${s.sheet_verification_status}</span></td>
-                    <td>
-                        ${s.sheet_verification_status === 'Submitted' ? `
-                            <button class="btn btn-success" style="padding: 3px 8px; font-size: 11px;" onclick="verifySheet(${s.id}, 'Approved')">Approve</button>
-                            <button class="btn btn-danger" style="padding: 3px 8px; font-size: 11px;" onclick="verifySheet(${s.id}, 'Rejected')">Reject</button>
-                        ` : 'Verified'}
-                    </td>
+                    <td>${s.sheet_verification_status === 'Submitted' ? `
+                        <button class="btn btn-success btn-sm" onclick="verifySheet(${s.id}, 'Approved')">Approve</button>
+                        <button class="btn btn-danger btn-sm" onclick="verifySheet(${s.id}, 'Rejected')">Reject</button>
+                    ` : 'Verified'}</td>
                 </tr>
             `).join('');
         }
 
         async function verifySheet(id, status) {
-            await api('/api/admin/verify-sheet', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ attendance_id: id, status })
-            });
+            await api('/api/admin/verify-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance_id: id, status }) });
             loadAttendanceSheets();
         }
 
         async function loadPaymentsList() {
             const payments = await api('/api/admin/payments');
             const tbody = document.getElementById('paymentsTableBody');
-            if (!payments || payments.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No payment records.</td></tr>`;
-                return;
-            }
+            if (!payments || payments.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No payment records.</td></tr>`; return; }
             tbody.innerHTML = payments.map(p => `
                 <tr>
                     <td><strong>${p.staff_id}</strong></td>
@@ -1277,109 +1101,111 @@
                     <td>${p.duty_date}</td>
                     <td><strong>₹${(p.total_payable || 0).toLocaleString()}</strong></td>
                     <td><span class="badge badge-${(p.payment_status || 'pending').toLowerCase()}">${p.payment_status}</span></td>
-                    <td>
-                        ${p.payment_status === 'Pending' ? `
-                            <button class="btn btn-success" style="padding: 3px 8px; font-size: 11px;" onclick="updatePaymentStatus(${p.id}, 'Approved')">Approve</button>
-                        ` : p.payment_status === 'Approved' ? `
-                            <button class="btn btn-primary" style="padding: 3px 8px; font-size: 11px;" onclick="updatePaymentStatus(${p.id}, 'Paid')">Mark Paid</button>
-                        ` : 'Completed'}
-                    </td>
+                    <td>${p.payment_status === 'Pending' ? `
+                        <button class="btn btn-success btn-sm" onclick="updatePaymentStatus(${p.id}, 'Approved')">Approve</button>
+                    ` : p.payment_status === 'Approved' ? `
+                        <button class="btn btn-primary btn-sm" onclick="updatePaymentStatus(${p.id}, 'Paid')">Mark Paid</button>
+                    ` : 'Completed'}</td>
                 </tr>
             `).join('');
         }
 
         async function updatePaymentStatus(payment_id, status) {
-            await api('/api/admin/update-payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ payment_id, status })
-            });
+            await api('/api/admin/update-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_id, status }) });
             loadPaymentsList();
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // Form Submissions
+        // ================= FORM SUBMISSION HANDLERS =================
         document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
-
-            const res = await api('/api/staff', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
+            const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.staff_id) {
-                alert(`Staff registered!\nAssigned Staff ID: ${res.staff_id}\nPassword (DOB): ${payload.ef_dob}`);
-                closeModal('addStaffModal');
-                e.target.reset();
-                loadStaffList();
-            } else if (res && res.error) {
-                alert(res.error);
+                alert(`Staff registered!\nAssigned Staff ID: ${res.staff_id}\nCredentials sent to registered email!`);
+                closeModal('addStaffModal'); e.target.reset(); loadStaffList();
+            } else if (res && res.error) alert(res.error);
+        });
+
+        document.getElementById('editStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api(`/api/staff/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && !res.error) {
+                alert('Staff details updated successfully!');
+                closeModal('editStaffModal'); loadStaffList();
             }
         });
 
         document.getElementById('addExamForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/exams', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const res = await api('/api/exams', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
-                alert('Exam scheduled successfully with shift timings!');
-                closeModal('addExamModal');
-                e.target.reset();
-                loadExamsList();
+                alert('Exam scheduled successfully!');
+                closeModal('addExamModal'); e.target.reset(); loadExamsList();
+            }
+        });
+
+        document.getElementById('editExamForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api(`/api/exams/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && !res.error) {
+                alert('Examination schedule updated successfully!');
+                closeModal('editExamModal'); loadExamsList();
             }
         });
 
         document.getElementById('addCentreForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/centres', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const res = await api('/api/centres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
                 alert('Centre venue saved successfully!');
-                closeModal('addCentreModal');
-                e.target.reset();
-                loadCentresList();
+                closeModal('addCentreModal'); e.target.reset(); loadCentresList();
+            }
+        });
+
+        document.getElementById('editCentreForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api(`/api/centres/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && !res.error) {
+                alert('Centre venue updated successfully!');
+                closeModal('editCentreModal'); loadCentresList();
             }
         });
 
         document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/deployments', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
-                alert('Staff deployment saved!');
-                closeModal('deployStaffModal');
-                loadDeploymentsList();
+                alert('Staff deployment saved & assignment order emailed!');
+                closeModal('deployStaffModal'); loadDeploymentsList();
             }
         });
 
-        // Staff Assignment Viewer
+        document.getElementById('editDeployForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api(`/api/deployments/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && !res.error) {
+                alert('Deployment order updated successfully!');
+                closeModal('editDeployModal'); loadDeploymentsList();
+            }
+        });
+
+        // STAFF ASSIGNMENT VIEWER
         async function loadStaffAssignment() {
             const duty = await api('/api/staff/my-assignment');
             USER_ASSIGNMENT = duty;
             const container = document.getElementById('dutyDetailsContainer');
+            if (!duty) { container.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty assigned to you for today.</div>`; return; }
 
-            if (!duty) {
-                container.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty assigned to you for today.</div>`;
-                return;
-            }
-
-            // Determine shift timing based on duty.shift
             let reporting = '07:30';
             let examTime = '09:00 - 11:00';
             if (duty.shift === 'Shift 2') {
@@ -1397,13 +1223,12 @@
                 <div class="card" style="padding: 24px;">
                     <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${duty.exam_name}</h2>
                     <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
-                        Venue: <strong>${duty.centre_name} (${duty.city})</strong> | 
-                        Assigned Shift: <strong>${duty.shift}</strong>
-                        ${duty.map_location ? ` | <a href="${duty.map_location}" target="_blank" style="color:#2563eb;">View on Maps</a>` : ''}
+                        Venue: <strong>${duty.centre_name} (${duty.city})</strong> | Assigned Shift: <strong>${duty.shift}</strong>
+                        ${duty.map_location ? ` | <a href="${duty.map_location}" target="_blank" style="color:#2563eb;">View Maps</a>` : ''}
                     </p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
                         <div><label>Assigned Role</label><p><strong>${duty.assigned_role}</strong></p></div>
-                        <div><label>Candidate Reporting Time</label><p><strong>${reporting}</strong></p></div>
+                        <div><label>Candidate Reporting</label><p><strong>${reporting}</strong></p></div>
                         <div><label>Exam Timing</label><p><strong>${examTime}</strong></p></div>
                         <div><label>Duty Remuneration</label><p><strong>₹${((duty.duty_amount || 0) + (duty.travel_allowance || 0) + (duty.other_allowance || 0)).toLocaleString()}</strong></p></div>
                     </div>
@@ -1422,21 +1247,14 @@
                 if (!video) return;
                 videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
                 video.srcObject = videoStream;
-            } catch (e) {
-                console.warn('Camera inaccessible');
-            }
+            } catch (e) { console.warn('Camera inaccessible'); }
         }
 
         async function executePunch(type) {
-            if (!USER_ASSIGNMENT) {
-                alert('No active assignment for today');
-                return;
-            }
-
+            if (!USER_ASSIGNMENT) { alert('No active assignment for today'); return; }
             const video = document.getElementById('webcam');
             const canvas = document.getElementById('snapshotCanvas');
-            canvas.width = 640;
-            canvas.height = 480;
+            canvas.width = 640; canvas.height = 480;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, 640, 480);
             const photoBase64 = canvas.toDataURL('image/jpeg');
@@ -1445,10 +1263,7 @@
             const res = await api(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    deployment_id: USER_ASSIGNMENT.deployment_id,
-                    photo_base64: photoBase64
-                })
+                body: JSON.stringify({ deployment_id: USER_ASSIGNMENT.deployment_id, photo_base64: photoBase64 })
             });
 
             const msg = document.getElementById('punchMessage');
@@ -1464,23 +1279,14 @@
 
         function showSelectedFileName(input) {
             const notice = document.getElementById('selectedFileNotice');
-            if (input.files && input.files[0]) {
-                notice.innerText = `Selected: ${input.files[0].name}`;
-            }
+            if (input.files && input.files[0]) { notice.innerText = `Selected: ${input.files[0].name}`; }
         }
 
         document.getElementById('sheetUploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!USER_ASSIGNMENT) {
-                alert('No duty assignment found');
-                return;
-            }
-
+            if (!USER_ASSIGNMENT) { alert('No duty assignment found'); return; }
             const fileInput = document.getElementById('sheetFileInput');
-            if (!fileInput.files[0]) {
-                alert('Please attach the attendance sheet first');
-                return;
-            }
+            if (!fileInput.files[0]) { alert('Please attach the attendance sheet first'); return; }
 
             const formData = new FormData();
             formData.append('deployment_id', USER_ASSIGNMENT.deployment_id);
@@ -1493,13 +1299,10 @@
                 body: formData
             });
             const data = await res.json();
-
             if (res.ok) {
                 alert('Attendance sheet submitted for Admin verification!');
                 switchRoute('staff-duty');
-            } else {
-                alert(data.error || 'Upload error');
-            }
+            } else { alert(data.error || 'Upload error'); }
         });
     </script>
 </body>
