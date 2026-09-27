@@ -7,93 +7,28 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_GOVT_SECURE_TOKEN_2026';
 const GOOGLE_SHEET_WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
 
-// Email Transporter (Gmail / SMTP)
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.SMTP_EMAIL || process.env.ADMIN_EMAIL,
-        pass: process.env.SMTP_PASSWORD // Google App Password (16 characters)
+// HTTPS Webhook Dispatcher (Bypasses Render's SMTP port blocks completely)
+async function dispatchGoogleWebhook(payload) {
+    if (!GOOGLE_SHEET_WEBHOOK_URL) {
+        console.warn('GOOGLE_SHEET_WEBHOOK_URL is not set.');
+        return;
     }
-});
-
-// Helper to send registration email
-async function sendWelcomeEmail(toEmail, staffName, staffId, dobPassword) {
-    if (!process.env.SMTP_PASSWORD) return;
-    const mailOptions = {
-        from: `"Exam Manpower Administration" <${process.env.SMTP_EMAIL || process.env.ADMIN_EMAIL}>`,
-        to: toEmail,
-        subject: 'Official Examination Staff Portal Credentials',
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
-                <div style="background: #0f2a59; color: white; padding: 15px; border-radius: 6px; text-align: center;">
-                    <h2 style="margin: 0;">EXAM MANPOWER MANAGEMENT SYSTEM</h2>
-                    <p style="margin: 5px 0 0 0; font-size: 13px;">Government Examination Staff Portal</p>
-                </div>
-                <div style="padding: 20px 0;">
-                    <p>Dear <strong>${staffName}</strong>,</p>
-                    <p>You have been successfully registered into the Examination Staff database. Here are your credentials to log in to the staff portal:</p>
-                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px; margin: 15px 0;">
-                        <p style="margin: 5px 0;"><strong>Staff ID (Username):</strong> <code style="font-size: 15px; color: #1e40af;">${staffId}</code></p>
-                        <p style="margin: 5px 0;"><strong>Password (DOB):</strong> <code>${dobPassword}</code></p>
-                    </div>
-                    <p>Please use these credentials to log in, view examination duty assignments, record photo attendance, and submit attendance sheets.</p>
-                </div>
-                <div style="border-top: 1px solid #e2e8f0; padding-top: 10px; font-size: 11px; color: #64748b;">
-                    This is an automated notification. Please do not reply to this email.
-                </div>
-            </div>
-        `
-    };
     try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Welcome email sent to: ${toEmail}`);
+        const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.text();
+        console.log('Webhook dispatched successfully:', result);
     } catch (err) {
-        console.error('Email error:', err.message);
-    }
-}
-
-// Helper to send assignment email
-async function sendAssignmentEmail(toEmail, staffName, details) {
-    if (!process.env.SMTP_PASSWORD) return;
-    const mailOptions = {
-        from: `"Exam Manpower Administration" <${process.env.SMTP_EMAIL || process.env.ADMIN_EMAIL}>`,
-        to: toEmail,
-        subject: `Duty Assignment Notification: ${details.exam_name}`,
-        html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px;">
-                <div style="background: #0f2a59; color: white; padding: 15px; border-radius: 6px; text-align: center;">
-                    <h2 style="margin: 0;">EXAMINATION DUTY ASSIGNMENT</h2>
-                    <p style="margin: 5px 0 0 0; font-size: 13px;">Official Deployment Order</p>
-                </div>
-                <div style="padding: 20px 0;">
-                    <p>Dear <strong>${staffName}</strong>,</p>
-                    <p>You have been assigned to examination duty. Please find the venue and timing details below:</p>
-                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px; margin: 15px 0;">
-                        <p style="margin: 6px 0;"><strong>Examination:</strong> ${details.exam_name}</p>
-                        <p style="margin: 6px 0;"><strong>Assigned Role:</strong> ${details.assigned_role}</p>
-                        <p style="margin: 6px 0;"><strong>Duty Date:</strong> ${details.duty_date}</p>
-                        <p style="margin: 6px 0;"><strong>Assigned Shift:</strong> ${details.shift}</p>
-                        <p style="margin: 6px 0;"><strong>Centre Venue:</strong> ${details.centre_name} (${details.city})</p>
-                        ${details.full_address ? `<p style="margin: 6px 0;"><strong>Address:</strong> ${details.full_address}</p>` : ''}
-                        ${details.map_location ? `<p style="margin: 6px 0;"><strong>Map Location:</strong> <a href="${details.map_location}" target="_blank">Open in Google Maps</a></p>` : ''}
-                    </div>
-                    <p style="color: #dc2626; font-size: 13px;"><strong>Notice:</strong> Please arrive at the centre strictly according to reporting time and complete your photo punch-in.</p>
-                </div>
-            </div>
-        `
-    };
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`Assignment email sent to: ${toEmail}`);
-    } catch (err) {
-        console.error('Assignment Email error:', err.message);
+        console.error('Webhook dispatch error:', err.message);
     }
 }
 
@@ -122,7 +57,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
     else console.log('Database connected.');
 });
 
-// Database Schema
+// Setup Database Tables
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -229,7 +164,7 @@ db.serialize(() => {
         FOREIGN KEY(staff_id) REFERENCES users(id)
     )`);
 
-    // Master Admin Auto-Setup
+    // Master Admin Setup
     const adminEmail = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
 
@@ -269,19 +204,6 @@ function generateStaffId(role, city, callback) {
         const formattedId = `${rolePrefix}${cityCode}${String(nextNum).padStart(3, '0')}`;
         callback(formattedId);
     });
-}
-
-async function syncToGoogleSheet(data) {
-    if (!GOOGLE_SHEET_WEBHOOK_URL) return;
-    try {
-        await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-    } catch (err) {
-        console.error('Google Sheet Sync Error:', err.message);
-    }
 }
 
 const authenticateToken = (req, res, next) => {
@@ -393,7 +315,7 @@ app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     });
 });
 
-// 3. Staff CRUD
+// 3. Staff CRUD (Syncs to Google Sheet & sends credentials email via Google MailApp)
 app.get('/api/staff', authenticateToken, (req, res) => {
     db.all("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -434,11 +356,8 @@ app.post('/api/staff', authenticateToken, (req, res) => {
                     return res.status(500).json({ error: err.message });
                 }
 
-                // 1. Send Login Credentials Email
-                sendWelcomeEmail(officialEmail, fullName, assignedStaffId, ef_dob);
-
-                // 2. Sync to Google Sheet Webhook
-                syncToGoogleSheet({
+                // Dispatch via Google Webhook (Appends to Sheet + Sends Credentials Email)
+                dispatchGoogleWebhook({
                     staff_id: assignedStaffId, role, email: officialEmail,
                     venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
                     ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
@@ -452,11 +371,7 @@ app.post('/api/staff', authenticateToken, (req, res) => {
 });
 
 app.put('/api/staff/:id', authenticateToken, (req, res) => {
-    const {
-        name, role, ef_city, ef_mobile_number, ef_qualification,
-        ef_present_address, ef_permanent_address, status
-    } = req.body;
-
+    const { name, role, ef_city, ef_mobile_number, ef_qualification, ef_present_address, ef_permanent_address, status } = req.body;
     const sql = `UPDATE users SET name = ?, role = ?, ef_city = ?, ef_mobile_number = ?,
                  ef_qualification = ?, ef_present_address = ?, ef_permanent_address = ?, status = ?
                  WHERE id = ? AND user_type = 'STAFF'`;
@@ -553,7 +468,7 @@ app.put('/api/centres/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 6. Deployments CRUD
+// 6. Deployments CRUD (Dispatches assignment order email via Google MailApp)
 app.get('/api/deployments', authenticateToken, (req, res) => {
     const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.email as staff_email,
                         e.exam_name, c.centre_name, c.city, c.full_address, c.map_location
@@ -575,15 +490,18 @@ app.post('/api/deployments', authenticateToken, (req, res) => {
     db.run(sql, [exam_id, centre_id, staff_id, assigned_role, duty_date, shift], function (err) {
         if (err) return res.status(400).json({ error: err.message });
 
-        // Retrieve deployment details and email the assigned staff member
+        // Retrieve venue details and dispatch Assignment Email via Google Webhook
         const queryDetails = `
-            SELECT u.name, u.email, e.exam_name, c.centre_name, c.city, c.full_address, c.map_location
+            SELECT u.name as staff_name, u.email as staff_email, e.exam_name, c.centre_name, c.city, c.full_address, c.map_location
             FROM users u, exams e, centres c
             WHERE u.id = ? AND e.id = ? AND c.id = ?
         `;
         db.get(queryDetails, [staff_id, exam_id, centre_id], (err, row) => {
-            if (row && row.email) {
-                sendAssignmentEmail(row.email, row.name, {
+            if (row && row.staff_email) {
+                dispatchGoogleWebhook({
+                    action: 'SEND_ASSIGNMENT_EMAIL',
+                    to_email: row.staff_email,
+                    staff_name: row.staff_name,
                     exam_name: row.exam_name,
                     assigned_role,
                     duty_date,
