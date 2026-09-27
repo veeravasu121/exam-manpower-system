@@ -33,7 +33,6 @@
             font-size: 14px;
         }
 
-        /* Auth */
         .auth-wrapper {
             min-height: 100vh;
             display: flex;
@@ -74,7 +73,6 @@
             padding: 28px;
         }
 
-        /* Layout */
         .app-container {
             display: flex;
             min-height: 100vh;
@@ -156,7 +154,6 @@
             overflow-y: auto;
         }
 
-        /* Stats */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -184,7 +181,6 @@
             margin-top: 6px;
         }
 
-        /* Tables & Cards */
         .card {
             background: #fff;
             border: 1px solid var(--border);
@@ -222,7 +218,6 @@
             text-transform: uppercase;
         }
 
-        /* Badges */
         .badge {
             padding: 3px 8px;
             border-radius: 4px;
@@ -251,7 +246,6 @@
             color: #c2410c;
         }
 
-        /* Inputs & Buttons */
         .form-group {
             margin-bottom: 14px;
         }
@@ -290,7 +284,6 @@
         .btn-danger { background: var(--danger); color: #fff; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
 
-        /* Modals */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -305,7 +298,7 @@
         .modal-content {
             background: #fff;
             border-radius: 8px;
-            max-width: 800px;
+            max-width: 850px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
@@ -329,7 +322,21 @@
             gap: 8px;
         }
 
-        /* Camera Box */
+        .shift-block {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .shift-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
         .camera-box {
             background: #000;
             width: 100%;
@@ -348,7 +355,7 @@
 </head>
 <body>
 
-    <!-- 1. LOGIN INTERFACE -->
+    <!-- 1. DUAL LOGIN VIEW -->
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
@@ -378,7 +385,7 @@
         </div>
     </div>
 
-    <!-- 2. MAIN APPLICATION -->
+    <!-- 2. MAIN APP SHELL -->
     <div id="appShell" class="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -386,7 +393,6 @@
                 <span>Government Examination Staff Portal</span>
             </div>
 
-            <!-- Admin Sidebar Menu -->
             <div id="adminNav" class="sidebar-nav">
                 <div class="nav-category">Main</div>
                 <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Dashboard</a>
@@ -405,7 +411,6 @@
                 <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Payment Approvals</a>
             </div>
 
-            <!-- Staff Sidebar Menu -->
             <div id="staffNav" class="sidebar-nav" style="display: none;">
                 <div class="nav-category">Staff Portal</div>
                 <a class="nav-link active" onclick="switchRoute('staff-duty')">📋 Today's Duty</a>
@@ -429,253 +434,161 @@
 
             <section class="content-area">
 
-                <!-- ADMIN: DASHBOARD -->
+                <!-- DASHBOARD -->
                 <div id="view-admin-dashboard" class="page-view">
-                    <h1 class="page-title" style="font-size: 20px; font-weight: 700;">Good Morning, Admin</h1>
+                    <h1 style="font-size: 20px; font-weight: 700;">Good Morning, Admin</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Manage examination manpower, attendance and payments from one place.</p>
 
                     <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Total Staff</div>
-                            <div class="stat-value" id="dashTotalStaff">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Today's Staff</div>
-                            <div class="stat-value" id="dashTodayStaff">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Present</div>
-                            <div class="stat-value" style="color: #16a34a;" id="dashPresent">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Absent</div>
-                            <div class="stat-value" style="color: #dc2626;" id="dashAbsent">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Punch Out Pending</div>
-                            <div class="stat-value" style="color: #d97706;" id="dashPunchOutPending">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Payment Pending</div>
-                            <div class="stat-value" style="color: #2563eb;" id="dashPaymentPending">₹0</div>
-                        </div>
+                        <div class="stat-card"><div class="stat-label">Total Staff</div><div class="stat-value" id="dashTotalStaff">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Today's Staff</div><div class="stat-value" id="dashTodayStaff">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Present</div><div class="stat-value" style="color: #16a34a;" id="dashPresent">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Absent</div><div class="stat-value" style="color: #dc2626;" id="dashAbsent">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Punch Out Pending</div><div class="stat-value" style="color: #d97706;" id="dashPunchOutPending">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Payment Pending</div><div class="stat-value" style="color: #2563eb;" id="dashPaymentPending">₹0</div></div>
                     </div>
 
                     <div class="card">
-                        <div class="card-header">
-                            <strong>Centre Manpower Status</strong>
-                        </div>
+                        <div class="card-header"><strong>Centre Manpower Status</strong></div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Centre</th>
-                                        <th>Required / Assigned</th>
-                                        <th>Present</th>
-                                        <th>Shortage</th>
-                                        <th>Status</th>
-                                    </tr>
+                                    <tr><th>Centre</th><th>Required / Assigned</th><th>Present</th><th>Shortage</th><th>Status</th></tr>
                                 </thead>
                                 <tbody id="centreStatusTableBody">
-                                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">No examination venues active today.</td></tr>
+                                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">No venues active today.</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADMIN: ALL STAFF -->
+                <!-- ALL STAFF -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Staff Management</h1>
-                            <p style="color: #64748b;">Registered staff directory synced with Google Sheets.</p>
+                            <p style="color: #64748b;">Registered staff directory synced directly with your Google Sheet.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Add Staff</button>
+                        <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Register Staff</button>
                     </div>
-
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Staff ID</th>
-                                        <th>Name</th>
-                                        <th>Role</th>
-                                        <th>City</th>
-                                        <th>Mobile</th>
-                                        <th>DOB (Password)</th>
-                                        <th>Status</th>
-                                    </tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>City</th><th>Mobile</th><th>DOB (Password)</th><th>Status</th></tr>
                                 </thead>
-                                <tbody id="staffTableBody">
-                                    <tr><td colspan="7" style="text-align: center; color: #94a3b8;">No staff members registered. Click "+ Add Staff".</td></tr>
-                                </tbody>
+                                <tbody id="staffTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No staff registered yet.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADMIN: EXAMS -->
+                <!-- EXAMS -->
                 <div id="view-admin-exams" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Examinations</h1>
-                            <p style="color: #64748b;">Manage upcoming institutional & recruitment exams.</p>
+                            <p style="color: #64748b;">Schedule multi-day examinations and custom shift timings.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Create Examination</button>
                     </div>
-
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Exam Name</th>
-                                        <th>Authority</th>
-                                        <th>Date</th>
-                                        <th>Shift</th>
-                                        <th>Reporting Time</th>
-                                        <th>Exam Hours</th>
-                                    </tr>
+                                    <tr><th>Exam Name</th><th>Authority</th><th>Date Range</th><th>Shift Mode</th><th>Shift Timings</th></tr>
                                 </thead>
-                                <tbody id="examsTableBody">
-                                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">No exams scheduled.</td></tr>
-                                </tbody>
+                                <tbody id="examsTableBody"><tr><td colspan="5" style="text-align: center; color: #94a3b8;">No exams scheduled.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADMIN: CENTRES -->
+                <!-- CENTRES -->
                 <div id="view-admin-centres" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Examination Centres</h1>
-                            <p style="color: #64748b;">Manage venues, labs, and terminal counts.</p>
+                            <p style="color: #64748b;">Manage venues, city, address, and map locations.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Add Centre</button>
                     </div>
-
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Centre Name</th>
-                                        <th>Location</th>
-                                        <th>Labs</th>
-                                        <th>Systems</th>
-                                        <th>Status</th>
-                                    </tr>
+                                    <tr><th>Centre Name</th><th>City</th><th>Address</th><th>Map Location</th><th>Status</th></tr>
                                 </thead>
-                                <tbody id="centresTableBody">
-                                    <tr><td colspan="5" style="text-align: center; color: #94a3b8;">No centres added.</td></tr>
-                                </tbody>
+                                <tbody id="centresTableBody"><tr><td colspan="5" style="text-align: center; color: #94a3b8;">No centres added.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADMIN: DEPLOYMENT -->
+                <!-- DEPLOYMENTS -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Staff Deployment</h1>
-                            <p style="color: #64748b;">Deploy staff to exam venues.</p>
+                            <p style="color: #64748b;">Deploy staff to exam venues by date and shift.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff</button>
                     </div>
-
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Staff ID</th>
-                                        <th>Staff Name</th>
-                                        <th>Assigned Role</th>
-                                        <th>Exam</th>
-                                        <th>Centre Venue</th>
-                                        <th>Duty Date</th>
-                                    </tr>
+                                    <tr><th>Staff ID</th><th>Staff Name</th><th>Assigned Role</th><th>Exam</th><th>Shift</th><th>Centre Venue</th><th>Duty Date</th></tr>
                                 </thead>
-                                <tbody id="deploymentsTableBody">
-                                    <tr><td colspan="6" style="text-align: center; color: #94a3b8;">No deployments recorded.</td></tr>
-                                </tbody>
+                                <tbody id="deploymentsTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No deployments recorded.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADMIN: ATTENDANCE & VERIFICATION -->
+                <!-- ATTENDANCE & VERIFICATION -->
                 <div id="view-admin-attendance" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Attendance Sheet Verification</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Verify signed sheets and late submissions.</p>
-
+                    <h1 style="font-size: 20px; font-weight: 700;">Attendance Verification</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Review photo punches and verified attendance sheets.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Staff ID</th>
-                                        <th>Name</th>
-                                        <th>Role</th>
-                                        <th>Punch In</th>
-                                        <th>Punch Out</th>
-                                        <th>Uploaded Sheet</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Punch In</th><th>Punch Out</th><th>Sheet</th><th>Status</th><th>Action</th></tr>
                                 </thead>
-                                <tbody id="attendanceVerificationTableBody">
-                                    <tr><td colspan="8" style="text-align: center; color: #94a3b8;">No sheets pending.</td></tr>
-                                </tbody>
+                                <tbody id="attendanceVerificationTableBody"><tr><td colspan="8" style="text-align: center; color: #94a3b8;">No sheets pending.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ADMIN: PAYMENTS -->
+                <!-- PAYMENTS -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Payment Approvals</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Authorize staff remuneration disbursements.</p>
-
+                    <p style="color: #64748b; margin-bottom: 20px;">Authorize disbursements for completed exam duties.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Staff ID</th>
-                                        <th>Name</th>
-                                        <th>Role</th>
-                                        <th>Duty Date</th>
-                                        <th>Total Fee</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Duty Date</th><th>Total Fee</th><th>Status</th><th>Action</th></tr>
                                 </thead>
-                                <tbody id="paymentsTableBody">
-                                    <tr><td colspan="7" style="text-align: center; color: #94a3b8;">No payment records.</td></tr>
-                                </tbody>
+                                <tbody id="paymentsTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No payment records.</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- STAFF: DUTY DOSSIER -->
+                <!-- STAFF VIEWS -->
                 <div id="view-staff-duty" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Today's Assignment</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Your allocated examination schedule.</p>
-
                     <div id="dutyDetailsContainer"></div>
                 </div>
 
-                <!-- STAFF: PHOTO PUNCH -->
                 <div id="view-staff-punch" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Photo Attendance</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Take a live photo snapshot to record punch in / punch out.</p>
-
                     <div class="card" style="max-width: 500px; margin: 0 auto; padding: 20px;">
                         <div class="camera-box">
                             <video id="webcam" autoplay playsinline></video>
@@ -689,11 +602,9 @@
                     </div>
                 </div>
 
-                <!-- STAFF: ATTENDANCE SHEET UPLOAD -->
                 <div id="view-staff-sheet" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Upload Attendance Sheet</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Upload the signed examination hall sheet.</p>
-
                     <div class="card" style="max-width: 600px; margin: 0 auto; padding: 24px;">
                         <form id="sheetUploadForm">
                             <div style="border: 2px dashed #94a3b8; border-radius: 6px; padding: 30px; text-align: center; cursor: pointer;" onclick="document.getElementById('sheetFileInput').click()">
@@ -752,25 +663,13 @@
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>EF FIRST NAME *</label>
-                            <input type="text" name="ef_first_name" required>
-                        </div>
-                        <div class="form-group">
-                            <label>EF MIDDLE NAME</label>
-                            <input type="text" name="ef_middle_name">
-                        </div>
-                        <div class="form-group">
-                            <label>EF LAST NAME</label>
-                            <input type="text" name="ef_last_name">
-                        </div>
+                        <div class="form-group"><label>EF FIRST NAME *</label><input type="text" name="ef_first_name" required></div>
+                        <div class="form-group"><label>EF MIDDLE NAME</label><input type="text" name="ef_middle_name"></div>
+                        <div class="form-group"><label>EF LAST NAME</label><input type="text" name="ef_last_name"></div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>EF DOB (Password) *</label>
-                            <input type="date" name="ef_dob" required>
-                        </div>
+                        <div class="form-group"><label>EF DOB (Password) *</label><input type="date" name="ef_dob" required></div>
                         <div class="form-group">
                             <label>EF GENDER *</label>
                             <select name="ef_gender" required>
@@ -779,58 +678,28 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>EF MOBILE NUMBER *</label>
-                            <input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile">
-                        </div>
+                        <div class="form-group"><label>EF MOBILE NUMBER *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile"></div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>EF EMAIL ID *</label>
-                            <input type="email" name="ef_email_id" required>
-                        </div>
-                        <div class="form-group">
-                            <label>EF AADHAR NUMBER *</label>
-                            <input type="text" name="ef_aadhar_number" required placeholder="12-digit number">
-                        </div>
+                        <div class="form-group"><label>EF EMAIL ID *</label><input type="email" name="ef_email_id" required></div>
+                        <div class="form-group"><label>EF AADHAR NUMBER *</label><input type="text" name="ef_aadhar_number" required placeholder="12-digit number"></div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>VENUE REGION</label>
-                            <input type="text" name="venue_region" value="South Zone">
-                        </div>
-                        <div class="form-group">
-                            <label>VENUE STATE</label>
-                            <input type="text" name="venue_state" value="Tamil Nadu">
-                        </div>
+                        <div class="form-group"><label>VENUE REGION</label><input type="text" name="venue_region" value="South Zone"></div>
+                        <div class="form-group"><label>VENUE STATE</label><input type="text" name="venue_state" value="Tamil Nadu"></div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>EF FATHER NAME</label>
-                            <input type="text" name="ef_father_name">
-                        </div>
-                        <div class="form-group">
-                            <label>EF MOTHER NAME</label>
-                            <input type="text" name="ef_mother_name">
-                        </div>
-                        <div class="form-group">
-                            <label>EF QUALIFICATION</label>
-                            <input type="text" name="ef_qualification" placeholder="e.g. B.E / B.Sc">
-                        </div>
+                        <div class="form-group"><label>EF FATHER NAME</label><input type="text" name="ef_father_name"></div>
+                        <div class="form-group"><label>EF MOTHER NAME</label><input type="text" name="ef_mother_name"></div>
+                        <div class="form-group"><label>EF QUALIFICATION</label><input type="text" name="ef_qualification" placeholder="e.g. B.E / B.Sc"></div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>EF PRESENT ADDRESS</label>
-                            <textarea name="ef_present_address" rows="2"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>EF PERMANENT ADDRESS</label>
-                            <textarea name="ef_permanent_address" rows="2"></textarea>
-                        </div>
+                        <div class="form-group"><label>EF PRESENT ADDRESS</label><textarea name="ef_present_address" rows="2"></textarea></div>
+                        <div class="form-group"><label>EF PERMANENT ADDRESS</label><textarea name="ef_permanent_address" rows="2"></textarea></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -841,7 +710,7 @@
         </div>
     </div>
 
-    <!-- MODAL: ADD EXAM -->
+    <!-- MODAL: ADD EXAM (Updated with Date From - Date To & 3 Shifts) -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -850,42 +719,95 @@
             </div>
             <form id="addExamForm">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label>Examination Name *</label>
-                        <input type="text" name="exam_name" required placeholder="e.g. TNPSC Group Exam">
-                    </div>
-                    <div class="form-group">
-                        <label>Exam Authority *</label>
-                        <input type="text" name="exam_authority" required placeholder="e.g. Government of Tamil Nadu">
-                    </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group">
-                            <label>Exam Date *</label>
-                            <input type="date" name="exam_date" required>
+                            <label>Examination Name *</label>
+                            <input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV Exam">
                         </div>
                         <div class="form-group">
-                            <label>Shift *</label>
-                            <select name="shift" required>
-                                <option value="FN">Forenoon (FN)</option>
-                                <option value="AN">Afternoon (AN)</option>
+                            <label>Exam Authority *</label>
+                            <input type="text" name="exam_authority" required placeholder="e.g. Government of Tamil Nadu">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>Exam Date From *</label>
+                            <input type="date" name="date_from" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Exam Date To *</label>
+                            <input type="date" name="date_to" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Shift Selection *</label>
+                            <select name="shift_mode" id="shiftModeSelect" required onchange="toggleShiftBlocks()">
+                                <option value="Shift 1">Shift 1</option>
+                                <option value="Shift 2">Shift 2</option>
+                                <option value="Shift 3">Shift 3</option>
                                 <option value="Full Day">Full Day</option>
+                                <option value="Multiple">Multiple Shifts (1, 2, 3)</option>
                             </select>
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>Reporting Time</label>
-                            <input type="time" name="reporting_time" value="07:30" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Start Time</label>
-                            <input type="time" name="start_time" value="09:00" required>
-                        </div>
-                        <div class="form-group">
-                            <label>End Time</label>
-                            <input type="time" name="end_time" value="12:00" required>
+
+                    <!-- Shift 1 Details -->
+                    <div class="shift-block" id="blockShift1">
+                        <div class="shift-title">Shift 1 Timings</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label>Candidate Reporting Time</label>
+                                <input type="time" name="s1_reporting_time" value="07:30">
+                            </div>
+                            <div class="form-group">
+                                <label>Exam Start Time</label>
+                                <input type="time" name="s1_start_time" value="09:00">
+                            </div>
+                            <div class="form-group">
+                                <label>Exam End Time</label>
+                                <input type="time" name="s1_end_time" value="11:00">
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Shift 2 Details -->
+                    <div class="shift-block" id="blockShift2">
+                        <div class="shift-title">Shift 2 Timings</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label>Candidate Reporting Time</label>
+                                <input type="time" name="s2_reporting_time" value="11:30">
+                            </div>
+                            <div class="form-group">
+                                <label>Exam Start Time</label>
+                                <input type="time" name="s2_start_time" value="12:30">
+                            </div>
+                            <div class="form-group">
+                                <label>Exam End Time</label>
+                                <input type="time" name="s2_end_time" value="14:30">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shift 3 Details -->
+                    <div class="shift-block" id="blockShift3">
+                        <div class="shift-title">Shift 3 Timings</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label>Candidate Reporting Time</label>
+                                <input type="time" name="s3_reporting_time" value="15:00">
+                            </div>
+                            <div class="form-group">
+                                <label>Exam Start Time</label>
+                                <input type="time" name="s3_start_time" value="16:00">
+                            </div>
+                            <div class="form-group">
+                                <label>Exam End Time</label>
+                                <input type="time" name="s3_end_time" value="18:00">
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
@@ -895,9 +817,9 @@
         </div>
     </div>
 
-    <!-- MODAL: ADD CENTRE -->
+    <!-- MODAL: ADD CENTRE (Centre Name, City, Optional Full Address, Optional Map Location) -->
     <div id="addCentreModal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h3>Add Examination Centre</h3>
                 <button class="btn btn-outline" onclick="closeModal('addCentreModal')">✕</button>
@@ -906,26 +828,37 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Centre Name *</label>
-                        <input type="text" name="centre_name" required placeholder="e.g. ABC Engineering College">
+                        <input type="text" name="centre_name" required placeholder="e.g. ABC College of Engineering">
                     </div>
+
                     <div class="form-group">
-                        <label>City / Location *</label>
-                        <input type="text" name="location" required placeholder="e.g. Trichy">
+                        <label>City *</label>
+                        <select name="city" required>
+                            <option value="Chennai">Chennai</option>
+                            <option value="Trichy">Trichy</option>
+                            <option value="Vellore">Vellore</option>
+                            <option value="Salem">Salem</option>
+                            <option value="Krishnagiri">Krishnagiri</option>
+                            <option value="Coimbatore">Coimbatore</option>
+                            <option value="Madurai">Madurai</option>
+                            <option value="Theni">Theni</option>
+                            <option value="Tirunelveli">Tirunelveli</option>
+                        </select>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group">
-                            <label>Number of Labs</label>
-                            <input type="number" name="labs_count" value="4">
-                        </div>
-                        <div class="form-group">
-                            <label>Number of Systems</label>
-                            <input type="number" name="systems_count" value="250">
-                        </div>
+
+                    <div class="form-group">
+                        <label>Full Address (Optional)</label>
+                        <textarea name="full_address" rows="2" placeholder="Street, landmark, pincode..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Google Maps Location Link / Coordinates (Optional)</label>
+                        <input type="text" name="map_location" placeholder="e.g. https://maps.app.goo.gl/... or 10.7905, 78.7047">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addCentreModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Register Centre</button>
+                    <button type="submit" class="btn btn-primary">Save Centre</button>
                 </div>
             </form>
         </div>
@@ -941,18 +874,18 @@
             <form id="deployStaffForm">
                 <div class="modal-body">
                     <div class="form-group">
-                        <label>Examination *</label>
+                        <label>Select Examination *</label>
                         <select name="exam_id" id="deployExamSelect" required></select>
                     </div>
                     <div class="form-group">
-                        <label>Centre Venue *</label>
+                        <label>Select Centre Venue *</label>
                         <select name="centre_id" id="deployCentreSelect" required></select>
                     </div>
                     <div class="form-group">
-                        <label>Staff Member *</label>
+                        <label>Select Staff Member *</label>
                         <select name="staff_id" id="deployStaffSelect" required></select>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group">
                             <label>Assigned Role *</label>
                             <select name="assigned_role" required>
@@ -962,20 +895,22 @@
                                 <option value="Lab Supervisor">Lab Supervisor</option>
                                 <option value="Security">Security</option>
                                 <option value="Technical Staff">Technical Staff</option>
+                                <option value="Centre Head">Centre Head</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Duty Date *</label>
                             <input type="date" name="duty_date" required id="deployDutyDate">
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Shift *</label>
-                        <select name="shift" required>
-                            <option value="FN">FN</option>
-                            <option value="AN">AN</option>
-                            <option value="Full Day">Full Day</option>
-                        </select>
+                        <div class="form-group">
+                            <label>Assigned Shift *</label>
+                            <select name="shift" required>
+                                <option value="Shift 1">Shift 1</option>
+                                <option value="Shift 2">Shift 2</option>
+                                <option value="Shift 3">Shift 3</option>
+                                <option value="Full Day">Full Day</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -986,7 +921,7 @@
         </div>
     </div>
 
-    <!-- EMBEDDED JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT CONTROLLER -->
     <script>
         let CURRENT_USER = null;
         let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
@@ -1038,7 +973,32 @@
             }
         }
 
-        // Login
+        // Shift selector toggle in Exam modal
+        function toggleShiftBlocks() {
+            const mode = document.getElementById('shiftModeSelect').value;
+            const b1 = document.getElementById('blockShift1');
+            const b2 = document.getElementById('blockShift2');
+            const b3 = document.getElementById('blockShift3');
+
+            if (mode === 'Shift 1' || mode === 'Full Day') {
+                b1.style.display = 'block';
+                b2.style.display = 'none';
+                b3.style.display = 'none';
+            } else if (mode === 'Shift 2') {
+                b1.style.display = 'none';
+                b2.style.display = 'block';
+                b3.style.display = 'none';
+            } else if (mode === 'Shift 3') {
+                b1.style.display = 'none';
+                b2.style.display = 'none';
+                b3.style.display = 'block';
+            } else {
+                b1.style.display = 'block';
+                b2.style.display = 'block';
+                b3.style.display = 'block';
+            }
+        }
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const identifier = document.getElementById('loginIdentifier').value.trim();
@@ -1165,7 +1125,7 @@
             const staff = await api('/api/staff');
             const tbody = document.getElementById('staffTableBody');
             if (!staff || staff.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No staff registered yet. Click "+ Add Staff".</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No staff registered yet.</td></tr>`;
                 return;
             }
             tbody.innerHTML = staff.map(s => `
@@ -1185,19 +1145,25 @@
             const exams = await api('/api/exams');
             const tbody = document.getElementById('examsTableBody');
             if (!exams || exams.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = exams.map(e => `
-                <tr>
-                    <td><strong>${e.exam_name}</strong></td>
-                    <td>${e.exam_authority}</td>
-                    <td>${e.exam_date}</td>
-                    <td><span class="badge badge-ready">${e.shift}</span></td>
-                    <td>${e.reporting_time}</td>
-                    <td>${e.start_time} - ${e.end_time}</td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = exams.map(e => {
+                let timingSummary = [];
+                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time} (Rep: ${e.s1_reporting_time})`);
+                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time} (Rep: ${e.s2_reporting_time})`);
+                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time} (Rep: ${e.s3_reporting_time})`);
+
+                return `
+                    <tr>
+                        <td><strong>${e.exam_name}</strong></td>
+                        <td>${e.exam_authority}</td>
+                        <td>${e.date_from} to ${e.date_to}</td>
+                        <td><span class="badge badge-ready">${e.shift_mode}</span></td>
+                        <td><small>${timingSummary.join('<br>') || 'N/A'}</small></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function loadCentresList() {
@@ -1210,9 +1176,11 @@
             tbody.innerHTML = centres.map(c => `
                 <tr>
                     <td><strong>${c.centre_name}</strong></td>
-                    <td>${c.location}</td>
-                    <td>${c.labs_count}</td>
-                    <td>${c.systems_count}</td>
+                    <td>${c.city}</td>
+                    <td>${c.full_address || '<span style="color:#94a3b8;">Not specified</span>'}</td>
+                    <td>
+                        ${c.map_location ? `<a href="${c.map_location}" target="_blank" class="btn btn-outline" style="padding: 2px 8px; font-size:11px;">View Map</a>` : '<span style="color:#94a3b8;">Not added</span>'}
+                    </td>
                     <td><span class="badge badge-ready">${c.status}</span></td>
                 </tr>
             `).join('');
@@ -1222,7 +1190,7 @@
             const deployments = await api('/api/deployments');
             const tbody = document.getElementById('deploymentsTableBody');
             if (!deployments || deployments.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No deployments recorded.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No deployments recorded.</td></tr>`;
                 return;
             }
             tbody.innerHTML = deployments.map(d => `
@@ -1231,7 +1199,8 @@
                     <td>${d.staff_name}</td>
                     <td>${d.assigned_role}</td>
                     <td>${d.exam_name}</td>
-                    <td>${d.centre_name} (${d.location})</td>
+                    <td><span class="badge badge-ready">${d.shift}</span></td>
+                    <td>${d.centre_name} (${d.city})</td>
                     <td>${d.duty_date}</td>
                 </tr>
             `).join('');
@@ -1248,8 +1217,8 @@
             const centreSelect = document.getElementById('deployCentreSelect');
             const staffSelect = document.getElementById('deployStaffSelect');
 
-            examSelect.innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name}</option>`).join('');
-            centreSelect.innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.location})</option>`).join('');
+            examSelect.innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name} (${e.date_from} to ${e.date_to})</option>`).join('');
+            centreSelect.innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
             staffSelect.innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
 
             document.getElementById('deployDutyDate').value = new Date().toISOString().split('T')[0];
@@ -1361,7 +1330,7 @@
                 body: JSON.stringify(payload)
             });
             if (res && res.id) {
-                alert('Exam scheduled successfully');
+                alert('Exam scheduled successfully with shift timings!');
                 closeModal('addExamModal');
                 e.target.reset();
                 loadExamsList();
@@ -1377,7 +1346,7 @@
                 body: JSON.stringify(payload)
             });
             if (res && res.id) {
-                alert('Centre venue added');
+                alert('Centre venue saved successfully!');
                 closeModal('addCentreModal');
                 e.target.reset();
                 loadCentresList();
@@ -1393,13 +1362,13 @@
                 body: JSON.stringify(payload)
             });
             if (res && res.id) {
-                alert('Staff deployed to venue');
+                alert('Staff deployment saved!');
                 closeModal('deployStaffModal');
                 loadDeploymentsList();
             }
         });
 
-        // Staff Assignment
+        // Staff Assignment Viewer
         async function loadStaffAssignment() {
             const duty = await api('/api/staff/my-assignment');
             USER_ASSIGNMENT = duty;
@@ -1410,15 +1379,35 @@
                 return;
             }
 
+            // Determine shift timing based on duty.shift
+            let reporting = '07:30';
+            let examTime = '09:00 - 11:00';
+            if (duty.shift === 'Shift 2') {
+                reporting = duty.s2_reporting_time || '11:30';
+                examTime = `${duty.s2_start_time || '12:30'} - ${duty.s2_end_time || '14:30'}`;
+            } else if (duty.shift === 'Shift 3') {
+                reporting = duty.s3_reporting_time || '15:00';
+                examTime = `${duty.s3_start_time || '16:00'} - ${duty.s3_end_time || '18:00'}`;
+            } else {
+                reporting = duty.s1_reporting_time || '07:30';
+                examTime = `${duty.s1_start_time || '09:00'} - ${duty.s1_end_time || '11:00'}`;
+            }
+
             container.innerHTML = `
                 <div class="card" style="padding: 24px;">
                     <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${duty.exam_name}</h2>
-                    <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">Venue: <strong>${duty.centre_name} (${duty.location})</strong> | Shift: <strong>${duty.shift}</strong></p>
+                    <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
+                        Venue: <strong>${duty.centre_name} (${duty.city})</strong> | 
+                        Assigned Shift: <strong>${duty.shift}</strong>
+                        ${duty.map_location ? ` | <a href="${duty.map_location}" target="_blank" style="color:#2563eb;">View on Maps</a>` : ''}
+                    </p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
                         <div><label>Assigned Role</label><p><strong>${duty.assigned_role}</strong></p></div>
-                        <div><label>Reporting Time</label><p><strong>${duty.reporting_time}</strong></p></div>
+                        <div><label>Candidate Reporting Time</label><p><strong>${reporting}</strong></p></div>
+                        <div><label>Exam Timing</label><p><strong>${examTime}</strong></p></div>
                         <div><label>Duty Remuneration</label><p><strong>₹${((duty.duty_amount || 0) + (duty.travel_allowance || 0) + (duty.other_allowance || 0)).toLocaleString()}</strong></p></div>
                     </div>
+                    ${duty.full_address ? `<p style="font-size: 12px; color:#475569; margin-bottom: 12px;"><strong>Address:</strong> ${duty.full_address}</p>` : ''}
                     <div style="background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">
                         <span>Punch In: <strong>${duty.punch_in_time || '--:--'}</strong></span> | 
                         <span>Punch Out: <strong>${duty.punch_out_time || '--:--'}</strong></span>
@@ -1427,7 +1416,6 @@
             `;
         }
 
-        // Camera
         async function startCamera() {
             try {
                 const video = document.getElementById('webcam');
