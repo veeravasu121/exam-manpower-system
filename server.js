@@ -40,7 +40,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
 
 // Setup Schema
 db.serialize(() => {
-    // Users table for Admin and Staff
+    // 1. Users Table
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         staff_id TEXT UNIQUE NOT NULL,
@@ -69,30 +69,40 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    // Exams
+    // 2. Updated Exams Table (Date Range + 3 Individual Shifts)
     db.run(`CREATE TABLE IF NOT EXISTS exams (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         exam_name TEXT NOT NULL,
         exam_authority TEXT NOT NULL,
-        exam_date DATE NOT NULL,
-        shift TEXT NOT NULL,
-        reporting_time TEXT NOT NULL,
-        start_time TEXT NOT NULL,
-        end_time TEXT NOT NULL,
+        date_from DATE NOT NULL,
+        date_to DATE NOT NULL,
+        shift_mode TEXT NOT NULL, -- 'Full Day', 'Shift 1', 'Shift 2', 'Shift 3', 'Multiple'
+        -- Shift 1
+        s1_reporting_time TEXT,
+        s1_start_time TEXT,
+        s1_end_time TEXT,
+        -- Shift 2
+        s2_reporting_time TEXT,
+        s2_start_time TEXT,
+        s2_end_time TEXT,
+        -- Shift 3
+        s3_reporting_time TEXT,
+        s3_start_time TEXT,
+        s3_end_time TEXT,
         status TEXT DEFAULT 'Active'
     )`);
 
-    // Centres
+    // 3. Updated Centres Table (Centre Name, City, Optional Full Address, Optional Map Location)
     db.run(`CREATE TABLE IF NOT EXISTS centres (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         centre_name TEXT NOT NULL,
-        location TEXT NOT NULL,
-        labs_count INTEGER DEFAULT 0,
-        systems_count INTEGER DEFAULT 0,
+        city TEXT NOT NULL,
+        full_address TEXT,
+        map_location TEXT,
         status TEXT DEFAULT 'Ready'
     )`);
 
-    // Deployments
+    // 4. Deployments Table
     db.run(`CREATE TABLE IF NOT EXISTS deployments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         exam_id INTEGER,
@@ -109,7 +119,7 @@ db.serialize(() => {
         FOREIGN KEY(staff_id) REFERENCES users(id)
     )`);
 
-    // Attendance
+    // 5. Attendance Table
     db.run(`CREATE TABLE IF NOT EXISTS attendance (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         deployment_id INTEGER UNIQUE,
@@ -129,7 +139,7 @@ db.serialize(() => {
         FOREIGN KEY(staff_id) REFERENCES users(id)
     )`);
 
-    // Payments
+    // 6. Payments Table
     db.run(`CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         attendance_id INTEGER UNIQUE,
@@ -144,25 +154,24 @@ db.serialize(() => {
         FOREIGN KEY(staff_id) REFERENCES users(id)
     )`);
 
-    // Seed Master Admin (Admin email + Admin password)
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@gmail.com';
+    // Seed Master Admin (dynamic override)
+    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
 
-    db.get("SELECT COUNT(*) AS count FROM users WHERE user_type = 'ADMIN'", [], (err, row) => {
-        if (!err && row.count === 0) {
-            bcrypt.hash(adminPassword, 10, (err, hash) => {
-                db.run(
-                    `INSERT INTO users (staff_id, name, role, email, password, user_type, ef_city)
-                     VALUES ('ADMIN_HQ', 'Chief Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
-                    [adminEmail, hash]
-                );
-                console.log(`Admin account created -> Email: ${adminEmail} | Password: ${adminPassword}`);
-            });
-        }
+    bcrypt.hash(adminPassword, 10, (err, hash) => {
+        db.run("DELETE FROM users WHERE user_type = 'ADMIN'", [], () => {
+            db.run(
+                `INSERT INTO users (staff_id, name, role, email, password, user_type, ef_city)
+                 VALUES ('ADMIN_HQ', 'Chief Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
+                [adminEmail, hash],
+                () => {
+                    console.log(`Master Admin configured -> Email: ${adminEmail}`);
+                }
+            );
+        });
     });
 });
 
-// Role Code Mapping & City Code Mapping
 const ROLE_CODES = {
     'Invigilator': 'IN',
     'Registration Staff': 'RE',
@@ -230,25 +239,24 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// ======================== API ROUTES ========================
+// ======================== ROUTES ========================
 
 // 1. Dual Login (Admin with Email+Password, Staff with StaffID+DOB)
 app.post('/api/auth/login', (req, res) => {
-    const { identifier, password } = req.body; // identifier can be Staff ID or Admin Email
+    const { identifier, password } = req.body;
+    const cleanId = (identifier || '').trim();
 
     db.get(
-        "SELECT * FROM users WHERE staff_id = ? OR email = ?",
-        [identifier.trim(), identifier.trim()],
+        "SELECT * FROM users WHERE staff_id = ? OR LOWER(email) = LOWER(?)",
+        [cleanId, cleanId],
         (err, user) => {
             if (err || !user) return res.status(401).json({ error: 'Invalid Credentials' });
 
-            // If Staff: password matches DOB format directly or bcrypt
             if (user.user_type === 'STAFF') {
-                const cleanInputDob = password.replace(/[-/]/g, '').trim();
+                const cleanInputDob = (password || '').replace(/[-/]/g, '').trim();
                 const cleanUserDob = (user.ef_dob || '').replace(/[-/]/g, '').trim();
 
-                const isDobMatch = (cleanInputDob === cleanUserDob);
-                if (!isDobMatch) {
+                if (cleanInputDob !== cleanUserDob) {
                     return res.status(401).json({ error: 'Invalid Staff ID or Date of Birth' });
                 }
 
@@ -260,7 +268,6 @@ app.post('/api/auth/login', (req, res) => {
                 return res.json({ token, user });
             }
 
-            // If Admin: password checked via bcrypt
             bcrypt.compare(password, user.password, (err, isMatch) => {
                 if (!isMatch) return res.status(401).json({ error: 'Invalid Admin Email or Password' });
 
@@ -275,7 +282,7 @@ app.post('/api/auth/login', (req, res) => {
     );
 });
 
-// 2. Admin Dashboard Stats
+// 2. Admin Dashboard
 app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     const today = new Date().toISOString().split('T')[0];
 
@@ -329,34 +336,19 @@ app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     });
 });
 
-// 3. Register Staff (Generates Staff ID like LSTRI001 + Syncs to Google Sheet)
+// 3. Register Staff (ID e.g. LSTRI001 + Sync to Google Sheet)
 app.post('/api/staff', authenticateToken, (req, res) => {
     const {
-        role,
-        email_address,
-        venue_region,
-        venue_state,
-        ef_city,
-        ef_first_name,
-        ef_middle_name,
-        ef_last_name,
-        ef_dob,
-        ef_gender,
-        ef_mobile_number,
-        ef_aadhar_number,
-        ef_father_name,
-        ef_mother_name,
-        ef_email_id,
-        ef_qualification,
-        ef_present_address,
-        ef_permanent_address
+        role, email_address, venue_region, venue_state, ef_city,
+        ef_first_name, ef_middle_name, ef_last_name, ef_dob, ef_gender,
+        ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
+        ef_email_id, ef_qualification, ef_present_address, ef_permanent_address
     } = req.body;
 
     const fullName = [ef_first_name, ef_middle_name, ef_last_name].filter(Boolean).join(' ');
     const officialEmail = ef_email_id || email_address;
 
     generateStaffId(role, ef_city, (assignedStaffId) => {
-        // Staff password defaults to DOB hash
         bcrypt.hash(ef_dob, 10, (err, hash) => {
             const sql = `INSERT INTO users (
                 staff_id, name, role, email, password, user_type,
@@ -380,7 +372,6 @@ app.post('/api/staff', authenticateToken, (req, res) => {
                     return res.status(500).json({ error: err.message });
                 }
 
-                // Push to Google Sheet
                 syncToGoogleSheet({
                     staff_id: assignedStaffId,
                     role,
@@ -409,7 +400,6 @@ app.post('/api/staff', authenticateToken, (req, res) => {
     });
 });
 
-// 4. Get Staff List
 app.get('/api/staff', authenticateToken, (req, res) => {
     db.all("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -417,25 +407,41 @@ app.get('/api/staff', authenticateToken, (req, res) => {
     });
 });
 
-// 5. Examinations (Without 'code' fields as requested)
+// 4. Exams (Date From to Date To + 3 Shift Timings)
 app.get('/api/exams', authenticateToken, (req, res) => {
-    db.all("SELECT * FROM exams ORDER BY exam_date DESC", [], (err, rows) => {
+    db.all("SELECT * FROM exams ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
 app.post('/api/exams', authenticateToken, (req, res) => {
-    const { exam_name, exam_authority, exam_date, shift, reporting_time, start_time, end_time } = req.body;
-    const sql = `INSERT INTO exams (exam_name, exam_authority, exam_date, shift, reporting_time, start_time, end_time)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    db.run(sql, [exam_name, exam_authority, exam_date, shift, reporting_time, start_time, end_time], function (err) {
+    const {
+        exam_name, exam_authority, date_from, date_to, shift_mode,
+        s1_reporting_time, s1_start_time, s1_end_time,
+        s2_reporting_time, s2_start_time, s2_end_time,
+        s3_reporting_time, s3_start_time, s3_end_time
+    } = req.body;
+
+    const sql = `INSERT INTO exams (
+        exam_name, exam_authority, date_from, date_to, shift_mode,
+        s1_reporting_time, s1_start_time, s1_end_time,
+        s2_reporting_time, s2_start_time, s2_end_time,
+        s3_reporting_time, s3_start_time, s3_end_time
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    db.run(sql, [
+        exam_name, exam_authority, date_from, date_to, shift_mode,
+        s1_reporting_time || null, s1_start_time || null, s1_end_time || null,
+        s2_reporting_time || null, s2_start_time || null, s2_end_time || null,
+        s3_reporting_time || null, s3_start_time || null, s3_end_time || null
+    ], function (err) {
         if (err) return res.status(400).json({ error: err.message });
         res.json({ message: 'Exam created successfully', id: this.lastID });
     });
 });
 
-// 6. Centres (Without 'code' fields as requested)
+// 5. Centres (Name, City, Optional Address, Optional Map Location)
 app.get('/api/centres', authenticateToken, (req, res) => {
     db.all("SELECT * FROM centres ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -444,21 +450,26 @@ app.get('/api/centres', authenticateToken, (req, res) => {
 });
 
 app.post('/api/centres', authenticateToken, (req, res) => {
-    const { centre_name, location, labs_count, systems_count } = req.body;
-    const sql = `INSERT INTO centres (centre_name, location, labs_count, systems_count)
-                 VALUES (?, ?, ?, ?)`;
-    db.run(sql, [centre_name, location, labs_count || 0, systems_count || 0], function (err) {
+    const { centre_name, city, full_address, map_location } = req.body;
+    if (!centre_name || !city) {
+        return res.status(400).json({ error: 'Centre Name and City are required.' });
+    }
+
+    const sql = `INSERT INTO centres (centre_name, city, full_address, map_location) VALUES (?, ?, ?, ?)`;
+    db.run(sql, [centre_name, city, full_address || '', map_location || ''], function (err) {
         if (err) return res.status(400).json({ error: err.message });
         res.json({ message: 'Centre created successfully', id: this.lastID });
     });
 });
 
-// 7. Manpower Deployments
+// 6. Deployments
 app.get('/api/deployments', authenticateToken, (req, res) => {
     const sql = `SELECT d.id, d.duty_date, d.shift, d.assigned_role, d.duty_amount, d.travel_allowance, d.other_allowance,
                         u.name as staff_name, u.staff_id, u.ef_mobile_number,
-                        e.exam_name,
-                        c.centre_name, c.location
+                        e.exam_name, e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
+                        e.s2_reporting_time, e.s2_start_time, e.s2_end_time,
+                        e.s3_reporting_time, e.s3_start_time, e.s3_end_time,
+                        c.centre_name, c.city, c.full_address, c.map_location
                  FROM deployments d
                  JOIN users u ON d.staff_id = u.id
                  JOIN exams e ON d.exam_id = e.id
@@ -480,12 +491,15 @@ app.post('/api/deployments', authenticateToken, (req, res) => {
     });
 });
 
-// 8. Staff Assignment View
+// 7. Staff: My Assignment
 app.get('/api/staff/my-assignment', authenticateToken, (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     const sql = `SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role, d.duty_amount, d.travel_allowance, d.other_allowance,
-                        e.exam_name, e.reporting_time, e.start_time, e.end_time,
-                        c.centre_name, c.location,
+                        e.exam_name, e.shift_mode,
+                        e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
+                        e.s2_reporting_time, e.s2_start_time, e.s2_end_time,
+                        e.s3_reporting_time, e.s3_start_time, e.s3_end_time,
+                        c.centre_name, c.city, c.full_address, c.map_location,
                         a.id as attendance_id, a.punch_in_time, a.punch_out_time, a.sheet_verification_status, a.sheet_file,
                         p.payment_status, p.total_payable
                  FROM deployments d
@@ -501,7 +515,7 @@ app.get('/api/staff/my-assignment', authenticateToken, (req, res) => {
     });
 });
 
-// 9. Punch In (Live Photo Snapshot)
+// 8. Attendance & Verification
 app.post('/api/attendance/punch-in', authenticateToken, (req, res) => {
     const { deployment_id, photo_base64 } = req.body;
     const now = new Date();
@@ -521,7 +535,6 @@ app.post('/api/attendance/punch-in', authenticateToken, (req, res) => {
     });
 });
 
-// 10. Punch Out (Live Photo Snapshot)
 app.post('/api/attendance/punch-out', authenticateToken, (req, res) => {
     const { deployment_id, photo_base64 } = req.body;
     const now = new Date();
@@ -544,7 +557,6 @@ app.post('/api/attendance/punch-out', authenticateToken, (req, res) => {
         db.run(sql, [timeStr, `/uploads/${filename}`, workingHours, deployment_id], function (err) {
             if (err) return res.status(500).json({ error: err.message });
 
-            // Create pending payment line item
             db.get("SELECT duty_amount, travel_allowance, other_allowance FROM deployments WHERE id = ?", [deployment_id], (err, dep) => {
                 if (dep) {
                     const total = dep.duty_amount + dep.travel_allowance + dep.other_allowance;
@@ -561,7 +573,6 @@ app.post('/api/attendance/punch-out', authenticateToken, (req, res) => {
     });
 });
 
-// 11. Upload Attendance Sheet
 app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('attendance_sheet'), (req, res) => {
     const { deployment_id, is_late, late_reason } = req.body;
     if (!req.file) return res.status(400).json({ error: 'File upload missing' });
@@ -578,7 +589,6 @@ app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('atten
     });
 });
 
-// 12. Verification & Payments
 app.get('/api/admin/attendance-sheets', authenticateToken, (req, res) => {
     const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, c.centre_name
                  FROM attendance a
