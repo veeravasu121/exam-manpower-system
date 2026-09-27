@@ -41,8 +41,9 @@
         .topbar { background: #fff; border-bottom: 1px solid var(--border); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
         .content-area { padding: 24px; flex: 1; overflow-y: auto; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
-        .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; cursor: pointer; transition: transform 0.1s ease, border-color 0.1s ease; }
+        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
         .stat-value { font-size: 22px; font-weight: 700; margin-top: 6px; }
         .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 24px; }
         .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -65,20 +66,20 @@
         .btn-success { background: var(--success); color: #fff; }
         .btn-danger { background: var(--danger); color: #fff; }
         .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .filter-bar { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) 100px; gap: 12px; align-items: end; }
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
-        .modal-content { background: #fff; border-radius: 8px; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: #fff; border-radius: 8px; max-width: 950px; width: 100%; max-height: 90vh; overflow-y: auto; }
         .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .modal-body { padding: 20px; }
         .modal-footer { padding: 12px 20px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
-        .shift-block { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; }
-        .shift-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+        .voucher-box { border: 2px solid var(--border); padding: 20px; border-radius: 6px; background: #fff; }
         .camera-box { background: #000; width: 100%; height: 280px; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
         .camera-box video, .camera-box canvas { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN INTERFACE -->
+    <!-- 1. LOGIN -->
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
@@ -106,7 +107,7 @@
         </div>
     </div>
 
-    <!-- MAIN APPLICATION -->
+    <!-- 2. MAIN APPLICATION -->
     <div id="appShell" class="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -116,7 +117,7 @@
 
             <div id="adminNav" class="sidebar-nav">
                 <div class="nav-category">Main</div>
-                <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Dashboard</a>
+                <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Dashboard & Drilldown</a>
 
                 <div class="nav-category">Staff Directory</div>
                 <a class="nav-link" onclick="switchRoute('admin-staff')">👥 Registered Staff</a>
@@ -129,10 +130,7 @@
 
                 <div class="nav-category">Verification & Treasury</div>
                 <a class="nav-link" onclick="switchRoute('admin-attendance')">🕒 Attendance Verification</a>
-                <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Payment Approvals</a>
-
-                <div class="nav-category">Analytics & Exports</div>
-                <a class="nav-link" onclick="switchRoute('admin-reports')">📑 Consolidated Reports</a>
+                <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Payment Proofs & Ledger</a>
             </div>
 
             <div id="staffNav" class="sidebar-nav" style="display: none;">
@@ -158,37 +156,111 @@
 
             <section class="content-area">
 
-                <!-- DASHBOARD -->
+                <!-- DASHBOARD WITH MULTI-FILTERS & DRILLDOWN -->
                 <div id="view-admin-dashboard" class="page-view">
-                    <h1 style="font-size: 20px; font-weight: 700;">Good Morning, Admin</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Manage examination manpower, attendance and payments from one place.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Executive Examination Dashboard</h1>
+                    <p style="color: #64748b; margin-bottom: 16px;">Real-time search, filters, venue shortages, and role-wise attendance analytics.</p>
 
-                    <div class="stats-grid">
-                        <div class="stat-card"><div class="stat-label">Total Staff</div><div class="stat-value" id="dashTotalStaff">0</div></div>
-                        <div class="stat-card"><div class="stat-label">Today's Staff</div><div class="stat-value" id="dashTodayStaff">0</div></div>
-                        <div class="stat-card"><div class="stat-label">Present</div><div class="stat-value" style="color: #16a34a;" id="dashPresent">0</div></div>
-                        <div class="stat-card"><div class="stat-label">Absent</div><div class="stat-value" style="color: #dc2626;" id="dashAbsent">0</div></div>
-                        <div class="stat-card"><div class="stat-label">Punch Out Pending</div><div class="stat-value" style="color: #d97706;" id="dashPunchOutPending">0</div></div>
-                        <div class="stat-card"><div class="stat-label">Payment Pending</div><div class="stat-value" style="color: #2563eb;" id="dashPaymentPending">₹0</div></div>
+                    <!-- SEARCH & FILTER BAR -->
+                    <div class="filter-bar">
+                        <div class="form-group" style="margin: 0;">
+                            <label>Search Staff / ID</label>
+                            <input type="text" id="filterStaffSearch" placeholder="Name or Staff ID..." oninput="applyDashboardFilters()">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Centre Venue</label>
+                            <select id="filterCentre" onchange="applyDashboardFilters()"><option value="">All Centres</option></select>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Staff Role</label>
+                            <select id="filterRole" onchange="applyDashboardFilters()"><option value="">All Roles</option></select>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Exam Name</label>
+                            <select id="filterExam" onchange="applyDashboardFilters()"><option value="">All Exams</option></select>
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label>Vendor Name</label>
+                            <select id="filterVendor" onchange="applyDashboardFilters()"><option value="">All Vendors</option></select>
+                        </div>
+                        <button class="btn btn-outline" onclick="resetDashboardFilters()" style="height: 35px;">Reset</button>
                     </div>
 
+                    <!-- STATS CARDS (CLICKABLE FOR DRILLDOWN) -->
+                    <div class="stats-grid">
+                        <div class="stat-card" onclick="openDrilldownModal('ALL', 'All Assigned Staff')">
+                            <div class="stat-label">Total Assigned <span>🔍 Drilldown</span></div>
+                            <div class="stat-value" id="dashTotalStaff">0</div>
+                        </div>
+                        <div class="stat-card" onclick="openDrilldownModal('PRESENT', 'All Present Staff')">
+                            <div class="stat-label">Present On-Duty <span>🔍 Drilldown</span></div>
+                            <div class="stat-value" style="color: #16a34a;" id="dashPresent">0</div>
+                        </div>
+                        <div class="stat-card" onclick="openDrilldownModal('ABSENT', 'All Absent Staff')">
+                            <div class="stat-label">Absent Staff <span>🔍 Drilldown</span></div>
+                            <div class="stat-value" style="color: #dc2626;" id="dashAbsent">0</div>
+                        </div>
+                        <div class="stat-card" onclick="openDrilldownModal('PUNCHOUT_PENDING', 'Punch-Out Pending')">
+                            <div class="stat-label">Punch-Out Pending <span>🔍</span></div>
+                            <div class="stat-value" style="color: #d97706;" id="dashPunchOutPending">0</div>
+                        </div>
+                        <div class="stat-card" onclick="switchRoute('admin-payments')">
+                            <div class="stat-label">Payment Pending</div>
+                            <div class="stat-value" style="color: #2563eb;" id="dashPaymentPending">₹0</div>
+                        </div>
+                    </div>
+
+                    <!-- ROLE-WISE MANPOWER ATTENDANCE MATRIX -->
                     <div class="card">
-                        <div class="card-header"><strong>Centre Manpower Status</strong></div>
+                        <div class="card-header">
+                            <strong>Role-Wise Manpower Status (Click any role to see Present & Absent Staff)</strong>
+                            <small style="color: #64748b;">Interactive Drilldown Available</small>
+                        </div>
                         <div class="table-responsive">
                             <table>
-                                <thead><tr><th>Centre</th><th>Required / Assigned</th><th>Present</th><th>Shortage</th><th>Status</th></tr></thead>
-                                <tbody id="centreStatusTableBody"><tr><td colspan="5" style="text-align: center; color: #94a3b8;">No venues active today.</td></tr></tbody>
+                                <thead>
+                                    <tr>
+                                        <th>Staff Role</th>
+                                        <th>Required / Assigned</th>
+                                        <th>Present</th>
+                                        <th>Absent</th>
+                                        <th>Shortage</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roleMatrixTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- VENUE-WISE SUMMARY -->
+                    <div class="card">
+                        <div class="card-header"><strong>Venue-Wise Manpower & Shortage Matrix</strong></div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Centre Name</th>
+                                        <th>City</th>
+                                        <th>Assigned Staff</th>
+                                        <th>Present</th>
+                                        <th>Absent / Shortage</th>
+                                        <th>Status</th>
+                                        <th>Inspect</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="centreStatusTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- ALL STAFF (WITH EDIT BUTTON) -->
+                <!-- ALL STAFF -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Staff Management</h1>
-                            <p style="color: #64748b;">Registered staff directory with automatic email credentials.</p>
+                            <p style="color: #64748b;">Registered personnel with Vendor attribution and auto-email credentials.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Register Staff</button>
                     </div>
@@ -196,20 +268,20 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>City</th><th>Mobile</th><th>Status</th><th>Actions</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>City</th><th>Mobile</th><th>Status</th><th>Actions</th></tr>
                                 </thead>
-                                <tbody id="staffTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No staff registered yet.</td></tr></tbody>
+                                <tbody id="staffTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- EXAMS (WITH EDIT BUTTON) -->
+                <!-- EXAMINATIONS -->
                 <div id="view-admin-exams" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Examinations</h1>
-                            <p style="color: #64748b;">Manage examinations and multi-shift timing schedules.</p>
+                            <p style="color: #64748b;">Managed by Exam Conducting Agencies & Vendors.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Create Examination</button>
                     </div>
@@ -217,20 +289,20 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Exam Name</th><th>Authority</th><th>Dates</th><th>Shift Mode</th><th>Shift Timings</th><th>Actions</th></tr>
+                                    <tr><th>Exam Name</th><th>Exam Conducting Agency</th><th>Vendor</th><th>Dates</th><th>Shift Mode</th><th>Actions</th></tr>
                                 </thead>
-                                <tbody id="examsTableBody"><tr><td colspan="6" style="text-align: center; color: #94a3b8;">No exams scheduled.</td></tr></tbody>
+                                <tbody id="examsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- CENTRES (WITH EDIT BUTTON) -->
+                <!-- CENTRES -->
                 <div id="view-admin-centres" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Examination Centres</h1>
-                            <p style="color: #64748b;">Venues, addresses, and GPS map locations.</p>
+                            <p style="color: #64748b;">Venues, addresses, and maps.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Add Centre</button>
                     </div>
@@ -240,18 +312,18 @@
                                 <thead>
                                     <tr><th>Centre Name</th><th>City</th><th>Full Address</th><th>Map Link</th><th>Actions</th></tr>
                                 </thead>
-                                <tbody id="centresTableBody"><tr><td colspan="5" style="text-align: center; color: #94a3b8;">No centres added.</td></tr></tbody>
+                                <tbody id="centresTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- DEPLOYMENTS (WITH EDIT BUTTON) -->
+                <!-- DEPLOYMENTS -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Staff Deployment</h1>
-                            <p style="color: #64748b;">Deploy staff members with instant email assignment orders.</p>
+                            <p style="color: #64748b;">Allocated duty personnel by Exam, Centre, and Vendor.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff</button>
                     </div>
@@ -259,77 +331,41 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Exam</th><th>Shift</th><th>Centre Venue</th><th>Duty Date</th><th>Actions</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Exam</th><th>Shift</th><th>Centre Venue</th><th>Duty Date</th><th>Actions</th></tr>
                                 </thead>
-                                <tbody id="deploymentsTableBody"><tr><td colspan="8" style="text-align: center; color: #94a3b8;">No deployments recorded.</td></tr></tbody>
+                                <tbody id="deploymentsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- VERIFICATION -->
+                <!-- ATTENDANCE VERIFICATION & PROOF -->
                 <div id="view-admin-attendance" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Attendance Verification</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Review photo punches and verified attendance sheets.</p>
+                    <p style="color: #64748b; margin-bottom: 20px;">Review live photo punches and countersigned attendance sheets.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Punch In</th><th>Punch Out</th><th>Sheet</th><th>Status</th><th>Action</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Punch In</th><th>Punch Out</th><th>Working Hours</th><th>Photo & Sheet</th><th>Status</th><th>Action</th></tr>
                                 </thead>
-                                <tbody id="attendanceVerificationTableBody"><tr><td colspan="8" style="text-align: center; color: #94a3b8;">No sheets pending.</td></tr></tbody>
+                                <tbody id="attendanceVerificationTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- PAYMENTS -->
+                <!-- PAYMENT PROOFS & LEDGER -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Payment Approvals</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Authorize disbursements for completed exam duties.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Payment Approvals & Vouchers</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Authorize disbursements, generate bank transaction IDs, and view payment proof vouchers.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Duty Date</th><th>Total Fee</th><th>Status</th><th>Action</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Duty Date</th><th>Total Fee</th><th>Status</th><th>Txn Ref</th><th>Actions</th></tr>
                                 </thead>
-                                <tbody id="paymentsTableBody"><tr><td colspan="7" style="text-align: center; color: #94a3b8;">No payment records.</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CONSOLIDATED REPORTS DASHBOARD -->
-                <div id="view-admin-reports" class="page-view" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <div>
-                            <h1 style="font-size: 20px; font-weight: 700;">Consolidated Reports</h1>
-                            <p style="color: #64748b;">Complete historical records for Attendance, Payments, and Manpower.</p>
-                        </div>
-                        <button class="btn btn-outline" onclick="downloadCSVReport()">📥 Export to CSV</button>
-                    </div>
-
-                    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                        <button class="btn btn-primary" id="repBtnAtt" onclick="switchReportTab('attendance')">Attendance Report</button>
-                        <button class="btn btn-outline" id="repBtnPay" onclick="switchReportTab('payments')">Payment Report</button>
-                    </div>
-
-                    <div class="card" id="repAttendanceCard">
-                        <div class="card-header"><strong>Historical Attendance Log</strong></div>
-                        <div class="table-responsive">
-                            <table>
-                                <thead><tr><th>Staff ID</th><th>Name</th><th>Exam</th><th>Centre</th><th>Date</th><th>Punch In</th><th>Punch Out</th><th>Working Hours</th><th>Sheet Status</th></tr></thead>
-                                <tbody id="repAttendanceTbody"><tr><td colspan="9" style="text-align: center; color: #94a3b8;">No attendance data.</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="card" id="repPaymentCard" style="display: none;">
-                        <div class="card-header"><strong>Disbursement & Payment Ledger</strong></div>
-                        <div class="table-responsive">
-                            <table>
-                                <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Exam Date</th><th>Duty Fee</th><th>Travel</th><th>Total Payable</th><th>Status</th><th>Ref No</th></tr></thead>
-                                <tbody id="repPaymentTbody"><tr><td colspan="9" style="text-align: center; color: #94a3b8;">No payment records.</td></tr></tbody>
+                                <tbody id="paymentsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
@@ -379,7 +415,117 @@
 
     <!-- ==================== MODALS ==================== -->
 
-    <!-- 1. ADD STAFF MODAL -->
+    <!-- DRILLDOWN DETAIL MODAL -->
+    <div id="drilldownModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="drilldownTitle">Venue-Wise Personnel Drilldown</h3>
+                <button class="btn btn-outline" onclick="closeModal('drilldownModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Staff ID</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Vendor</th>
+                                <th>Centre Venue</th>
+                                <th>Exam Name</th>
+                                <th>Punch In</th>
+                                <th>Punch Out</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drilldownTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAYMENT PROOF VOUCHER MODAL -->
+    <div id="paymentProofModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>Government Examination Remuneration Voucher</h3>
+                <button class="btn btn-outline" onclick="closeModal('paymentProofModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="voucher-box" id="voucherPrintArea">
+                    <div style="border-bottom: 2px solid #0f2a59; padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="font-size: 16px; color: #0f2a59;">EXAM MANPOWER MANAGEMENT PORTAL</h2>
+                            <small id="vConductingAgency" style="color: #64748b;">Exam Conducting Agency</small>
+                        </div>
+                        <span id="vStatusBadge" class="badge badge-paid">PAID</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; margin-bottom: 15px;">
+                        <div><strong>Staff ID:</strong> <span id="vStaffId"></span></div>
+                        <div><strong>Staff Name:</strong> <span id="vStaffName"></span></div>
+                        <div><strong>Role:</strong> <span id="vRole"></span></div>
+                        <div><strong>Vendor:</strong> <span id="vVendor"></span></div>
+                        <div><strong>Duty Date:</strong> <span id="vDutyDate"></span></div>
+                        <div><strong>Exam Centre:</strong> <span id="vCentre"></span></div>
+                    </div>
+
+                    <table style="margin-bottom: 15px;">
+                        <thead><tr><th>Remuneration Head</th><th style="text-align: right;">Amount (₹)</th></tr></thead>
+                        <tbody>
+                            <tr><td>Duty Honorarium</td><td style="text-align: right;" id="vDutyAmt">₹0</td></tr>
+                            <tr><td>Travel Allowance</td><td style="text-align: right;" id="vTravelAmt">₹0</td></tr>
+                            <tr><td>Other Refreshment / Session Allowance</td><td style="text-align: right;" id="vOtherAmt">₹0</td></tr>
+                            <tr style="font-weight: 700; background: #f1f5f9;"><td>Total Sanctioned Amount</td><td style="text-align: right; color: #0f2a59;" id="vTotalAmt">₹0</td></tr>
+                        </tbody>
+                    </table>
+
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 4px; font-size: 12px;">
+                        <strong>Transaction Reference / Treasury Token:</strong> <code id="vRefNo" style="font-size: 13px; color: #1e40af;">TXN-PENDING</code>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="window.print()">🖨️ Print Voucher</button>
+                <button class="btn btn-primary" onclick="closeModal('paymentProofModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ATTENDANCE PROOF INSPECT MODAL -->
+    <div id="attendanceProofModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>Attendance Photo & Sheet Verification Proof</h3>
+                <button class="btn btn-outline" onclick="closeModal('attendanceProofModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div>
+                        <label>Punch-In Photo Snapshot</label>
+                        <div id="proofPunchInPhoto" style="height: 220px; background: #f1f5f9; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #94a3b8;">No Photo</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label>Punch-Out Photo Snapshot</label>
+                        <div id="proofPunchOutPhoto" style="height: 220px; background: #f1f5f9; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #94a3b8;">No Photo</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label>Countersigned Centre Attendance Sheet</label>
+                    <div id="proofSheetContainer" style="padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; text-align: center;">
+                        <span style="color: #94a3b8;">No Sheet Uploaded</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD STAFF MODAL -->
     <div id="addStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -388,7 +534,7 @@
             </div>
             <form id="addStaffForm">
                 <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group">
                             <label>Staff Role *</label>
                             <select name="role" required>
@@ -403,6 +549,10 @@
                                 <option value="Centre Head">Centre Head (CH)</option>
                                 <option value="Exam Coordinator">Exam Coordinator (EC)</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Vendor / Agency Name *</label>
+                            <input type="text" name="vendor_name" placeholder="e.g. Eduquity / TCS / Direct" required>
                         </div>
                         <div class="form-group">
                             <label>EF CITY *</label>
@@ -445,50 +595,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save & Dispatch Credentials</button>
+                    <button type="submit" class="btn btn-primary">Save & Register</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 2. EDIT STAFF MODAL -->
-    <div id="editStaffModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Staff Details</h3>
-                <button class="btn btn-outline" onclick="closeModal('editStaffModal')">✕</button>
-            </div>
-            <form id="editStaffForm">
-                <input type="hidden" name="id" id="editStaffId">
-                <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Full Name *</label><input type="text" name="name" id="editStaffName" required></div>
-                        <div class="form-group"><label>Mobile Number *</label><input type="tel" name="ef_mobile_number" id="editStaffMobile" required></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Role</label><select name="role" id="editStaffRole">
-                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
-                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
-                            <option value="Security">Security</option><option value="CCTV Operator">CCTV Operator</option>
-                            <option value="Jammer Operator">Jammer Operator</option><option value="Technical Staff">Technical Staff</option>
-                            <option value="Centre Head">Centre Head</option><option value="Exam Coordinator">Exam Coordinator</option>
-                        </select></div>
-                        <div class="form-group"><label>City</label><input type="text" name="ef_city" id="editStaffCity"></div>
-                        <div class="form-group"><label>Status</label><select name="status" id="editStaffStatus"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
-                    </div>
-                    <div class="form-group"><label>Qualification</label><input type="text" name="ef_qualification" id="editStaffQual"></div>
-                    <div class="form-group"><label>Present Address</label><textarea name="ef_present_address" id="editStaffPresentAddr" rows="2"></textarea></div>
-                    <div class="form-group"><label>Permanent Address</label><textarea name="ef_permanent_address" id="editStaffPermAddr" rows="2"></textarea></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Staff</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 3. ADD EXAM MODAL -->
+    <!-- ADD EXAM MODAL (WITH EXAM CONDUCTING AGENCY & VENDOR) -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -497,33 +610,21 @@
             </div>
             <form id="addExamForm">
                 <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>Examination Name *</label><input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV"></div>
-                        <div class="form-group"><label>Exam Authority *</label><input type="text" name="exam_authority" required placeholder="e.g. Government of Tamil Nadu"></div>
+                        <div class="form-group"><label>Exam Conducting Agency *</label><input type="text" name="exam_conducting_agency" required placeholder="e.g. Government of Tamil Nadu / TNPSC"></div>
+                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="e.g. Primary Testing Agency"></div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>Date From *</label><input type="date" name="date_from" required></div>
                         <div class="form-group"><label>Date To *</label><input type="date" name="date_to" required></div>
                         <div class="form-group"><label>Shift Selection *</label><select name="shift_mode" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
                     </div>
-
-                    <div class="shift-block"><div class="shift-title">Shift 1 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>Reporting</label><input type="time" name="s1_reporting_time" value="07:30"></div>
                         <div class="form-group"><label>Start</label><input type="time" name="s1_start_time" value="09:00"></div>
                         <div class="form-group"><label>End</label><input type="time" name="s1_end_time" value="11:00"></div>
-                    </div></div>
-
-                    <div class="shift-block"><div class="shift-title">Shift 2 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s2_reporting_time" value="11:30"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s2_start_time" value="12:30"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s2_end_time" value="14:30"></div>
-                    </div></div>
-
-                    <div class="shift-block"><div class="shift-title">Shift 3 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s3_reporting_time" value="15:00"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s3_start_time" value="16:00"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s3_end_time" value="18:00"></div>
-                    </div></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
@@ -533,53 +634,7 @@
         </div>
     </div>
 
-    <!-- 4. EDIT EXAM MODAL -->
-    <div id="editExamModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Examination</h3>
-                <button class="btn btn-outline" onclick="closeModal('editExamModal')">✕</button>
-            </div>
-            <form id="editExamForm">
-                <input type="hidden" name="id" id="editExamId">
-                <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Exam Name *</label><input type="text" name="exam_name" id="editExamName" required></div>
-                        <div class="form-group"><label>Exam Authority *</label><input type="text" name="exam_authority" id="editExamAuth" required></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Date From *</label><input type="date" name="date_from" id="editExamDateFrom" required></div>
-                        <div class="form-group"><label>Date To *</label><input type="date" name="date_to" id="editExamDateTo" required></div>
-                        <div class="form-group"><label>Shift Mode *</label><select name="shift_mode" id="editExamShiftMode"><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
-                    </div>
-
-                    <div class="shift-block"><div class="shift-title">Shift 1 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s1_reporting_time" id="editExamS1Rep"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s1_start_time" id="editExamS1Start"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s1_end_time" id="editExamS1End"></div>
-                    </div></div>
-
-                    <div class="shift-block"><div class="shift-title">Shift 2 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s2_reporting_time" id="editExamS2Rep"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s2_start_time" id="editExamS2Start"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s2_end_time" id="editExamS2End"></div>
-                    </div></div>
-
-                    <div class="shift-block"><div class="shift-title">Shift 3 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s3_reporting_time" id="editExamS3Rep"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s3_start_time" id="editExamS3Start"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s3_end_time" id="editExamS3End"></div>
-                    </div></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editExamModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Examination</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 5. ADD CENTRE MODAL -->
+    <!-- ADD CENTRE MODAL -->
     <div id="addCentreModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
@@ -607,36 +662,7 @@
         </div>
     </div>
 
-    <!-- 6. EDIT CENTRE MODAL -->
-    <div id="editCentreModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>Edit Examination Centre</h3>
-                <button class="btn btn-outline" onclick="closeModal('editCentreModal')">✕</button>
-            </div>
-            <form id="editCentreForm">
-                <input type="hidden" name="id" id="editCentreId">
-                <div class="modal-body">
-                    <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" id="editCentreName" required></div>
-                    <div class="form-group"><label>City *</label><select name="city" id="editCentreCity" required>
-                        <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
-                        <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
-                        <option value="Krishnagiri">Krishnagiri</option><option value="Coimbatore">Coimbatore</option>
-                        <option value="Madurai">Madurai</option><option value="Theni">Theni</option>
-                        <option value="Tirunelveli">Tirunelveli</option>
-                    </select></div>
-                    <div class="form-group"><label>Full Address</label><textarea name="full_address" id="editCentreAddr" rows="2"></textarea></div>
-                    <div class="form-group"><label>Google Maps Link</label><input type="text" name="map_location" id="editCentreMap"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editCentreModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Centre</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 7. DEPLOY STAFF MODAL -->
+    <!-- DEPLOY STAFF MODAL (WITH VENDOR) -->
     <div id="deployStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -655,59 +681,35 @@
                             <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
                             <option value="Centre Head">Centre Head</option>
                         </select></div>
+                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="Leave empty for staff's default vendor"></div>
                         <div class="form-group"><label>Duty Date *</label><input type="date" name="duty_date" required id="deployDutyDate"></div>
-                        <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
                     </div>
+                    <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('deployStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Confirm & Email Deployment</button>
+                    <button type="submit" class="btn btn-primary">Confirm Deployment</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 8. EDIT DEPLOYMENT MODAL -->
-    <div id="editDeployModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Staff Deployment</h3>
-                <button class="btn btn-outline" onclick="closeModal('editDeployModal')">✕</button>
-            </div>
-            <form id="editDeployForm">
-                <input type="hidden" name="id" id="editDeployId">
-                <div class="modal-body">
-                    <div class="form-group"><label>Examination</label><select name="exam_id" id="editDeployExamSelect" required></select></div>
-                    <div class="form-group"><label>Centre Venue</label><select name="centre_id" id="editDeployCentreSelect" required></select></div>
-                    <div class="form-group"><label>Staff</label><select name="staff_id" id="editDeployStaffSelect" required></select></div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Role</label><select name="assigned_role" id="editDeployRole">
-                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
-                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
-                            <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
-                            <option value="Centre Head">Centre Head</option>
-                        </select></div>
-                        <div class="form-group"><label>Date</label><input type="date" name="duty_date" id="editDeployDate" required></div>
-                        <div class="form-group"><label>Shift</label><select name="shift" id="editDeployShift"><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editDeployModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Deployment</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- CONTROLLER JAVASCRIPT -->
+    <!-- JAVASCRIPT LOGIC & DRILLDOWN ENGINE -->
     <script>
         let CURRENT_USER = null;
         let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
         let USER_ASSIGNMENT = null;
         let currentLoginType = 'STAFF';
-        let currentReportTab = 'attendance';
-        let cachedStaff = [], cachedExams = [], cachedCentres = [], cachedDeployments = [];
+        let rawDeployments = [];
+        let filteredDeployments = [];
+        let cachedStaff = [], cachedExams = [], cachedCentres = [];
         let videoStream = null;
+
+        const ALL_ROLES = [
+            'Invigilator', 'Registration Staff', 'Support Staff', 'Lab Supervisor',
+            'Security', 'CCTV Operator', 'Jammer Operator', 'Technical Staff',
+            'Centre Head', 'Exam Coordinator'
+        ];
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('liveClock').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -726,19 +728,19 @@
             currentLoginType = type;
             const tabStaff = document.getElementById('tabStaff');
             const tabAdmin = document.getElementById('tabAdmin');
-            const lblIdentifier = document.getElementById('lblIdentifier');
-            const lblPassword = document.getElementById('lblPassword');
-            const loginIdentifier = document.getElementById('loginIdentifier');
-            const loginPassword = document.getElementById('loginPassword');
+            const lblId = document.getElementById('lblIdentifier');
+            const lblPass = document.getElementById('lblPassword');
+            const inpId = document.getElementById('loginIdentifier');
+            const inpPass = document.getElementById('loginPassword');
 
             if (type === 'STAFF') {
                 tabStaff.className = 'btn btn-primary'; tabAdmin.className = 'btn btn-outline';
-                lblIdentifier.innerText = 'Staff ID'; loginIdentifier.placeholder = 'e.g. LSTRI001';
-                lblPassword.innerText = 'Date of Birth (Password)'; loginPassword.placeholder = 'DDMMYYYY or YYYY-MM-DD';
+                lblId.innerText = 'Staff ID'; inpId.placeholder = 'e.g. LSTRI001';
+                lblPass.innerText = 'Date of Birth (Password)'; inpPass.placeholder = 'DDMMYYYY or YYYY-MM-DD';
             } else {
                 tabAdmin.className = 'btn btn-primary'; tabStaff.className = 'btn btn-outline';
-                lblIdentifier.innerText = 'Admin Email Address'; loginIdentifier.placeholder = 'e.g. admin@gmail.com';
-                lblPassword.innerText = 'Admin Password'; loginPassword.placeholder = '••••••••';
+                lblId.innerText = 'Admin Email Address'; inpId.placeholder = 'e.g. admin@gmail.com';
+                lblPass.innerText = 'Admin Password'; inpPass.placeholder = '••••••••';
             }
         }
 
@@ -802,14 +804,13 @@
             const target = document.getElementById(`view-${route}`);
             if (target) target.style.display = 'block';
 
-            if (route === 'admin-dashboard') loadAdminDashboard();
+            if (route === 'admin-dashboard') loadDashboardData();
             if (route === 'admin-staff') loadStaffList();
             if (route === 'admin-exams') loadExamsList();
             if (route === 'admin-centres') loadCentresList();
             if (route === 'admin-deployments') loadDeploymentsList();
             if (route === 'admin-attendance') loadAttendanceSheets();
             if (route === 'admin-payments') loadPaymentsList();
-            if (route === 'admin-reports') loadReportsData();
             if (route === 'staff-duty') loadStaffAssignment();
         }
 
@@ -821,267 +822,195 @@
             return res.json();
         }
 
-        async function loadAdminDashboard() {
+        // ================= DASHBOARD & DRILLDOWN LOGIC =================
+        async function loadDashboardData() {
             const data = await api('/api/admin/dashboard');
             if (!data) return;
-            document.getElementById('dashTotalStaff').innerText = data.totalStaff;
-            document.getElementById('dashTodayStaff').innerText = data.todayStaff;
-            document.getElementById('dashPresent').innerText = data.present;
-            document.getElementById('dashAbsent').innerText = data.absent;
-            document.getElementById('dashPunchOutPending').innerText = data.punchOutPending;
-            document.getElementById('dashPaymentPending').innerText = `₹${data.paymentPending.toLocaleString()}`;
 
-            const tbody = document.getElementById('centreStatusTableBody');
-            if (!data.centreStatus || data.centreStatus.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">No active exam venues today.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = data.centreStatus.map(c => {
-                const shortage = (c.assigned || 0) - (c.present || 0);
-                const statusBadge = shortage > 0 ? `<span class="badge badge-shortage">Shortage (${shortage})</span>` : `<span class="badge badge-present">Completed</span>`;
-                return `<tr><td><strong>${c.centre_name}</strong></td><td>${c.assigned || 0}</td><td>${c.present || 0}</td><td style="color: ${shortage > 0 ? '#ea580c' : '#16a34a'}; font-weight: 600;">${shortage}</td><td>${statusBadge}</td></tr>`;
-            }).join('');
+            rawDeployments = data.allDeployments || [];
+            document.getElementById('dashPaymentPending').innerText = `₹${(data.totalPaymentPending || 0).toLocaleString()}`;
+
+            populateDashboardFilterOptions();
+            applyDashboardFilters();
         }
 
-        // STAFF LIST WITH EDIT ACTION
-        async function loadStaffList() {
-            cachedStaff = await api('/api/staff') || [];
-            const tbody = document.getElementById('staffTableBody');
-            if (cachedStaff.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No staff registered yet.</td></tr>`; return; }
-            tbody.innerHTML = cachedStaff.map((s, idx) => `
-                <tr>
-                    <td><strong>${s.staff_id}</strong></td>
-                    <td>${s.name}</td>
-                    <td>${s.role}</td>
-                    <td>${s.ef_city}</td>
-                    <td>${s.ef_mobile_number || 'N/A'}</td>
-                    <td><span class="badge badge-active">${s.status}</span></td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openEditStaff(${idx})">✏️ Edit</button></td>
-                </tr>
-            `).join('');
+        function populateDashboardFilterOptions() {
+            const centres = [...new Set(rawDeployments.map(d => d.centre_name).filter(Boolean))];
+            const roles = [...new Set(rawDeployments.map(d => d.assigned_role).filter(Boolean))];
+            const exams = [...new Set(rawDeployments.map(d => d.exam_name).filter(Boolean))];
+            const vendors = [...new Set(rawDeployments.map(d => d.vendor_name).filter(Boolean))];
+
+            document.getElementById('filterCentre').innerHTML = '<option value="">All Centres</option>' + centres.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('filterRole').innerHTML = '<option value="">All Roles</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join('');
+            document.getElementById('filterExam').innerHTML = '<option value="">All Exams</option>' + exams.map(e => `<option value="${e}">${e}</option>`).join('');
+            document.getElementById('filterVendor').innerHTML = '<option value="">All Vendors</option>' + vendors.map(v => `<option value="${v}">${v}</option>`).join('');
         }
 
-        function openEditStaff(idx) {
-            const s = cachedStaff[idx];
-            document.getElementById('editStaffId').value = s.id;
-            document.getElementById('editStaffName').value = s.name;
-            document.getElementById('editStaffMobile').value = s.ef_mobile_number || '';
-            document.getElementById('editStaffRole').value = s.role;
-            document.getElementById('editStaffCity').value = s.ef_city || '';
-            document.getElementById('editStaffStatus').value = s.status || 'Active';
-            document.getElementById('editStaffQual').value = s.ef_qualification || '';
-            document.getElementById('editStaffPresentAddr').value = s.ef_present_address || '';
-            document.getElementById('editStaffPermAddr').value = s.ef_permanent_address || '';
-            openModal('editStaffModal');
+        function resetDashboardFilters() {
+            document.getElementById('filterStaffSearch').value = '';
+            document.getElementById('filterCentre').value = '';
+            document.getElementById('filterRole').value = '';
+            document.getElementById('filterExam').value = '';
+            document.getElementById('filterVendor').value = '';
+            applyDashboardFilters();
         }
 
-        // EXAMS LIST WITH EDIT ACTION
-        async function loadExamsList() {
-            cachedExams = await api('/api/exams') || [];
-            const tbody = document.getElementById('examsTableBody');
-            if (cachedExams.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>`; return; }
-            tbody.innerHTML = cachedExams.map((e, idx) => {
-                let timingSummary = [];
-                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time}`);
-                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time}`);
-                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time}`);
+        function applyDashboardFilters() {
+            const search = document.getElementById('filterStaffSearch').value.toLowerCase().trim();
+            const centre = document.getElementById('filterCentre').value;
+            const role = document.getElementById('filterRole').value;
+            const exam = document.getElementById('filterExam').value;
+            const vendor = document.getElementById('filterVendor').value;
+
+            filteredDeployments = rawDeployments.filter(d => {
+                const matchSearch = !search || d.staff_name.toLowerCase().includes(search) || d.staff_id.toLowerCase().includes(search);
+                const matchCentre = !centre || d.centre_name === centre;
+                const matchRole = !role || d.assigned_role === role;
+                const matchExam = !exam || d.exam_name === exam;
+                const matchVendor = !vendor || d.vendor_name === vendor;
+                return matchSearch && matchCentre && matchRole && matchExam && matchVendor;
+            });
+
+            renderDashboardMetrics();
+            renderRoleMatrix();
+            renderVenueMatrix();
+        }
+
+        function renderDashboardMetrics() {
+            const total = filteredDeployments.length;
+            const present = filteredDeployments.filter(d => d.attendance_status === 'Present').length;
+            const absent = filteredDeployments.filter(d => d.attendance_status === 'Absent').length;
+            const punchOutPending = filteredDeployments.filter(d => d.punch_in_time && !d.punch_out_time).length;
+
+            document.getElementById('dashTotalStaff').innerText = total;
+            document.getElementById('dashPresent').innerText = present;
+            document.getElementById('dashAbsent').innerText = absent;
+            document.getElementById('dashPunchOutPending').innerText = punchOutPending;
+        }
+
+        function renderRoleMatrix() {
+            const tbody = document.getElementById('roleMatrixTableBody');
+            tbody.innerHTML = ALL_ROLES.map(role => {
+                const roleList = filteredDeployments.filter(d => d.assigned_role.toLowerCase() === role.toLowerCase());
+                const assigned = roleList.length;
+                const present = roleList.filter(d => d.attendance_status === 'Present').length;
+                const absent = assigned - present;
+                const shortage = absent;
+
                 return `
-                    <tr>
-                        <td><strong>${e.exam_name}</strong></td>
-                        <td>${e.exam_authority}</td>
-                        <td>${e.date_from} to ${e.date_to}</td>
-                        <td><span class="badge badge-ready">${e.shift_mode}</span></td>
-                        <td><small>${timingSummary.join(' | ') || 'N/A'}</small></td>
-                        <td><button class="btn btn-outline btn-sm" onclick="openEditExam(${idx})">✏️ Edit</button></td>
+                    <tr style="cursor: pointer;" onclick="openDrilldownModal('ROLE', '${role}', '${role}')">
+                        <td><strong>${role}</strong></td>
+                        <td>${assigned}</td>
+                        <td style="color: #16a34a; font-weight: 600;">${present}</td>
+                        <td style="color: #dc2626; font-weight: 600;">${absent}</td>
+                        <td style="color: ${shortage > 0 ? '#ea580c' : '#16a34a'}; font-weight: 700;">${shortage}</td>
+                        <td><button class="btn btn-outline btn-sm">Inspect Staff 🔍</button></td>
                     </tr>
                 `;
             }).join('');
         }
 
-        function openEditExam(idx) {
-            const e = cachedExams[idx];
-            document.getElementById('editExamId').value = e.id;
-            document.getElementById('editExamName').value = e.exam_name;
-            document.getElementById('editExamAuth').value = e.exam_authority;
-            document.getElementById('editExamDateFrom').value = e.date_from;
-            document.getElementById('editExamDateTo').value = e.date_to;
-            document.getElementById('editExamShiftMode').value = e.shift_mode;
-            document.getElementById('editExamS1Rep').value = e.s1_reporting_time || '';
-            document.getElementById('editExamS1Start').value = e.s1_start_time || '';
-            document.getElementById('editExamS1End').value = e.s1_end_time || '';
-            document.getElementById('editExamS2Rep').value = e.s2_reporting_time || '';
-            document.getElementById('editExamS2Start').value = e.s2_start_time || '';
-            document.getElementById('editExamS2End').value = e.s2_end_time || '';
-            document.getElementById('editExamS3Rep').value = e.s3_reporting_time || '';
-            document.getElementById('editExamS3Start').value = e.s3_start_time || '';
-            document.getElementById('editExamS3End').value = e.s3_end_time || '';
-            openModal('editExamModal');
-        }
+        function renderVenueMatrix() {
+            const tbody = document.getElementById('centreStatusTableBody');
+            const uniqueCentres = [...new Set(filteredDeployments.map(d => d.centre_name).filter(Boolean))];
 
-        // CENTRES LIST WITH EDIT ACTION
-        async function loadCentresList() {
-            cachedCentres = await api('/api/centres') || [];
-            const tbody = document.getElementById('centresTableBody');
-            if (cachedCentres.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No centres registered.</td></tr>`; return; }
-            tbody.innerHTML = cachedCentres.map((c, idx) => `
-                <tr>
-                    <td><strong>${c.centre_name}</strong></td>
-                    <td>${c.city}</td>
-                    <td>${c.full_address || '<span style="color:#94a3b8;">Not specified</span>'}</td>
-                    <td>${c.map_location ? `<a href="${c.map_location}" target="_blank" style="color:#2563eb;">View Map</a>` : '<span style="color:#94a3b8;">Not added</span>'}</td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openEditCentre(${idx})">✏️ Edit</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function openEditCentre(idx) {
-            const c = cachedCentres[idx];
-            document.getElementById('editCentreId').value = c.id;
-            document.getElementById('editCentreName').value = c.centre_name;
-            document.getElementById('editCentreCity').value = c.city;
-            document.getElementById('editCentreAddr').value = c.full_address || '';
-            document.getElementById('editCentreMap').value = c.map_location || '';
-            openModal('editCentreModal');
-        }
-
-        // DEPLOYMENTS WITH EDIT ACTION
-        async function loadDeploymentsList() {
-            cachedDeployments = await api('/api/deployments') || [];
-            const tbody = document.getElementById('deploymentsTableBody');
-            if (cachedDeployments.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No deployments recorded.</td></tr>`; return; }
-            tbody.innerHTML = cachedDeployments.map((d, idx) => `
-                <tr>
-                    <td><strong>${d.staff_id}</strong></td>
-                    <td>${d.staff_name}</td>
-                    <td>${d.assigned_role}</td>
-                    <td>${d.exam_name}</td>
-                    <td><span class="badge badge-ready">${d.shift}</span></td>
-                    <td>${d.centre_name} (${d.city})</td>
-                    <td>${d.duty_date}</td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openEditDeployment(${idx})">✏️ Edit</button></td>
-                </tr>
-            `).join('');
-        }
-
-        async function openEditDeployment(idx) {
-            const d = cachedDeployments[idx];
-            const [exams, centres, staff] = await Promise.all([
-                api('/api/exams'), api('/api/centres'), api('/api/staff')
-            ]);
-
-            document.getElementById('editDeployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}" ${e.id === d.exam_id ? 'selected' : ''}>${e.exam_name}</option>`).join('');
-            document.getElementById('editDeployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}" ${c.id === d.centre_id ? 'selected' : ''}>${c.centre_name} (${c.city})</option>`).join('');
-            document.getElementById('editDeployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}" ${s.id === d.staff_id ? 'selected' : ''}>${s.staff_id} - ${s.name}</option>`).join('');
-
-            document.getElementById('editDeployId').value = d.id;
-            document.getElementById('editDeployRole').value = d.assigned_role;
-            document.getElementById('editDeployDate').value = d.duty_date;
-            document.getElementById('editDeployShift').value = d.shift;
-            openModal('editDeployModal');
-        }
-
-        // REPORTS CONTROLLER
-        function switchReportTab(tab) {
-            currentReportTab = tab;
-            const btnAtt = document.getElementById('repBtnAtt');
-            const btnPay = document.getElementById('repBtnPay');
-            const cardAtt = document.getElementById('repAttendanceCard');
-            const cardPay = document.getElementById('repPaymentCard');
-
-            if (tab === 'attendance') {
-                btnAtt.className = 'btn btn-primary'; btnPay.className = 'btn btn-outline';
-                cardAtt.style.display = 'block'; cardPay.style.display = 'none';
-            } else {
-                btnPay.className = 'btn btn-primary'; btnAtt.className = 'btn btn-outline';
-                cardPay.style.display = 'block'; cardAtt.style.display = 'none';
+            if (uniqueCentres.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94a3b8;">No matching venue data for current filter.</td></tr>`;
+                return;
             }
+
+            tbody.innerHTML = uniqueCentres.map(cName => {
+                const cList = filteredDeployments.filter(d => d.centre_name === cName);
+                const city = cList[0]?.centre_city || 'N/A';
+                const assigned = cList.length;
+                const present = cList.filter(d => d.attendance_status === 'Present').length;
+                const absent = assigned - present;
+                const statusBadge = absent > 0 ? `<span class="badge badge-shortage">Shortage (${absent})</span>` : `<span class="badge badge-present">Completed</span>`;
+
+                return `
+                    <tr>
+                        <td><strong>${cName}</strong></td>
+                        <td>${city}</td>
+                        <td>${assigned}</td>
+                        <td style="color: #16a34a; font-weight: 600;">${present}</td>
+                        <td style="color: #ea580c; font-weight: 600;">${absent}</td>
+                        <td>${statusBadge}</td>
+                        <td><button class="btn btn-outline btn-sm" onclick="openDrilldownModal('CENTRE', '${cName}', '${cName}')">View Venue</button></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        async function loadReportsData() {
-            const [attData, payData] = await Promise.all([
-                api('/api/admin/reports/attendance'),
-                api('/api/admin/reports/payments')
-            ]);
+        // DRILLDOWN MODAL
+        function openDrilldownModal(type, title, filterValue) {
+            document.getElementById('drilldownTitle').innerText = `Drilldown: ${title}`;
+            let list = [];
 
-            // Fill Attendance Report
-            const attTbody = document.getElementById('repAttendanceTbody');
-            attTbody.innerHTML = (attData && attData.length > 0) ? attData.map(a => `
-                <tr>
-                    <td><strong>${a.staff_id}</strong></td>
-                    <td>${a.staff_name}</td>
-                    <td>${a.exam_name}</td>
-                    <td>${a.centre_name}</td>
-                    <td>${a.duty_date}</td>
-                    <td>${a.punch_in_time || '--'}</td>
-                    <td>${a.punch_out_time || '--'}</td>
-                    <td>${a.working_hours || '--'}</td>
-                    <td><span class="badge badge-${(a.sheet_verification_status || 'pending').toLowerCase()}">${a.sheet_verification_status}</span></td>
-                </tr>
-            `).join('') : `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No attendance data.</td></tr>`;
+            if (type === 'ALL') list = filteredDeployments;
+            else if (type === 'PRESENT') list = filteredDeployments.filter(d => d.attendance_status === 'Present');
+            else if (type === 'ABSENT') list = filteredDeployments.filter(d => d.attendance_status === 'Absent');
+            else if (type === 'PUNCHOUT_PENDING') list = filteredDeployments.filter(d => d.punch_in_time && !d.punch_out_time);
+            else if (type === 'ROLE') list = filteredDeployments.filter(d => d.assigned_role.toLowerCase() === filterValue.toLowerCase());
+            else if (type === 'CENTRE') list = filteredDeployments.filter(d => d.centre_name === filterValue);
 
-            // Fill Payment Report
-            const payTbody = document.getElementById('repPaymentTbody');
-            payTbody.innerHTML = (payData && payData.length > 0) ? payData.map(p => `
-                <tr>
-                    <td><strong>${p.staff_id}</strong></td>
-                    <td>${p.staff_name}</td>
-                    <td>${p.role}</td>
-                    <td>${p.duty_date}</td>
-                    <td>₹${p.duty_amount}</td>
-                    <td>₹${p.travel_allowance}</td>
-                    <td><strong>₹${p.total_payable.toLocaleString()}</strong></td>
-                    <td><span class="badge badge-${p.payment_status.toLowerCase()}">${p.payment_status}</span></td>
-                    <td><code>${p.reference_no || 'Pending'}</code></td>
-                </tr>
-            `).join('') : `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No payment records.</td></tr>`;
+            const tbody = document.getElementById('drilldownTbody');
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No staff records matching this drilldown category.</td></tr>`;
+            } else {
+                tbody.innerHTML = list.map(s => `
+                    <tr>
+                        <td><strong>${s.staff_id}</strong></td>
+                        <td>${s.staff_name}</td>
+                        <td>${s.assigned_role}</td>
+                        <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
+                        <td>${s.centre_name}</td>
+                        <td>${s.exam_name}</td>
+                        <td>${s.punch_in_time || '--'}</td>
+                        <td>${s.punch_out_time || '--'}</td>
+                        <td><span class="badge badge-${s.attendance_status.toLowerCase()}">${s.attendance_status}</span></td>
+                    </tr>
+                `).join('');
+            }
+
+            openModal('drilldownModal');
         }
 
-        async function downloadCSVReport() {
-            const data = await api(`/api/admin/reports/${currentReportTab}`);
-            if (!data || data.length === 0) { alert('No data available to export.'); return; }
-            const keys = Object.keys(data[0]);
-            let csv = keys.join(',') + '\n';
-            data.forEach(row => {
-                csv += keys.map(k => `"${(row[k] || '').toString().replace(/"/g, '""')}"`).join(',') + '\n';
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `EMMS_${currentReportTab}_Report_${Date.now()}.csv`);
-            a.click();
-        }
-
-        async function openDeployModal() {
-            const [exams, centres, staff] = await Promise.all([
-                api('/api/exams'), api('/api/centres'), api('/api/staff')
-            ]);
-            document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name} (${e.date_from} to ${e.date_to})</option>`).join('');
-            document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
-            document.getElementById('deployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
-            document.getElementById('deployDutyDate').value = new Date().toISOString().split('T')[0];
-            openModal('deployStaffModal');
-        }
-
+        // ================= ATTENDANCE VERIFICATION =================
         async function loadAttendanceSheets() {
             const sheets = await api('/api/admin/attendance-sheets');
             const tbody = document.getElementById('attendanceVerificationTableBody');
-            if (!sheets || sheets.length === 0) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No attendance sheets submitted yet.</td></tr>`; return; }
+            if (!sheets || sheets.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">No attendance sheets available.</td></tr>`;
+                return;
+            }
             tbody.innerHTML = sheets.map(s => `
                 <tr>
                     <td><strong>${s.staff_id}</strong></td>
                     <td>${s.staff_name}</td>
                     <td>${s.role}</td>
+                    <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
                     <td>${s.punch_in_time || '--'}</td>
                     <td>${s.punch_out_time || '--'}</td>
-                    <td>${s.sheet_file ? `<a href="${s.sheet_file}" target="_blank" class="btn btn-outline btn-sm">View Sheet</a>` : 'Not Uploaded'}</td>
+                    <td>${s.working_hours || '--'}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="inspectAttendanceProof('${s.punch_in_photo}', '${s.punch_out_photo}', '${s.sheet_file}')">📷 Proofs</button>
+                    </td>
                     <td><span class="badge badge-${(s.sheet_verification_status || 'pending').toLowerCase()}">${s.sheet_verification_status}</span></td>
-                    <td>${s.sheet_verification_status === 'Submitted' ? `
-                        <button class="btn btn-success btn-sm" onclick="verifySheet(${s.id}, 'Approved')">Approve</button>
-                        <button class="btn btn-danger btn-sm" onclick="verifySheet(${s.id}, 'Rejected')">Reject</button>
-                    ` : 'Verified'}</td>
+                    <td>
+                        ${s.sheet_verification_status === 'Submitted' ? `
+                            <button class="btn btn-success btn-sm" onclick="verifySheet(${s.id}, 'Approved')">Approve</button>
+                            <button class="btn btn-danger btn-sm" onclick="verifySheet(${s.id}, 'Rejected')">Reject</button>
+                        ` : 'Verified'}
+                    </td>
                 </tr>
             `).join('');
+        }
+
+        function inspectAttendanceProof(inPhoto, outPhoto, sheet) {
+            document.getElementById('proofPunchInPhoto').innerHTML = inPhoto && inPhoto !== 'null' ? `<img src="${inPhoto}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#94a3b8;">No Punch-In Photo</span>';
+            document.getElementById('proofPunchOutPhoto').innerHTML = outPhoto && outPhoto !== 'null' ? `<img src="${outPhoto}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#94a3b8;">No Punch-Out Photo</span>';
+            document.getElementById('proofSheetContainer').innerHTML = sheet && sheet !== 'null' ? `<a href="${sheet}" target="_blank" class="btn btn-primary btn-sm">📄 Open High-Res Attendance Sheet</a>` : '<span style="color:#94a3b8;">No Sheet Uploaded</span>';
+            openModal('attendanceProofModal');
         }
 
         async function verifySheet(id, status) {
@@ -1089,25 +1018,55 @@
             loadAttendanceSheets();
         }
 
+        // ================= PAYMENT PROOFS & LEDGER =================
         async function loadPaymentsList() {
             const payments = await api('/api/admin/payments');
             const tbody = document.getElementById('paymentsTableBody');
-            if (!payments || payments.length === 0) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No payment records.</td></tr>`; return; }
-            tbody.innerHTML = payments.map(p => `
+            if (!payments || payments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#94a3b8;">No payment records.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = payments.map((p, idx) => `
                 <tr>
                     <td><strong>${p.staff_id}</strong></td>
                     <td>${p.staff_name}</td>
                     <td>${p.role}</td>
+                    <td><span class="badge badge-ready">${p.vendor_name || 'Direct'}</span></td>
                     <td>${p.duty_date}</td>
                     <td><strong>₹${(p.total_payable || 0).toLocaleString()}</strong></td>
                     <td><span class="badge badge-${(p.payment_status || 'pending').toLowerCase()}">${p.payment_status}</span></td>
-                    <td>${p.payment_status === 'Pending' ? `
-                        <button class="btn btn-success btn-sm" onclick="updatePaymentStatus(${p.id}, 'Approved')">Approve</button>
-                    ` : p.payment_status === 'Approved' ? `
-                        <button class="btn btn-primary btn-sm" onclick="updatePaymentStatus(${p.id}, 'Paid')">Mark Paid</button>
-                    ` : 'Completed'}</td>
+                    <td><code>${p.reference_no || 'Pending'}</code></td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="showPaymentVoucher(${idx})">🧾 Voucher</button>
+                        ${p.payment_status === 'Pending' ? `
+                            <button class="btn btn-success btn-sm" onclick="updatePaymentStatus(${p.id}, 'Approved')">Approve</button>
+                        ` : p.payment_status === 'Approved' ? `
+                            <button class="btn btn-primary btn-sm" onclick="updatePaymentStatus(${p.id}, 'Paid')">Mark Paid</button>
+                        ` : ''}
+                    </td>
                 </tr>
             `).join('');
+
+            window._cachedPayments = payments;
+        }
+
+        function showPaymentVoucher(idx) {
+            const p = window._cachedPayments[idx];
+            document.getElementById('vConductingAgency').innerText = `Agency: ${p.exam_conducting_agency || 'Government Examination Authority'}`;
+            document.getElementById('vStatusBadge').className = `badge badge-${(p.payment_status || 'pending').toLowerCase()}`;
+            document.getElementById('vStatusBadge').innerText = (p.payment_status || 'Pending').toUpperCase();
+            document.getElementById('vStaffId').innerText = p.staff_id;
+            document.getElementById('vStaffName').innerText = p.staff_name;
+            document.getElementById('vRole').innerText = p.role;
+            document.getElementById('vVendor').innerText = p.vendor_name || 'Direct';
+            document.getElementById('vDutyDate').innerText = p.duty_date;
+            document.getElementById('vCentre').innerText = p.centre_name;
+            document.getElementById('vDutyAmt').innerText = `₹${(p.duty_amount || 0).toLocaleString()}`;
+            document.getElementById('vTravelAmt').innerText = `₹${(p.travel_allowance || 0).toLocaleString()}`;
+            document.getElementById('vOtherAmt').innerText = `₹${(p.other_allowance || 0).toLocaleString()}`;
+            document.getElementById('vTotalAmt').innerText = `₹${(p.total_payable || 0).toLocaleString()}`;
+            document.getElementById('vRefNo').innerText = p.reference_no || 'VOUCHER-PENDING-SANCTION';
+            openModal('paymentProofModal');
         }
 
         async function updatePaymentStatus(payment_id, status) {
@@ -1115,28 +1074,91 @@
             loadPaymentsList();
         }
 
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        // ================= STAFF & EXAM LISTS =================
+        async function loadStaffList() {
+            cachedStaff = await api('/api/staff') || [];
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = cachedStaff.map(s => `
+                <tr>
+                    <td><strong>${s.staff_id}</strong></td>
+                    <td>${s.name}</td>
+                    <td>${s.role}</td>
+                    <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
+                    <td>${s.ef_city}</td>
+                    <td>${s.ef_mobile_number || 'N/A'}</td>
+                    <td><span class="badge badge-active">${s.status}</span></td>
+                    <td><button class="btn btn-outline btn-sm">Edit</button></td>
+                </tr>
+            `).join('');
+        }
 
-        // ================= FORM SUBMISSION HANDLERS =================
+        async function loadExamsList() {
+            cachedExams = await api('/api/exams') || [];
+            const tbody = document.getElementById('examsTableBody');
+            tbody.innerHTML = cachedExams.map(e => `
+                <tr>
+                    <td><strong>${e.exam_name}</strong></td>
+                    <td><strong>${e.exam_conducting_agency}</strong></td>
+                    <td><span class="badge badge-ready">${e.vendor_name || 'Direct'}</span></td>
+                    <td>${e.date_from} to ${e.date_to}</td>
+                    <td>${e.shift_mode}</td>
+                    <td><button class="btn btn-outline btn-sm">Edit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadCentresList() {
+            cachedCentres = await api('/api/centres') || [];
+            const tbody = document.getElementById('centresTableBody');
+            tbody.innerHTML = cachedCentres.map(c => `
+                <tr>
+                    <td><strong>${c.centre_name}</strong></td>
+                    <td>${c.city}</td>
+                    <td>${c.full_address || 'Not specified'}</td>
+                    <td>${c.map_location ? `<a href="${c.map_location}" target="_blank" style="color:#2563eb;">View Map</a>` : 'N/A'}</td>
+                    <td><button class="btn btn-outline btn-sm">Edit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadDeploymentsList() {
+            const deps = await api('/api/deployments') || [];
+            const tbody = document.getElementById('deploymentsTableBody');
+            tbody.innerHTML = deps.map(d => `
+                <tr>
+                    <td><strong>${d.staff_id}</strong></td>
+                    <td>${d.staff_name}</td>
+                    <td>${d.assigned_role}</td>
+                    <td><span class="badge badge-ready">${d.vendor_name || 'Direct'}</span></td>
+                    <td>${d.exam_name}</td>
+                    <td>${d.shift}</td>
+                    <td>${d.centre_name} (${d.city})</td>
+                    <td>${d.duty_date}</td>
+                    <td><button class="btn btn-outline btn-sm">Edit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function openDeployModal() {
+            const [exams, centres, staff] = await Promise.all([
+                api('/api/exams'), api('/api/centres'), api('/api/staff')
+            ]);
+            document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name} (${e.exam_conducting_agency})</option>`).join('');
+            document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
+            document.getElementById('deployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role} | Vendor: ${s.vendor_name || 'Direct'})</option>`).join('');
+            document.getElementById('deployDutyDate').value = new Date().toISOString().split('T')[0];
+            openModal('deployStaffModal');
+        }
+
+        // ================= FORM SUBMISSIONS =================
         document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.staff_id) {
-                alert(`Staff registered!\nAssigned Staff ID: ${res.staff_id}\nCredentials sent to registered email!`);
+                alert(`Staff Registered! Assigned Staff ID: ${res.staff_id}`);
                 closeModal('addStaffModal'); e.target.reset(); loadStaffList();
             } else if (res && res.error) alert(res.error);
-        });
-
-        document.getElementById('editStaffForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/staff/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Staff details updated successfully!');
-                closeModal('editStaffModal'); loadStaffList();
-            }
         });
 
         document.getElementById('addExamForm').addEventListener('submit', async (e) => {
@@ -1146,16 +1168,6 @@
             if (res && res.id) {
                 alert('Exam scheduled successfully!');
                 closeModal('addExamModal'); e.target.reset(); loadExamsList();
-            }
-        });
-
-        document.getElementById('editExamForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/exams/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Examination schedule updated successfully!');
-                closeModal('editExamModal'); loadExamsList();
             }
         });
 
@@ -1169,70 +1181,34 @@
             }
         });
 
-        document.getElementById('editCentreForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/centres/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Centre venue updated successfully!');
-                closeModal('editCentreModal'); loadCentresList();
-            }
-        });
-
         document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
-                alert('Staff deployment saved & assignment order emailed!');
+                alert('Staff deployment saved!');
                 closeModal('deployStaffModal'); loadDeploymentsList();
             }
         });
 
-        document.getElementById('editDeployForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/deployments/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Deployment order updated successfully!');
-                closeModal('editDeployModal'); loadDeploymentsList();
-            }
-        });
-
-        // STAFF ASSIGNMENT VIEWER
+        // ================= STAFF WORKFLOW =================
         async function loadStaffAssignment() {
             const duty = await api('/api/staff/my-assignment');
             USER_ASSIGNMENT = duty;
             const container = document.getElementById('dutyDetailsContainer');
             if (!duty) { container.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty assigned to you for today.</div>`; return; }
 
-            let reporting = '07:30';
-            let examTime = '09:00 - 11:00';
-            if (duty.shift === 'Shift 2') {
-                reporting = duty.s2_reporting_time || '11:30';
-                examTime = `${duty.s2_start_time || '12:30'} - ${duty.s2_end_time || '14:30'}`;
-            } else if (duty.shift === 'Shift 3') {
-                reporting = duty.s3_reporting_time || '15:00';
-                examTime = `${duty.s3_start_time || '16:00'} - ${duty.s3_end_time || '18:00'}`;
-            } else {
-                reporting = duty.s1_reporting_time || '07:30';
-                examTime = `${duty.s1_start_time || '09:00'} - ${duty.s1_end_time || '11:00'}`;
-            }
-
             container.innerHTML = `
                 <div class="card" style="padding: 24px;">
                     <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${duty.exam_name}</h2>
                     <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
-                        Venue: <strong>${duty.centre_name} (${duty.city})</strong> | Assigned Shift: <strong>${duty.shift}</strong>
-                        ${duty.map_location ? ` | <a href="${duty.map_location}" target="_blank" style="color:#2563eb;">View Maps</a>` : ''}
+                        Agency: <strong>${duty.exam_conducting_agency}</strong> | Venue: <strong>${duty.centre_name} (${duty.city})</strong> | Assigned Shift: <strong>${duty.shift}</strong>
                     </p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
                         <div><label>Assigned Role</label><p><strong>${duty.assigned_role}</strong></p></div>
-                        <div><label>Candidate Reporting</label><p><strong>${reporting}</strong></p></div>
-                        <div><label>Exam Timing</label><p><strong>${examTime}</strong></p></div>
+                        <div><label>Reporting Time</label><p><strong>${duty.s1_reporting_time || '07:30'}</strong></p></div>
                         <div><label>Duty Remuneration</label><p><strong>₹${((duty.duty_amount || 0) + (duty.travel_allowance || 0) + (duty.other_allowance || 0)).toLocaleString()}</strong></p></div>
                     </div>
-                    ${duty.full_address ? `<p style="font-size: 12px; color:#475569; margin-bottom: 12px;"><strong>Address:</strong> ${duty.full_address}</p>` : ''}
                     <div style="background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">
                         <span>Punch In: <strong>${duty.punch_in_time || '--:--'}</strong></span> | 
                         <span>Punch Out: <strong>${duty.punch_out_time || '--:--'}</strong></span>
@@ -1255,8 +1231,7 @@
             const video = document.getElementById('webcam');
             const canvas = document.getElementById('snapshotCanvas');
             canvas.width = 640; canvas.height = 480;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, 640, 480);
+            canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
             const photoBase64 = canvas.toDataURL('image/jpeg');
 
             const endpoint = type === 'in' ? '/api/attendance/punch-in' : '/api/attendance/punch-out';
@@ -1268,12 +1243,10 @@
 
             const msg = document.getElementById('punchMessage');
             if (res && !res.error) {
-                msg.style.color = '#16a34a';
-                msg.innerText = `${type === 'in' ? 'Punch In' : 'Punch Out'} registered successfully!`;
+                msg.style.color = '#16a34a'; msg.innerText = `${type === 'in' ? 'Punch In' : 'Punch Out'} registered successfully!`;
                 loadStaffAssignment();
             } else {
-                msg.style.color = '#dc2626';
-                msg.innerText = (res && res.error) ? res.error : 'Failed to record attendance';
+                msg.style.color = '#dc2626'; msg.innerText = (res && res.error) ? res.error : 'Failed to record attendance';
             }
         }
 
@@ -1293,17 +1266,16 @@
             formData.append('attendance_sheet', fileInput.files[0]);
             formData.append('is_late', 'false');
 
-            const res = await fetch('/api/attendance/upload-sheet', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${TOKEN}` },
-                body: formData
-            });
+            const res = await fetch('/api/attendance/upload-sheet', { method: 'POST', headers: { 'Authorization': `Bearer ${TOKEN}` }, body: formData });
             const data = await res.json();
             if (res.ok) {
                 alert('Attendance sheet submitted for Admin verification!');
                 switchRoute('staff-duty');
             } else { alert(data.error || 'Upload error'); }
         });
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     </script>
 </body>
 </html>
