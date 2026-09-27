@@ -1,15 +1,354 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EXAM MANPOWER MANAGEMENT SYSTEM</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root {
+            --primary: #0f2a59;
+            --primary-light: #1e40af;
+            --accent: #2563eb;
+            --surface: #ffffff;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --sidebar-w: 260px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        /* Auth */
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%);
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: #fff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 8px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .auth-header {
+            background: var(--primary);
+            color: #fff;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .auth-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .auth-header p {
+            font-size: 12px;
+            color: #93c5fd;
+            margin-top: 4px;
+        }
+
+        .auth-body {
+            padding: 28px;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-brand h2 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .sidebar-brand span {
+            font-size: 11px;
+            color: #93c5fd;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 0;
+        }
+
+        .nav-category {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            padding: 12px 20px 6px;
+            font-weight: 600;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: #cbd5e1;
+            text-decoration: none;
+            cursor: pointer;
+            gap: 12px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--primary-light);
+            color: #fff;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .content-area {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        /* Tables & Cards */
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th {
+            background: #f1f5f9;
+            font-size: 12px;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-present, .badge-active, .badge-ready, .badge-approved, .badge-paid {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-absent, .badge-rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-pending, .badge-hold {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-shortage {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
+        /* Inputs & Buttons */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--primary-light); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body { padding: 20px; }
+        .modal-footer {
+            padding: 12px 20px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Camera Box */
+        .camera-box {
+            background: #000;
+            width: 100%;
+            height: 280px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .camera-box video, .camera-box canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- 1. LOGIN INTERFACE (Staff: Staff ID + DOB | Admin: Gmail + Password) -->
+    <!-- 1. LOGIN INTERFACE -->
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
@@ -92,8 +431,8 @@
 
                 <!-- ADMIN: DASHBOARD -->
                 <div id="view-admin-dashboard" class="page-view">
-                    <h1 class="page-title">Good Morning, Admin</h1>
-                    <p class="page-subtitle">Manage examination manpower, attendance and payments from one place.</p>
+                    <h1 class="page-title" style="font-size: 20px; font-weight: 700;">Good Morning, Admin</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Manage examination manpower, attendance and payments from one place.</p>
 
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -124,7 +463,7 @@
 
                     <div class="card">
                         <div class="card-header">
-                            <span class="card-title">Centre Manpower Status</span>
+                            <strong>Centre Manpower Status</strong>
                         </div>
                         <div class="table-responsive">
                             <table>
@@ -149,8 +488,8 @@
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
-                            <h1 class="page-title">Staff Management</h1>
-                            <p class="page-subtitle">Registered staff directory synced with Google Sheets.</p>
+                            <h1 style="font-size: 20px; font-weight: 700;">Staff Management</h1>
+                            <p style="color: #64748b;">Registered staff directory synced with Google Sheets.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Add Staff</button>
                     </div>
@@ -181,8 +520,8 @@
                 <div id="view-admin-exams" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
-                            <h1 class="page-title">Examinations</h1>
-                            <p class="page-subtitle">Manage upcoming institutional & recruitment exams.</p>
+                            <h1 style="font-size: 20px; font-weight: 700;">Examinations</h1>
+                            <p style="color: #64748b;">Manage upcoming institutional & recruitment exams.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Create Examination</button>
                     </div>
@@ -212,8 +551,8 @@
                 <div id="view-admin-centres" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
-                            <h1 class="page-title">Examination Centres</h1>
-                            <p class="page-subtitle">Manage venues, labs, and terminal counts.</p>
+                            <h1 style="font-size: 20px; font-weight: 700;">Examination Centres</h1>
+                            <p style="color: #64748b;">Manage venues, labs, and terminal counts.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Add Centre</button>
                     </div>
@@ -242,8 +581,8 @@
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
-                            <h1 class="page-title">Staff Deployment</h1>
-                            <p class="page-subtitle">Deploy staff to exam venues.</p>
+                            <h1 style="font-size: 20px; font-weight: 700;">Staff Deployment</h1>
+                            <p style="color: #64748b;">Deploy staff to exam venues.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff</button>
                     </div>
@@ -271,8 +610,8 @@
 
                 <!-- ADMIN: ATTENDANCE & VERIFICATION -->
                 <div id="view-admin-attendance" class="page-view" style="display: none;">
-                    <h1 class="page-title">Attendance Sheet Verification</h1>
-                    <p class="page-subtitle">Verify signed sheets and late submissions.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Attendance Sheet Verification</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Verify signed sheets and late submissions.</p>
 
                     <div class="card">
                         <div class="table-responsive">
@@ -299,8 +638,8 @@
 
                 <!-- ADMIN: PAYMENTS -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
-                    <h1 class="page-title">Payment Approvals</h1>
-                    <p class="page-subtitle">Authorize staff remuneration disbursements.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Payment Approvals</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Authorize staff remuneration disbursements.</p>
 
                     <div class="card">
                         <div class="table-responsive">
@@ -326,16 +665,16 @@
 
                 <!-- STAFF: DUTY DOSSIER -->
                 <div id="view-staff-duty" class="page-view" style="display: none;">
-                    <h1 class="page-title">Today's Assignment</h1>
-                    <p class="page-subtitle">Your allocated examination schedule.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Today's Assignment</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Your allocated examination schedule.</p>
 
                     <div id="dutyDetailsContainer"></div>
                 </div>
 
                 <!-- STAFF: PHOTO PUNCH -->
                 <div id="view-staff-punch" class="page-view" style="display: none;">
-                    <h1 class="page-title">Photo Attendance</h1>
-                    <p class="page-subtitle">Take a live photo snapshot to record punch in / punch out.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Photo Attendance</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Take a live photo snapshot to record punch in / punch out.</p>
 
                     <div class="card" style="max-width: 500px; margin: 0 auto; padding: 20px;">
                         <div class="camera-box">
@@ -352,8 +691,8 @@
 
                 <!-- STAFF: ATTENDANCE SHEET UPLOAD -->
                 <div id="view-staff-sheet" class="page-view" style="display: none;">
-                    <h1 class="page-title">Upload Attendance Sheet</h1>
-                    <p class="page-subtitle">Upload the signed examination hall sheet.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Upload Attendance Sheet</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Upload the signed examination hall sheet.</p>
 
                     <div class="card" style="max-width: 600px; margin: 0 auto; padding: 24px;">
                         <form id="sheetUploadForm">
@@ -383,7 +722,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group">
                             <label>Staff Role *</label>
-                            <select name="role" id="staffRoleInput" required>
+                            <select name="role" required>
                                 <option value="Invigilator">Invigilator (IN)</option>
                                 <option value="Registration Staff">Registration Staff (RE)</option>
                                 <option value="Support Staff">Support Staff (SU)</option>
@@ -398,7 +737,7 @@
                         </div>
                         <div class="form-group">
                             <label>EF CITY *</label>
-                            <select name="ef_city" id="staffCityInput" required>
+                            <select name="ef_city" required>
                                 <option value="Chennai">Chennai (CHE)</option>
                                 <option value="Trichy">Trichy (TRI)</option>
                                 <option value="Vellore">Vellore (VEL)</option>
@@ -647,6 +986,533 @@
         </div>
     </div>
 
-    <script src="/js/app.js"></script>
+    <!-- EMBEDDED JAVASCRIPT LOGIC -->
+    <script>
+        let CURRENT_USER = null;
+        let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
+        let USER_ASSIGNMENT = null;
+        let currentLoginType = 'STAFF';
+        let videoStream = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('liveClock').innerText = new Date().toLocaleDateString('en-GB', {
+                day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            if (TOKEN) {
+                try {
+                    CURRENT_USER = JSON.parse(localStorage.getItem('EMMS_USER'));
+                    initSession();
+                } catch (e) {
+                    logout();
+                }
+            } else {
+                document.getElementById('authView').style.display = 'flex';
+                document.getElementById('appShell').style.display = 'none';
+            }
+        });
+
+        function setLoginType(type) {
+            currentLoginType = type;
+            const tabStaff = document.getElementById('tabStaff');
+            const tabAdmin = document.getElementById('tabAdmin');
+            const lblIdentifier = document.getElementById('lblIdentifier');
+            const lblPassword = document.getElementById('lblPassword');
+            const loginIdentifier = document.getElementById('loginIdentifier');
+            const loginPassword = document.getElementById('loginPassword');
+
+            if (type === 'STAFF') {
+                tabStaff.className = 'btn btn-primary';
+                tabAdmin.className = 'btn btn-outline';
+                lblIdentifier.innerText = 'Staff ID';
+                loginIdentifier.placeholder = 'e.g. LSTRI001';
+                lblPassword.innerText = 'Date of Birth (Password)';
+                loginPassword.placeholder = 'DDMMYYYY or YYYY-MM-DD';
+            } else {
+                tabAdmin.className = 'btn btn-primary';
+                tabStaff.className = 'btn btn-outline';
+                lblIdentifier.innerText = 'Admin Email Address';
+                loginIdentifier.placeholder = 'e.g. admin@gmail.com';
+                lblPassword.innerText = 'Admin Password';
+                loginPassword.placeholder = '••••••••';
+            }
+        }
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('loginIdentifier').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const alertBox = document.getElementById('loginAlert');
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alertBox.innerText = data.error || 'Authentication failed';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+
+                TOKEN = data.token;
+                CURRENT_USER = data.user;
+                localStorage.setItem('EMMS_TOKEN', TOKEN);
+                localStorage.setItem('EMMS_USER', JSON.stringify(CURRENT_USER));
+                initSession();
+            } catch (err) {
+                alertBox.innerText = 'Unable to connect to server';
+                alertBox.style.display = 'block';
+            }
+        });
+
+        function initSession() {
+            document.getElementById('authView').style.display = 'none';
+            document.getElementById('appShell').style.display = 'flex';
+            document.getElementById('sessionUserDisplay').innerText = CURRENT_USER.name;
+            document.getElementById('sessionRoleBadge').innerText = CURRENT_USER.role;
+
+            if (CURRENT_USER.user_type === 'ADMIN') {
+                document.getElementById('adminNav').style.display = 'block';
+                document.getElementById('staffNav').style.display = 'none';
+                switchRoute('admin-dashboard');
+            } else {
+                document.getElementById('adminNav').style.display = 'none';
+                document.getElementById('staffNav').style.display = 'block';
+                switchRoute('staff-duty');
+                startCamera();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('EMMS_TOKEN');
+            localStorage.removeItem('EMMS_USER');
+            TOKEN = null;
+            CURRENT_USER = null;
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+            }
+            location.reload();
+        }
+
+        function switchRoute(route) {
+            document.querySelectorAll('.page-view').forEach(v => v.style.display = 'none');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+
+            const target = document.getElementById(`view-${route}`);
+            if (target) target.style.display = 'block';
+
+            if (route === 'admin-dashboard') loadAdminDashboard();
+            if (route === 'admin-staff') loadStaffList();
+            if (route === 'admin-exams') loadExamsList();
+            if (route === 'admin-centres') loadCentresList();
+            if (route === 'admin-deployments') loadDeploymentsList();
+            if (route === 'admin-attendance') loadAttendanceSheets();
+            if (route === 'admin-payments') loadPaymentsList();
+            if (route === 'staff-duty') loadStaffAssignment();
+        }
+
+        async function api(url, options = {}) {
+            options.headers = options.headers || {};
+            options.headers['Authorization'] = `Bearer ${TOKEN}`;
+            const res = await fetch(url, options);
+            if (res.status === 401 || res.status === 403) {
+                logout();
+                return null;
+            }
+            return res.json();
+        }
+
+        async function loadAdminDashboard() {
+            const data = await api('/api/admin/dashboard');
+            if (!data) return;
+
+            document.getElementById('dashTotalStaff').innerText = data.totalStaff;
+            document.getElementById('dashTodayStaff').innerText = data.todayStaff;
+            document.getElementById('dashPresent').innerText = data.present;
+            document.getElementById('dashAbsent').innerText = data.absent;
+            document.getElementById('dashPunchOutPending').innerText = data.punchOutPending;
+            document.getElementById('dashPaymentPending').innerText = `₹${data.paymentPending.toLocaleString()}`;
+
+            const tbody = document.getElementById('centreStatusTableBody');
+            if (!data.centreStatus || data.centreStatus.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #94a3b8;">No active exam venues today.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.centreStatus.map(c => {
+                const shortage = (c.assigned || 0) - (c.present || 0);
+                const statusBadge = shortage > 0 
+                    ? `<span class="badge badge-shortage">Shortage (${shortage})</span>`
+                    : `<span class="badge badge-present">Completed</span>`;
+                return `
+                    <tr>
+                        <td><strong>${c.centre_name}</strong></td>
+                        <td>${c.assigned || 0}</td>
+                        <td>${c.present || 0}</td>
+                        <td style="color: ${shortage > 0 ? '#ea580c' : '#16a34a'}; font-weight: 600;">${shortage}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function loadStaffList() {
+            const staff = await api('/api/staff');
+            const tbody = document.getElementById('staffTableBody');
+            if (!staff || staff.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No staff registered yet. Click "+ Add Staff".</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = staff.map(s => `
+                <tr>
+                    <td><strong>${s.staff_id}</strong></td>
+                    <td>${s.name}</td>
+                    <td>${s.role}</td>
+                    <td>${s.ef_city}</td>
+                    <td>${s.ef_mobile_number || 'N/A'}</td>
+                    <td><code>${s.ef_dob || 'N/A'}</code></td>
+                    <td><span class="badge badge-active">${s.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadExamsList() {
+            const exams = await api('/api/exams');
+            const tbody = document.getElementById('examsTableBody');
+            if (!exams || exams.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = exams.map(e => `
+                <tr>
+                    <td><strong>${e.exam_name}</strong></td>
+                    <td>${e.exam_authority}</td>
+                    <td>${e.exam_date}</td>
+                    <td><span class="badge badge-ready">${e.shift}</span></td>
+                    <td>${e.reporting_time}</td>
+                    <td>${e.start_time} - ${e.end_time}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadCentresList() {
+            const centres = await api('/api/centres');
+            const tbody = document.getElementById('centresTableBody');
+            if (!centres || centres.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No centres registered.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = centres.map(c => `
+                <tr>
+                    <td><strong>${c.centre_name}</strong></td>
+                    <td>${c.location}</td>
+                    <td>${c.labs_count}</td>
+                    <td>${c.systems_count}</td>
+                    <td><span class="badge badge-ready">${c.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadDeploymentsList() {
+            const deployments = await api('/api/deployments');
+            const tbody = document.getElementById('deploymentsTableBody');
+            if (!deployments || deployments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No deployments recorded.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = deployments.map(d => `
+                <tr>
+                    <td><strong>${d.staff_id}</strong></td>
+                    <td>${d.staff_name}</td>
+                    <td>${d.assigned_role}</td>
+                    <td>${d.exam_name}</td>
+                    <td>${d.centre_name} (${d.location})</td>
+                    <td>${d.duty_date}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function openDeployModal() {
+            const [exams, centres, staff] = await Promise.all([
+                api('/api/exams'),
+                api('/api/centres'),
+                api('/api/staff')
+            ]);
+
+            const examSelect = document.getElementById('deployExamSelect');
+            const centreSelect = document.getElementById('deployCentreSelect');
+            const staffSelect = document.getElementById('deployStaffSelect');
+
+            examSelect.innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name}</option>`).join('');
+            centreSelect.innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.location})</option>`).join('');
+            staffSelect.innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
+
+            document.getElementById('deployDutyDate').value = new Date().toISOString().split('T')[0];
+            openModal('deployStaffModal');
+        }
+
+        async function loadAttendanceSheets() {
+            const sheets = await api('/api/admin/attendance-sheets');
+            const tbody = document.getElementById('attendanceVerificationTableBody');
+            if (!sheets || sheets.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No sheets submitted yet.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = sheets.map(s => `
+                <tr>
+                    <td><strong>${s.staff_id}</strong></td>
+                    <td>${s.staff_name}</td>
+                    <td>${s.role}</td>
+                    <td>${s.punch_in_time || '--'}</td>
+                    <td>${s.punch_out_time || '--'}</td>
+                    <td>
+                        ${s.sheet_file ? `<a href="${s.sheet_file}" target="_blank" class="btn btn-outline" style="padding: 2px 8px; font-size:11px;">View Sheet</a>` : 'Not Uploaded'}
+                    </td>
+                    <td><span class="badge badge-${(s.sheet_verification_status || 'pending').toLowerCase()}">${s.sheet_verification_status}</span></td>
+                    <td>
+                        ${s.sheet_verification_status === 'Submitted' ? `
+                            <button class="btn btn-success" style="padding: 3px 8px; font-size: 11px;" onclick="verifySheet(${s.id}, 'Approved')">Approve</button>
+                            <button class="btn btn-danger" style="padding: 3px 8px; font-size: 11px;" onclick="verifySheet(${s.id}, 'Rejected')">Reject</button>
+                        ` : 'Verified'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function verifySheet(id, status) {
+            await api('/api/admin/verify-sheet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ attendance_id: id, status })
+            });
+            loadAttendanceSheets();
+        }
+
+        async function loadPaymentsList() {
+            const payments = await api('/api/admin/payments');
+            const tbody = document.getElementById('paymentsTableBody');
+            if (!payments || payments.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No payment records.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = payments.map(p => `
+                <tr>
+                    <td><strong>${p.staff_id}</strong></td>
+                    <td>${p.staff_name}</td>
+                    <td>${p.role}</td>
+                    <td>${p.duty_date}</td>
+                    <td><strong>₹${(p.total_payable || 0).toLocaleString()}</strong></td>
+                    <td><span class="badge badge-${(p.payment_status || 'pending').toLowerCase()}">${p.payment_status}</span></td>
+                    <td>
+                        ${p.payment_status === 'Pending' ? `
+                            <button class="btn btn-success" style="padding: 3px 8px; font-size: 11px;" onclick="updatePaymentStatus(${p.id}, 'Approved')">Approve</button>
+                        ` : p.payment_status === 'Approved' ? `
+                            <button class="btn btn-primary" style="padding: 3px 8px; font-size: 11px;" onclick="updatePaymentStatus(${p.id}, 'Paid')">Mark Paid</button>
+                        ` : 'Completed'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function updatePaymentStatus(payment_id, status) {
+            await api('/api/admin/update-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payment_id, status })
+            });
+            loadPaymentsList();
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // Form Submissions
+        document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+
+            const res = await api('/api/staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res && res.staff_id) {
+                alert(`Staff registered!\nAssigned Staff ID: ${res.staff_id}\nPassword (DOB): ${payload.ef_dob}`);
+                closeModal('addStaffModal');
+                e.target.reset();
+                loadStaffList();
+            } else if (res && res.error) {
+                alert(res.error);
+            }
+        });
+
+        document.getElementById('addExamForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/exams', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res && res.id) {
+                alert('Exam scheduled successfully');
+                closeModal('addExamModal');
+                e.target.reset();
+                loadExamsList();
+            }
+        });
+
+        document.getElementById('addCentreForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/centres', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res && res.id) {
+                alert('Centre venue added');
+                closeModal('addCentreModal');
+                e.target.reset();
+                loadCentresList();
+            }
+        });
+
+        document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/deployments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res && res.id) {
+                alert('Staff deployed to venue');
+                closeModal('deployStaffModal');
+                loadDeploymentsList();
+            }
+        });
+
+        // Staff Assignment
+        async function loadStaffAssignment() {
+            const duty = await api('/api/staff/my-assignment');
+            USER_ASSIGNMENT = duty;
+            const container = document.getElementById('dutyDetailsContainer');
+
+            if (!duty) {
+                container.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty assigned to you for today.</div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="card" style="padding: 24px;">
+                    <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${duty.exam_name}</h2>
+                    <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">Venue: <strong>${duty.centre_name} (${duty.location})</strong> | Shift: <strong>${duty.shift}</strong></p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                        <div><label>Assigned Role</label><p><strong>${duty.assigned_role}</strong></p></div>
+                        <div><label>Reporting Time</label><p><strong>${duty.reporting_time}</strong></p></div>
+                        <div><label>Duty Remuneration</label><p><strong>₹${((duty.duty_amount || 0) + (duty.travel_allowance || 0) + (duty.other_allowance || 0)).toLocaleString()}</strong></p></div>
+                    </div>
+                    <div style="background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                        <span>Punch In: <strong>${duty.punch_in_time || '--:--'}</strong></span> | 
+                        <span>Punch Out: <strong>${duty.punch_out_time || '--:--'}</strong></span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Camera
+        async function startCamera() {
+            try {
+                const video = document.getElementById('webcam');
+                if (!video) return;
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
+                video.srcObject = videoStream;
+            } catch (e) {
+                console.warn('Camera inaccessible');
+            }
+        }
+
+        async function executePunch(type) {
+            if (!USER_ASSIGNMENT) {
+                alert('No active assignment for today');
+                return;
+            }
+
+            const video = document.getElementById('webcam');
+            const canvas = document.getElementById('snapshotCanvas');
+            canvas.width = 640;
+            canvas.height = 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, 640, 480);
+            const photoBase64 = canvas.toDataURL('image/jpeg');
+
+            const endpoint = type === 'in' ? '/api/attendance/punch-in' : '/api/attendance/punch-out';
+            const res = await api(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    deployment_id: USER_ASSIGNMENT.deployment_id,
+                    photo_base64: photoBase64
+                })
+            });
+
+            const msg = document.getElementById('punchMessage');
+            if (res && !res.error) {
+                msg.style.color = '#16a34a';
+                msg.innerText = `${type === 'in' ? 'Punch In' : 'Punch Out'} registered successfully!`;
+                loadStaffAssignment();
+            } else {
+                msg.style.color = '#dc2626';
+                msg.innerText = (res && res.error) ? res.error : 'Failed to record attendance';
+            }
+        }
+
+        function showSelectedFileName(input) {
+            const notice = document.getElementById('selectedFileNotice');
+            if (input.files && input.files[0]) {
+                notice.innerText = `Selected: ${input.files[0].name}`;
+            }
+        }
+
+        document.getElementById('sheetUploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!USER_ASSIGNMENT) {
+                alert('No duty assignment found');
+                return;
+            }
+
+            const fileInput = document.getElementById('sheetFileInput');
+            if (!fileInput.files[0]) {
+                alert('Please attach the attendance sheet first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('deployment_id', USER_ASSIGNMENT.deployment_id);
+            formData.append('attendance_sheet', fileInput.files[0]);
+            formData.append('is_late', 'false');
+
+            const res = await fetch('/api/attendance/upload-sheet', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${TOKEN}` },
+                body: formData
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                alert('Attendance sheet submitted for Admin verification!');
+                switchRoute('staff-duty');
+            } else {
+                alert(data.error || 'Upload error');
+            }
+        });
+    </script>
 </body>
 </html>
