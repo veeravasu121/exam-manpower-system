@@ -13,17 +13,19 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_GOVT_SECURE_TOKEN_2026';
 const GOOGLE_SHEET_WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
 
-// HTTPS Webhook Dispatcher
+// HTTPS Webhook Dispatcher (Bypasses Render's SMTP port blocks)
 async function dispatchGoogleWebhook(payload) {
     if (!GOOGLE_SHEET_WEBHOOK_URL) return;
     try {
-        await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+        const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+        const result = await response.text();
+        console.log('Webhook dispatched successfully:', result);
     } catch (err) {
-        console.error('Webhook error:', err.message);
+        console.error('Webhook dispatch error:', err.message);
     }
 }
 
@@ -259,7 +261,7 @@ app.post('/api/auth/login', (req, res) => {
     );
 });
 
-// 2. Comprehensive Admin Dashboard Data (Includes Role Matrix & Detailed Deployment Feed)
+// 2. Comprehensive Admin Dashboard Data
 app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     const today = new Date().toISOString().split('T')[0];
 
@@ -303,7 +305,7 @@ app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     });
 });
 
-// 3. Staff Registry
+// 3. Staff Registry (With automatic email dispatch)
 app.get('/api/staff', authenticateToken, (req, res) => {
     db.all("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -345,6 +347,7 @@ app.post('/api/staff', authenticateToken, (req, res) => {
                     return res.status(500).json({ error: err.message });
                 }
 
+                // Dispatch to Google Webhook to sync Sheet & send login email
                 dispatchGoogleWebhook({
                     staff_id: assignedStaffId, role, vendor_name: assignedVendor, email: officialEmail,
                     venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
@@ -369,7 +372,7 @@ app.put('/api/staff/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 4. Exams Management (With Exam Conducting Agency & Vendor Name)
+// 4. Exams Management (With all shift timings captured and stored)
 app.get('/api/exams', authenticateToken, (req, res) => {
     db.all("SELECT * FROM exams ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -456,7 +459,7 @@ app.put('/api/centres/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 6. Deployments Management (With Vendor Tracking)
+// 6. Deployments Management (With automatic assignment email dispatch)
 app.get('/api/deployments', authenticateToken, (req, res) => {
     const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.email as staff_email,
                         e.exam_name, e.exam_conducting_agency, c.centre_name, c.city, c.full_address, c.map_location
@@ -474,7 +477,7 @@ app.get('/api/deployments', authenticateToken, (req, res) => {
 app.post('/api/deployments', authenticateToken, (req, res) => {
     const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift } = req.body;
 
-    db.get("SELECT vendor_name FROM users WHERE id = ?", [staff_id], (err, u) => {
+    db.get("SELECT vendor_name, email, name FROM users WHERE id = ?", [staff_id], (err, u) => {
         const resolvedVendor = vendor_name || (u ? u.vendor_name : 'Direct');
         const sql = `INSERT INTO deployments (exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift)
                      VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -482,16 +485,16 @@ app.post('/api/deployments', authenticateToken, (req, res) => {
             if (err) return res.status(400).json({ error: err.message });
 
             const queryDetails = `
-                SELECT u.name as staff_name, u.email as staff_email, e.exam_name, c.centre_name, c.city, c.full_address, c.map_location
-                FROM users u, exams e, centres c
-                WHERE u.id = ? AND e.id = ? AND c.id = ?
+                SELECT e.exam_name, c.centre_name, c.city, c.full_address, c.map_location
+                FROM exams e, centres c
+                WHERE e.id = ? AND c.id = ?
             `;
-            db.get(queryDetails, [staff_id, exam_id, centre_id], (err, row) => {
-                if (row && row.staff_email) {
+            db.get(queryDetails, [exam_id, centre_id], (err, row) => {
+                if (row && u && u.email) {
                     dispatchGoogleWebhook({
                         action: 'SEND_ASSIGNMENT_EMAIL',
-                        to_email: row.staff_email,
-                        staff_name: row.staff_name,
+                        to_email: u.email,
+                        staff_name: u.name,
                         exam_name: row.exam_name,
                         assigned_role,
                         duty_date,
@@ -519,7 +522,7 @@ app.put('/api/deployments/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 7. Full Attendance Verification & Approvals
+// 7. Attendance Verification
 app.get('/api/admin/attendance-sheets', authenticateToken, (req, res) => {
     const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name,
                         c.centre_name, e.exam_name
@@ -571,7 +574,7 @@ app.post('/api/admin/update-payment', authenticateToken, (req, res) => {
     });
 });
 
-// 9. Staff Portal Assignment & Photo Punch
+// 9. Staff Portal API
 app.get('/api/staff/my-assignment', authenticateToken, (req, res) => {
     const today = new Date().toISOString().split('T')[0];
     const sql = `SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role, d.duty_amount, d.travel_allowance, d.other_allowance,
