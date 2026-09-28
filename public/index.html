@@ -73,13 +73,15 @@
         .modal-body { padding: 20px; }
         .modal-footer { padding: 12px 20px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
         .voucher-box { border: 2px solid var(--border); padding: 20px; border-radius: 6px; background: #fff; }
+        .shift-block { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; }
+        .shift-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
         .camera-box { background: #000; width: 100%; height: 280px; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
         .camera-box video, .camera-box canvas { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
-    <!-- 1. LOGIN -->
+    <!-- LOGIN INTERFACE -->
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
@@ -107,7 +109,7 @@
         </div>
     </div>
 
-    <!-- 2. MAIN APPLICATION -->
+    <!-- MAIN APP SHELL -->
     <div id="appShell" class="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -156,7 +158,7 @@
 
             <section class="content-area">
 
-                <!-- DASHBOARD WITH MULTI-FILTERS & DRILLDOWN -->
+                <!-- 1. DASHBOARD WITH SEARCH & MULTI-FILTERS -->
                 <div id="view-admin-dashboard" class="page-view">
                     <h1 style="font-size: 20px; font-weight: 700;">Executive Examination Dashboard</h1>
                     <p style="color: #64748b; margin-bottom: 16px;">Real-time search, filters, venue shortages, and role-wise attendance analytics.</p>
@@ -186,7 +188,7 @@
                         <button class="btn btn-outline" onclick="resetDashboardFilters()" style="height: 35px;">Reset</button>
                     </div>
 
-                    <!-- STATS CARDS (CLICKABLE FOR DRILLDOWN) -->
+                    <!-- STATS CARDS -->
                     <div class="stats-grid">
                         <div class="stat-card" onclick="openDrilldownModal('ALL', 'All Assigned Staff')">
                             <div class="stat-label">Total Assigned <span>🔍 Drilldown</span></div>
@@ -210,7 +212,7 @@
                         </div>
                     </div>
 
-                    <!-- ROLE-WISE MANPOWER ATTENDANCE MATRIX -->
+                    <!-- 10 ROLES ATTENDANCE MATRIX -->
                     <div class="card">
                         <div class="card-header">
                             <strong>Role-Wise Manpower Status (Click any role to see Present & Absent Staff)</strong>
@@ -233,7 +235,7 @@
                         </div>
                     </div>
 
-                    <!-- VENUE-WISE SUMMARY -->
+                    <!-- VENUE SHORTAGE MATRIX -->
                     <div class="card">
                         <div class="card-header"><strong>Venue-Wise Manpower & Shortage Matrix</strong></div>
                         <div class="table-responsive">
@@ -255,7 +257,7 @@
                     </div>
                 </div>
 
-                <!-- ALL STAFF -->
+                <!-- 2. STAFF DIRECTORY -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
@@ -276,12 +278,12 @@
                     </div>
                 </div>
 
-                <!-- EXAMINATIONS -->
+                <!-- 3. EXAMINATIONS -->
                 <div id="view-admin-exams" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Examinations</h1>
-                            <p style="color: #64748b;">Managed by Exam Conducting Agencies & Vendors.</p>
+                            <p style="color: #64748b;">Manage examinations, Conducting Agencies, and Shift Schedules.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Create Examination</button>
                     </div>
@@ -289,7 +291,7 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Exam Name</th><th>Exam Conducting Agency</th><th>Vendor</th><th>Dates</th><th>Shift Mode</th><th>Actions</th></tr>
+                                    <tr><th>Exam Name</th><th>Exam Conducting Agency</th><th>Vendor</th><th>Dates</th><th>Shift Mode</th><th>Shift Timings</th><th>Actions</th></tr>
                                 </thead>
                                 <tbody id="examsTableBody"></tbody>
                             </table>
@@ -297,7 +299,7 @@
                     </div>
                 </div>
 
-                <!-- CENTRES -->
+                <!-- 4. CENTRES -->
                 <div id="view-admin-centres" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
@@ -318,7 +320,7 @@
                     </div>
                 </div>
 
-                <!-- DEPLOYMENTS -->
+                <!-- 5. DEPLOYMENTS -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
@@ -339,7 +341,7 @@
                     </div>
                 </div>
 
-                <!-- ATTENDANCE VERIFICATION & PROOF -->
+                <!-- 6. ATTENDANCE VERIFICATION -->
                 <div id="view-admin-attendance" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Attendance Verification</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Review live photo punches and countersigned attendance sheets.</p>
@@ -355,10 +357,10 @@
                     </div>
                 </div>
 
-                <!-- PAYMENT PROOFS & LEDGER -->
+                <!-- 7. PAYMENT PROOFS & LEDGER -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Payment Approvals & Vouchers</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Authorize disbursements, generate bank transaction IDs, and view payment proof vouchers.</p>
+                    <p style="color: #64748b; margin-bottom: 20px;">Authorize disbursements, generate treasury tokens, and inspect official payment vouchers.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
@@ -482,7 +484,7 @@
                     </table>
 
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 4px; font-size: 12px;">
-                        <strong>Transaction Reference / Treasury Token:</strong> <code id="vRefNo" style="font-size: 13px; color: #1e40af;">TXN-PENDING</code>
+                        <strong>Treasury Reference / Transaction Token:</strong> <code id="vRefNo" style="font-size: 13px; color: #1e40af;">TXN-PENDING</code>
                     </div>
                 </div>
             </div>
@@ -583,7 +585,7 @@
                         <div class="form-group"><label>VENUE REGION</label><input type="text" name="venue_region" value="South Zone"></div>
                         <div class="form-group"><label>VENUE STATE</label><input type="text" name="venue_state" value="Tamil Nadu"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>EF FATHER NAME</label><input type="text" name="ef_father_name"></div>
                         <div class="form-group"><label>EF MOTHER NAME</label><input type="text" name="ef_mother_name"></div>
                         <div class="form-group"><label>EF QUALIFICATION</label><input type="text" name="ef_qualification" placeholder="e.g. B.E / B.Sc"></div>
@@ -601,7 +603,7 @@
         </div>
     </div>
 
-    <!-- ADD EXAM MODAL (WITH EXAM CONDUCTING AGENCY & VENDOR) -->
+    <!-- ADD EXAM MODAL (WITH CONDUCTING AGENCY & ALL 3 SHIFT TIMINGS RESTORED) -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -611,24 +613,55 @@
             <form id="addExamForm">
                 <div class="modal-body">
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Examination Name *</label><input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV"></div>
-                        <div class="form-group"><label>Exam Conducting Agency *</label><input type="text" name="exam_conducting_agency" required placeholder="e.g. Government of Tamil Nadu / TNPSC"></div>
-                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="e.g. Primary Testing Agency"></div>
+                        <div class="form-group"><label>Examination Name *</label><input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV Exam"></div>
+                        <div class="form-group"><label>Exam Conducting Agency *</label><input type="text" name="exam_conducting_agency" required placeholder="e.g. TNPSC / Govt of Tamil Nadu"></div>
+                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="e.g. Eduquity / TCS"></div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>Date From *</label><input type="date" name="date_from" required></div>
                         <div class="form-group"><label>Date To *</label><input type="date" name="date_to" required></div>
-                        <div class="form-group"><label>Shift Selection *</label><select name="shift_mode" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
+                        <div class="form-group"><label>Shift Selection *</label><select name="shift_mode" id="shiftModeSelect" required onchange="toggleShiftBlocks()">
+                            <option value="Shift 1">Shift 1 Only</option>
+                            <option value="Shift 2">Shift 2 Only</option>
+                            <option value="Shift 3">Shift 3 Only</option>
+                            <option value="Full Day">Full Day</option>
+                            <option value="Multiple">Multiple Shifts (1, 2, 3)</option>
+                        </select></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s1_reporting_time" value="07:30"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s1_start_time" value="09:00"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s1_end_time" value="11:00"></div>
+
+                    <!-- Shift 1 Timings -->
+                    <div class="shift-block" id="blockShift1">
+                        <div class="shift-title">Shift 1 Timings</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s1_reporting_time" value="07:30"></div>
+                            <div class="form-group"><label>Exam Start Time</label><input type="time" name="s1_start_time" value="09:00"></div>
+                            <div class="form-group"><label>Exam End Time</label><input type="time" name="s1_end_time" value="11:00"></div>
+                        </div>
+                    </div>
+
+                    <!-- Shift 2 Timings -->
+                    <div class="shift-block" id="blockShift2">
+                        <div class="shift-title">Shift 2 Timings</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s2_reporting_time" value="11:30"></div>
+                            <div class="form-group"><label>Exam Start Time</label><input type="time" name="s2_start_time" value="12:30"></div>
+                            <div class="form-group"><label>Exam End Time</label><input type="time" name="s2_end_time" value="14:30"></div>
+                        </div>
+                    </div>
+
+                    <!-- Shift 3 Timings -->
+                    <div class="shift-block" id="blockShift3">
+                        <div class="shift-title">Shift 3 Timings</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s3_reporting_time" value="15:00"></div>
+                            <div class="form-group"><label>Exam Start Time</label><input type="time" name="s3_start_time" value="16:00"></div>
+                            <div class="form-group"><label>Exam End Time</label><input type="time" name="s3_end_time" value="18:00"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Schedule Exam</button>
+                    <button type="submit" class="btn btn-primary">Schedule Examination</button>
                 </div>
             </form>
         </div>
@@ -643,7 +676,7 @@
             </div>
             <form id="addCentreForm">
                 <div class="modal-body">
-                    <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" required placeholder="e.g. ABC Engineering College"></div>
+                    <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" required placeholder="e.g. ABC College of Engineering"></div>
                     <div class="form-group"><label>City *</label><select name="city" required>
                         <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
                         <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
@@ -652,7 +685,7 @@
                         <option value="Tirunelveli">Tirunelveli</option>
                     </select></div>
                     <div class="form-group"><label>Full Address (Optional)</label><textarea name="full_address" rows="2" placeholder="Street, area, pincode..."></textarea></div>
-                    <div class="form-group"><label>Google Maps Link (Optional)</label><input type="text" name="map_location" placeholder="https://maps.app.goo.gl/..."></div>
+                    <div class="form-group"><label>Google Maps Location Link (Optional)</label><input type="text" name="map_location" placeholder="https://maps.app.goo.gl/..."></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addCentreModal')">Cancel</button>
@@ -662,7 +695,7 @@
         </div>
     </div>
 
-    <!-- DEPLOY STAFF MODAL (WITH VENDOR) -->
+    <!-- DEPLOY STAFF MODAL -->
     <div id="deployStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -681,7 +714,7 @@
                             <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
                             <option value="Centre Head">Centre Head</option>
                         </select></div>
-                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="Leave empty for staff's default vendor"></div>
+                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="Optional override"></div>
                         <div class="form-group"><label>Duty Date *</label><input type="date" name="duty_date" required id="deployDutyDate"></div>
                     </div>
                     <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
@@ -694,7 +727,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC & DRILLDOWN ENGINE -->
+    <!-- CONTROLLER JAVASCRIPT -->
     <script>
         let CURRENT_USER = null;
         let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
@@ -822,7 +855,7 @@
             return res.json();
         }
 
-        // ================= DASHBOARD & DRILLDOWN LOGIC =================
+        // ================= DASHBOARD SEARCH & FILTER ENGINE =================
         async function loadDashboardData() {
             const data = await api('/api/admin/dashboard');
             if (!data) return;
@@ -835,15 +868,20 @@
         }
 
         function populateDashboardFilterOptions() {
+            const curCentre = document.getElementById('filterCentre').value;
+            const curRole = document.getElementById('filterRole').value;
+            const curExam = document.getElementById('filterExam').value;
+            const curVendor = document.getElementById('filterVendor').value;
+
             const centres = [...new Set(rawDeployments.map(d => d.centre_name).filter(Boolean))];
             const roles = [...new Set(rawDeployments.map(d => d.assigned_role).filter(Boolean))];
             const exams = [...new Set(rawDeployments.map(d => d.exam_name).filter(Boolean))];
             const vendors = [...new Set(rawDeployments.map(d => d.vendor_name).filter(Boolean))];
 
-            document.getElementById('filterCentre').innerHTML = '<option value="">All Centres</option>' + centres.map(c => `<option value="${c}">${c}</option>`).join('');
-            document.getElementById('filterRole').innerHTML = '<option value="">All Roles</option>' + roles.map(r => `<option value="${r}">${r}</option>`).join('');
-            document.getElementById('filterExam').innerHTML = '<option value="">All Exams</option>' + exams.map(e => `<option value="${e}">${e}</option>`).join('');
-            document.getElementById('filterVendor').innerHTML = '<option value="">All Vendors</option>' + vendors.map(v => `<option value="${v}">${v}</option>`).join('');
+            document.getElementById('filterCentre').innerHTML = '<option value="">All Centres</option>' + centres.map(c => `<option value="${c}" ${c === curCentre ? 'selected' : ''}>${c}</option>`).join('');
+            document.getElementById('filterRole').innerHTML = '<option value="">All Roles</option>' + roles.map(r => `<option value="${r}" ${r === curRole ? 'selected' : ''}>${r}</option>`).join('');
+            document.getElementById('filterExam').innerHTML = '<option value="">All Exams</option>' + exams.map(e => `<option value="${e}" ${e === curExam ? 'selected' : ''}>${e}</option>`).join('');
+            document.getElementById('filterVendor').innerHTML = '<option value="">All Vendors</option>' + vendors.map(v => `<option value="${v}" ${v === curVendor ? 'selected' : ''}>${v}</option>`).join('');
         }
 
         function resetDashboardFilters() {
@@ -863,7 +901,9 @@
             const vendor = document.getElementById('filterVendor').value;
 
             filteredDeployments = rawDeployments.filter(d => {
-                const matchSearch = !search || d.staff_name.toLowerCase().includes(search) || d.staff_id.toLowerCase().includes(search);
+                const matchSearch = !search || 
+                    (d.staff_name && d.staff_name.toLowerCase().includes(search)) || 
+                    (d.staff_id && d.staff_id.toLowerCase().includes(search));
                 const matchCentre = !centre || d.centre_name === centre;
                 const matchRole = !role || d.assigned_role === role;
                 const matchExam = !exam || d.exam_name === exam;
@@ -941,7 +981,7 @@
             }).join('');
         }
 
-        // DRILLDOWN MODAL
+        // ================= DRILLDOWN MODAL =================
         function openDrilldownModal(type, title, filterValue) {
             document.getElementById('drilldownTitle').innerText = `Drilldown: ${title}`;
             let list = [];
@@ -975,7 +1015,7 @@
             openModal('drilldownModal');
         }
 
-        // ================= ATTENDANCE VERIFICATION =================
+        // ================= ATTENDANCE VERIFICATION PROOFS =================
         async function loadAttendanceSheets() {
             const sheets = await api('/api/admin/attendance-sheets');
             const tbody = document.getElementById('attendanceVerificationTableBody');
@@ -1009,7 +1049,7 @@
         function inspectAttendanceProof(inPhoto, outPhoto, sheet) {
             document.getElementById('proofPunchInPhoto').innerHTML = inPhoto && inPhoto !== 'null' ? `<img src="${inPhoto}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#94a3b8;">No Punch-In Photo</span>';
             document.getElementById('proofPunchOutPhoto').innerHTML = outPhoto && outPhoto !== 'null' ? `<img src="${outPhoto}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#94a3b8;">No Punch-Out Photo</span>';
-            document.getElementById('proofSheetContainer').innerHTML = sheet && sheet !== 'null' ? `<a href="${sheet}" target="_blank" class="btn btn-primary btn-sm">📄 Open High-Res Attendance Sheet</a>` : '<span style="color:#94a3b8;">No Sheet Uploaded</span>';
+            document.getElementById('proofSheetContainer').innerHTML = sheet && sheet !== 'null' ? `<a href="${sheet}" target="_blank" class="btn btn-primary btn-sm">📄 Open High-Resolution Signed Sheet</a>` : '<span style="color:#94a3b8;">No Sheet Uploaded</span>';
             openModal('attendanceProofModal');
         }
 
@@ -1018,7 +1058,7 @@
             loadAttendanceSheets();
         }
 
-        // ================= PAYMENT PROOFS & LEDGER =================
+        // ================= PAYMENT PROOFS & VOUCHERS =================
         async function loadPaymentsList() {
             const payments = await api('/api/admin/payments');
             const tbody = document.getElementById('paymentsTableBody');
@@ -1074,7 +1114,25 @@
             loadPaymentsList();
         }
 
-        // ================= STAFF & EXAM LISTS =================
+        // ================= FORM UTILS & TOGGLES =================
+        function toggleShiftBlocks() {
+            const mode = document.getElementById('shiftModeSelect').value;
+            const b1 = document.getElementById('blockShift1');
+            const b2 = document.getElementById('blockShift2');
+            const b3 = document.getElementById('blockShift3');
+
+            if (mode === 'Shift 1' || mode === 'Full Day') {
+                b1.style.display = 'block'; b2.style.display = 'none'; b3.style.display = 'none';
+            } else if (mode === 'Shift 2') {
+                b1.style.display = 'none'; b2.style.display = 'block'; b3.style.display = 'none';
+            } else if (mode === 'Shift 3') {
+                b1.style.display = 'none'; b2.style.display = 'none'; b3.style.display = 'block';
+            } else {
+                b1.style.display = 'block'; b2.style.display = 'block'; b3.style.display = 'block';
+            }
+        }
+
+        // ================= REGULAR LIST LOADERS =================
         async function loadStaffList() {
             cachedStaff = await api('/api/staff') || [];
             const tbody = document.getElementById('staffTableBody');
@@ -1095,16 +1153,24 @@
         async function loadExamsList() {
             cachedExams = await api('/api/exams') || [];
             const tbody = document.getElementById('examsTableBody');
-            tbody.innerHTML = cachedExams.map(e => `
-                <tr>
-                    <td><strong>${e.exam_name}</strong></td>
-                    <td><strong>${e.exam_conducting_agency}</strong></td>
-                    <td><span class="badge badge-ready">${e.vendor_name || 'Direct'}</span></td>
-                    <td>${e.date_from} to ${e.date_to}</td>
-                    <td>${e.shift_mode}</td>
-                    <td><button class="btn btn-outline btn-sm">Edit</button></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = cachedExams.map(e => {
+                let timingSummary = [];
+                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time} (Rep: ${e.s1_reporting_time})`);
+                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time} (Rep: ${e.s2_reporting_time})`);
+                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time} (Rep: ${e.s3_reporting_time})`);
+
+                return `
+                    <tr>
+                        <td><strong>${e.exam_name}</strong></td>
+                        <td><strong>${e.exam_conducting_agency}</strong></td>
+                        <td><span class="badge badge-ready">${e.vendor_name || 'Direct'}</span></td>
+                        <td>${e.date_from} to ${e.date_to}</td>
+                        <td>${e.shift_mode}</td>
+                        <td><small>${timingSummary.join('<br>') || 'N/A'}</small></td>
+                        <td><button class="btn btn-outline btn-sm">Edit</button></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function loadCentresList() {
@@ -1150,13 +1216,13 @@
             openModal('deployStaffModal');
         }
 
-        // ================= FORM SUBMISSIONS =================
+        // ================= FORM SUBMISSION DISPATCHERS =================
         document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.staff_id) {
-                alert(`Staff Registered! Assigned Staff ID: ${res.staff_id}`);
+                alert(`Staff Registered! Assigned Staff ID: ${res.staff_id}\nCredentials sent to registered email!`);
                 closeModal('addStaffModal'); e.target.reset(); loadStaffList();
             } else if (res && res.error) alert(res.error);
         });
@@ -1166,7 +1232,7 @@
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/exams', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
-                alert('Exam scheduled successfully!');
+                alert('Exam scheduled successfully with shift timings!');
                 closeModal('addExamModal'); e.target.reset(); loadExamsList();
             }
         });
@@ -1186,29 +1252,42 @@
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
-                alert('Staff deployment saved!');
+                alert('Staff deployment saved & assignment order emailed!');
                 closeModal('deployStaffModal'); loadDeploymentsList();
             }
         });
 
-        // ================= STAFF WORKFLOW =================
+        // ================= STAFF PORTAL DUTY & CAMERA PUNCH =================
         async function loadStaffAssignment() {
             const duty = await api('/api/staff/my-assignment');
             USER_ASSIGNMENT = duty;
             const container = document.getElementById('dutyDetailsContainer');
             if (!duty) { container.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty assigned to you for today.</div>`; return; }
 
+            let reporting = duty.s1_reporting_time || '07:30';
+            let examTime = `${duty.s1_start_time || '09:00'} - ${duty.s1_end_time || '11:00'}`;
+            if (duty.shift === 'Shift 2') {
+                reporting = duty.s2_reporting_time || '11:30';
+                examTime = `${duty.s2_start_time || '12:30'} - ${duty.s2_end_time || '14:30'}`;
+            } else if (duty.shift === 'Shift 3') {
+                reporting = duty.s3_reporting_time || '15:00';
+                examTime = `${duty.s3_start_time || '16:00'} - ${duty.s3_end_time || '18:00'}`;
+            }
+
             container.innerHTML = `
                 <div class="card" style="padding: 24px;">
                     <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${duty.exam_name}</h2>
                     <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
                         Agency: <strong>${duty.exam_conducting_agency}</strong> | Venue: <strong>${duty.centre_name} (${duty.city})</strong> | Assigned Shift: <strong>${duty.shift}</strong>
+                        ${duty.map_location ? ` | <a href="${duty.map_location}" target="_blank" style="color:#2563eb;">View Maps</a>` : ''}
                     </p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
                         <div><label>Assigned Role</label><p><strong>${duty.assigned_role}</strong></p></div>
-                        <div><label>Reporting Time</label><p><strong>${duty.s1_reporting_time || '07:30'}</strong></p></div>
+                        <div><label>Candidate Reporting</label><p><strong>${reporting}</strong></p></div>
+                        <div><label>Exam Timing</label><p><strong>${examTime}</strong></p></div>
                         <div><label>Duty Remuneration</label><p><strong>₹${((duty.duty_amount || 0) + (duty.travel_allowance || 0) + (duty.other_allowance || 0)).toLocaleString()}</strong></p></div>
                     </div>
+                    ${duty.full_address ? `<p style="font-size: 12px; color:#475569; margin-bottom: 12px;"><strong>Address:</strong> ${duty.full_address}</p>` : ''}
                     <div style="background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">
                         <span>Punch In: <strong>${duty.punch_in_time || '--:--'}</strong></span> | 
                         <span>Punch Out: <strong>${duty.punch_out_time || '--:--'}</strong></span>
