@@ -1,77 +1,4 @@
-require('dotenv').config();
-const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const cors = require('cors');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_GOVT_SECURE_TOKEN_2026';
-const GOOGLE_SHEET_WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
-
-// Webhook Dispatcher with Follow-Redirects for Google Apps Script
-async function dispatchGoogleWebhook(payload) {
-    if (!GOOGLE_SHEET_WEBHOOK_URL) {
-        console.warn('GOOGLE_SHEET_WEBHOOK_URL is not configured.');
-        return;
-    }
-    try {
-        const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
-            method: 'POST',
-            redirect: 'follow',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.text();
-        console.log('Webhook dispatched successfully:', result);
-    } catch (err) {
-        console.error('Webhook dispatch error:', err.message);
-    }
-}
-
-app.use(cors());
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ extended: true, limit: '20mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
-    filename: (req, file, cb) => {
-        const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + unique + path.extname(file.originalname));
-    }
-});
-const upload = multer({ storage });
-
-const db = new sqlite3.Database('./database.sqlite', (err) => {
-    if (err) console.error('DB Error:', err);
-    else console.log('Database connected.');
-});
-
-// Setup Schema
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        staff_id TEXT UNIQUE NOT NULL,
-        name TEXT NOT NULL,
-        role TEXT NOT NULL,
-        vendor_name TEXT DEFAULT 'Direct / In-House',
-        email TEXT UNIQUE,
-        password TEXT NOT NULL,
-        user_type TEXT CHECK(user_type IN ('ADMIN', 'STAFF')) NOT NULL,
-        venue_region TEXT,
-        venue_state TEXT,
-        ef_city TEXT,
+TEXT,
         ef_first_name TEXT,
         ef_middle_name TEXT,
         ef_last_name TEXT,
@@ -168,7 +95,7 @@ db.serialize(() => {
         FOREIGN KEY(staff_id) REFERENCES users(id)
     )`);
 
-    // Master Admin Setup
+    // Master Admin Auto-Setup
     const adminEmail = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
 
@@ -224,7 +151,7 @@ const authenticateToken = (req, res, next) => {
 
 // ======================== API ROUTES ========================
 
-// 1. Dual Login
+// 1. Dual Login (Admin with Email, Staff with StaffID + DOB)
 app.post('/api/auth/login', (req, res) => {
     const { identifier, password } = req.body;
     const cleanId = (identifier || '').trim();
@@ -246,7 +173,7 @@ app.post('/api/auth/login', (req, res) => {
                 const token = jwt.sign(
                     { id: user.id, staff_id: user.staff_id, role: user.role, user_type: user.user_type, name: user.name },
                     JWT_SECRET,
-                    { expiresIn: '12h' }
+                    { expiresIn: '24h' }
                 );
                 return res.json({ token, user });
             }
@@ -257,7 +184,7 @@ app.post('/api/auth/login', (req, res) => {
                 const token = jwt.sign(
                     { id: user.id, staff_id: user.staff_id, role: user.role, user_type: user.user_type, name: user.name },
                     JWT_SECRET,
-                    { expiresIn: '12h' }
+                    { expiresIn: '24h' }
                 );
                 res.json({ token, user });
             });
@@ -265,7 +192,7 @@ app.post('/api/auth/login', (req, res) => {
     );
 });
 
-// 2. Admin Dashboard Complete Data Feed
+// 2. Admin Dashboard Feed
 app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     const today = new Date().toISOString().split('T')[0];
 
@@ -309,7 +236,7 @@ app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     });
 });
 
-// 3. Staff Registry (With edit endpoint)
+// 3. Staff Registry
 app.get('/api/staff', authenticateToken, (req, res) => {
     db.all("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -351,7 +278,7 @@ app.post('/api/staff', authenticateToken, (req, res) => {
                     return res.status(500).json({ error: err.message });
                 }
 
-                // Send email & sync to Google Sheet
+                // Cloud Sync + Auto-Email
                 dispatchGoogleWebhook({
                     action: 'REGISTER_STAFF',
                     staff_id: assignedStaffId, role, vendor_name: assignedVendor, email: officialEmail,
@@ -377,7 +304,7 @@ app.put('/api/staff/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 4. Exams Management (With full shift timings)
+// 4. Exams Management
 app.get('/api/exams', authenticateToken, (req, res) => {
     db.all("SELECT * FROM exams ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -464,7 +391,7 @@ app.put('/api/centres/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 6. Deployments Management (With assignment email trigger)
+// 6. Multi-Day Deployments Engine (Assign from date_from to date_to)
 app.get('/api/deployments', authenticateToken, (req, res) => {
     const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.email as staff_email,
                         e.exam_name, e.exam_conducting_agency, c.centre_name, c.city, c.full_address, c.map_location
@@ -480,40 +407,51 @@ app.get('/api/deployments', authenticateToken, (req, res) => {
 });
 
 app.post('/api/deployments', authenticateToken, (req, res) => {
-    const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift } = req.body;
+    const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date_from, duty_date_to, shift } = req.body;
+
+    const startDate = new Date(duty_date_from);
+    const endDate = new Date(duty_date_to || duty_date_from);
 
     db.get("SELECT vendor_name, email, name FROM users WHERE id = ?", [staff_id], (err, u) => {
         const resolvedVendor = vendor_name || (u ? u.vendor_name : 'Direct');
-        const sql = `INSERT INTO deployments (exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)`;
-        db.run(sql, [exam_id, centre_id, staff_id, assigned_role, resolvedVendor, duty_date, shift], function (err) {
-            if (err) return res.status(400).json({ error: err.message });
 
-            const queryDetails = `
-                SELECT e.exam_name, c.centre_name, c.city, c.full_address, c.map_location
-                FROM exams e, centres c
-                WHERE e.id = ? AND c.id = ?
-            `;
-            db.get(queryDetails, [exam_id, centre_id], (err, row) => {
-                if (row && u && u.email) {
-                    dispatchGoogleWebhook({
-                        action: 'SEND_ASSIGNMENT_EMAIL',
-                        to_email: u.email,
-                        staff_name: u.name,
-                        exam_name: row.exam_name,
-                        assigned_role,
-                        duty_date,
-                        shift,
-                        centre_name: row.centre_name,
-                        city: row.city,
-                        full_address: row.full_address,
-                        map_location: row.map_location
-                    });
-                }
-            });
+        const insertStmt = db.prepare(`INSERT INTO deployments (exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift)
+                                       VALUES (?, ?, ?, ?, ?, ?, ?)`);
 
-            res.json({ message: 'Staff deployed successfully', id: this.lastID });
+        let currentDate = new Date(startDate);
+        let daysCount = 0;
+
+        while (currentDate <= endDate) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            insertStmt.run([exam_id, centre_id, staff_id, assigned_role, resolvedVendor, dateStr, shift]);
+            currentDate.setDate(currentDate.getDate() + 1);
+            daysCount++;
+        }
+        insertStmt.finalize();
+
+        // Email Notification for Full Multi-Day Period
+        const queryDetails = `SELECT e.exam_name, c.centre_name, c.city, c.full_address, c.map_location FROM exams e, centres c WHERE e.id = ? AND c.id = ?`;
+        db.get(queryDetails, [exam_id, centre_id], (err, row) => {
+            if (row && u && u.email) {
+                dispatchGoogleWebhook({
+                    action: 'SEND_ASSIGNMENT_EMAIL',
+                    to_email: u.email,
+                    staff_name: u.name,
+                    exam_name: row.exam_name,
+                    assigned_role,
+                    duty_date_from,
+                    duty_date_to: duty_date_to || duty_date_from,
+                    total_days: daysCount,
+                    shift,
+                    centre_name: row.centre_name,
+                    city: row.city,
+                    full_address: row.full_address,
+                    map_location: row.map_location
+                });
+            }
         });
+
+        res.json({ message: `Successfully assigned ${daysCount} day(s) of examination duty!` });
     });
 });
 
@@ -527,82 +465,67 @@ app.put('/api/deployments/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 7. Attendance Verification
-app.get('/api/admin/attendance-sheets', authenticateToken, (req, res) => {
-    const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name,
-                        c.centre_name, e.exam_name
-                 FROM attendance a
-                 JOIN users u ON a.staff_id = u.id
-                 JOIN deployments d ON a.deployment_id = d.id
-                 JOIN exams e ON d.exam_id = e.id
-                 JOIN centres c ON d.centre_id = c.id
-                 ORDER BY a.id DESC`;
-    db.all(sql, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
-});
-
-app.post('/api/admin/verify-sheet', authenticateToken, (req, res) => {
-    const { attendance_id, status } = req.body;
-    db.run("UPDATE attendance SET sheet_verification_status = ? WHERE id = ?", [status, attendance_id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: `Sheet ${status}` });
-    });
-});
-
-// 8. Payment Approvals
-app.get('/api/admin/payments', authenticateToken, (req, res) => {
-    const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name,
-                        a.duty_date, a.punch_in_time, a.punch_out_time, a.sheet_verification_status,
-                        c.centre_name, e.exam_name, e.exam_conducting_agency
-                 FROM payments p
-                 JOIN users u ON p.staff_id = u.id
-                 JOIN attendance a ON p.attendance_id = a.id
-                 JOIN deployments d ON a.deployment_id = d.id
-                 JOIN exams e ON d.exam_id = e.id
-                 JOIN centres c ON d.centre_id = c.id
-                 ORDER BY p.id DESC`;
-    db.all(sql, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(rows);
-    });
-});
-
-app.post('/api/admin/update-payment', authenticateToken, (req, res) => {
-    const { payment_id, status } = req.body;
-    const ref = status === 'Paid' ? 'TXN-GOV-' + Math.floor(10000000 + Math.random() * 90000000) : null;
-    const sql = `UPDATE payments SET payment_status = ?, reference_no = COALESCE(?, reference_no) WHERE id = ?`;
-    db.run(sql, [status, ref, payment_id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: `Payment marked as ${status}` });
-    });
-});
-
-// 9. Staff Portal API
-app.get('/api/staff/my-assignment', authenticateToken, (req, res) => {
+// 7. Staff Portal: All Duty Assignments & Complete Salary Ledger
+app.get('/api/staff/my-portal-data', authenticateToken, (req, res) => {
     const today = new Date().toISOString().split('T')[0];
-    const sql = `SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role, d.duty_amount, d.travel_allowance, d.other_allowance,
-                        e.exam_name, e.exam_conducting_agency, e.shift_mode,
-                        e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
-                        e.s2_reporting_time, e.s2_start_time, e.s2_end_time,
-                        e.s3_reporting_time, e.s3_start_time, e.s3_end_time,
-                        c.centre_name, c.city, c.full_address, c.map_location,
-                        a.id as attendance_id, a.punch_in_time, a.punch_out_time, a.sheet_verification_status, a.sheet_file,
-                        p.payment_status, p.total_payable
-                 FROM deployments d
-                 JOIN exams e ON d.exam_id = e.id
-                 JOIN centres c ON d.centre_id = c.id
-                 LEFT JOIN attendance a ON d.id = a.deployment_id
-                 LEFT JOIN payments p ON a.id = p.attendance_id
-                 WHERE d.staff_id = ? AND d.duty_date = ?
-                 LIMIT 1`;
-    db.get(sql, [req.user.id, today], (err, row) => {
+
+    const sqlDuties = `
+        SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role,
+               d.duty_amount, d.travel_allowance, d.other_allowance,
+               (d.duty_amount + d.travel_allowance + d.other_allowance) as total_payable,
+               e.exam_name, e.exam_conducting_agency,
+               e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
+               e.s2_reporting_time, e.s2_start_time, e.s2_end_time,
+               e.s3_reporting_time, e.s3_start_time, e.s3_end_time,
+               c.centre_name, c.city, c.full_address, c.map_location,
+               a.id as attendance_id, a.punch_in_time, a.punch_out_time,
+               a.working_hours, a.sheet_verification_status, a.sheet_file,
+               COALESCE(p.payment_status, 'Pending') as payment_status,
+               p.reference_no,
+               CASE WHEN d.duty_date = ? THEN 1 ELSE 0 END as is_today
+        FROM deployments d
+        JOIN exams e ON d.exam_id = e.id
+        JOIN centres c ON d.centre_id = c.id
+        LEFT JOIN attendance a ON d.id = a.deployment_id
+        LEFT JOIN payments p ON a.id = p.attendance_id
+        WHERE d.staff_id = ?
+        ORDER BY d.duty_date DESC
+    `;
+
+    db.all(sqlDuties, [today, req.user.id], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(row || null);
+
+        // Calculate Salary Aggregations
+        let totalWorkedDays = 0;
+        let totalEarned = 0;
+        let totalReceived = 0;
+        let totalPending = 0;
+
+        (rows || []).forEach(r => {
+            const amount = r.total_payable || 1900;
+            if (r.punch_in_time) totalWorkedDays++;
+            totalEarned += amount;
+
+            if (r.payment_status === 'Paid') {
+                totalReceived += amount;
+            } else {
+                totalPending += amount;
+            }
+        });
+
+        res.json({
+            summary: {
+                totalWorkedDays,
+                totalEarned,
+                totalReceived,
+                totalPending
+            },
+            history: rows || []
+        });
     });
 });
 
+// 8. Staff Attendance & Uploads
 app.post('/api/attendance/punch-in', authenticateToken, (req, res) => {
     const { deployment_id, photo_base64 } = req.body;
     const now = new Date();
@@ -676,10 +599,80 @@ app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('atten
     });
 });
 
+// 9. Verification & Payment Ledger Actions
+app.get('/api/admin/attendance-sheets', authenticateToken, (req, res) => {
+    const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name,
+                        c.centre_name, e.exam_name
+                 FROM attendance a
+                 JOIN users u ON a.staff_id = u.id
+                 JOIN deployments d ON a.deployment_id = d.id
+                 JOIN exams e ON d.exam_id = e.id
+                 JOIN centres c ON d.centre_id = c.id
+                 ORDER BY a.id DESC`;
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.post('/api/admin/verify-sheet', authenticateToken, (req, res) => {
+    const { attendance_id, status } = req.body;
+    db.run("UPDATE attendance SET sheet_verification_status = ? WHERE id = ?", [status, attendance_id], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: `Sheet ${status}` });
+    });
+});
+
+app.get('/api/admin/payments', authenticateToken, (req, res) => {
+    const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name,
+                        a.duty_date, a.punch_in_time, a.punch_out_time, a.sheet_verification_status,
+                        c.centre_name, e.exam_name, e.exam_conducting_agency
+                 FROM payments p
+                 JOIN users u ON p.staff_id = u.id
+                 JOIN attendance a ON p.attendance_id = a.id
+                 JOIN deployments d ON a.deployment_id = d.id
+                 JOIN exams e ON d.exam_id = e.id
+                 JOIN centres c ON d.centre_id = c.id
+                 ORDER BY p.id DESC`;
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+app.post('/api/admin/update-payment', authenticateToken, (req, res) => {
+    const { payment_id, status } = req.body;
+    const ref = status === 'Paid' ? 'TXN-GOV-' + Math.floor(10000000 + Math.random() * 90000000) : null;
+    const sql = `UPDATE payments SET payment_status = ?, reference_no = COALESCE(?, reference_no) WHERE id = ?`;
+    db.run(sql, [status, ref, payment_id], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: `Payment marked as ${status}` });
+    });
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`EMMS Running on port ${PORT}`);
+    console.log(`EMMS Server running on port ${PORT}`);
 });
+Step 3: Complete Frontend (public/index.html)
+Open public/index.html in your GitHub repository and replace it with this all-in-one code:
+
+HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXAM MANPOWER MANAGEMENT SYSTEM</title>
+    <style>
+        :root {
+            --primary: #0f2a59;
+            --primary-light: #1e40af;
+            --accent: #2563eb;
+            --surface: #ffffff;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
