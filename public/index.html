@@ -3,86 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXAM MANPOWER MANAGEMENT SYSTEM</title>
+    <title>EMMS | Government Examination Manpower & Deployment Portal</title>
     <style>
         :root {
-            --primary: #0f2a59;
-            --primary-light: #1e40af;
-            --accent: #2563eb;
-            --surface: #ffffff;
-            --bg: #f8fafc;
-            --border: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --success: #16a34a;
-            --warning: #d97706;
-            --danger: #dc2626;
-            --sidebar-w: 260px;
+            --gov-navy: #0b1f3a;
+            --gov-blue: #133b68;
+            --gov-accent: #1e5ba3;
+            --gov-saffron: #f59e0b;
+            --gov-green: #15803d;
+            --gov-border: #cbd5e1;
+            --gov-bg: #f1f5f9;
+            --gov-card-bg: #ffffff;
+            --gov-text: #0f172a;
+            --gov-muted: #64748b;
+            --gov-danger: #dc2626;
+            --sidebar-width: 270px;
+        }
+
+        /* High Contrast Theme support */
+        body.contrast-mode {
+            --gov-navy: #000000;
+            --gov-blue: #111111;
+            --gov-accent: #ffff00;
+            --gov-border: #ffffff;
+            --gov-bg: #000000;
+            --gov-card-bg: #000000;
+            --gov-text: #ffffff;
+            --gov-muted: #e2e8f0;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-        body { background-color: var(--bg); color: var(--text-main); font-size: 14px; }
-        .auth-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0b192c 0%, #1e3e62 100%); padding: 20px; }
-        .auth-card { background: #fff; width: 100%; max-width: 440px; border-radius: 8px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden; }
-        .auth-header { background: var(--primary); color: #fff; padding: 24px; text-align: center; }
-        .auth-header h1 { font-size: 20px; font-weight: 700; }
-        .auth-header p { font-size: 12px; color: #93c5fd; margin-top: 4px; }
-        .auth-body { padding: 28px; }
-        .app-container { display: flex; min-height: 100vh; }
-        .sidebar { width: var(--sidebar-w); background: var(--primary); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-brand { padding: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .sidebar-brand h2 { font-size: 16px; font-weight: 700; }
-        .sidebar-brand span { font-size: 11px; color: #93c5fd; }
+        body { background-color: var(--gov-bg); color: var(--gov-text); font-size: 13px; line-height: 1.5; }
+
+        /* NIC Accessibility Top Ribbon */
+        .nic-top-bar {
+            background: #0f172a;
+            color: #94a3b8;
+            font-size: 11px;
+            padding: 4px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--gov-saffron);
+        }
+        .nic-top-bar a, .nic-top-bar span { color: #cbd5e1; text-decoration: none; margin-left: 12px; cursor: pointer; }
+        .nic-top-bar a:hover { color: #ffffff; }
+
+        /* Official National Portal Header */
+        .portal-header {
+            background: #ffffff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--gov-border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .emblem-title-group { display: flex; align-items: center; gap: 14px; }
+        .emblem-badge {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: #f8fafc;
+            border: 2px solid #0f2a59;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 14px; color: #0f2a59;
+        }
+        .portal-title-text h1 { font-size: 17px; font-weight: 800; color: #0f2a59; letter-spacing: 0.5px; }
+        .portal-title-text p { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+
+        /* Security Marquee */
+        .gov-ticker {
+            background: #eff6ff;
+            border-bottom: 1px solid #bfdbfe;
+            padding: 5px 24px;
+            font-size: 11px;
+            color: #1e40af;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .ticker-pill {
+            background: #dc2626; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 10px; text-transform: uppercase;
+        }
+
+        /* App Shell */
+        .app-container { display: flex; min-height: calc(100vh - 110px); }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--gov-navy);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+        .sidebar-user-card {
+            padding: 16px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .user-avatar-circle {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--gov-accent); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px;
+        }
         .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
-        .nav-category { font-size: 11px; text-transform: uppercase; color: #94a3b8; padding: 12px 20px 6px; font-weight: 600; }
-        .nav-link { display: flex; align-items: center; padding: 10px 20px; color: #cbd5e1; text-decoration: none; cursor: pointer; gap: 12px; }
-        .nav-link:hover, .nav-link.active { background: var(--primary-light); color: #fff; }
+        .nav-category {
+            font-size: 10px; text-transform: uppercase; color: #94a3b8;
+            padding: 12px 20px 4px; font-weight: 700; letter-spacing: 0.8px;
+        }
+        .nav-link {
+            display: flex; align-items: center; padding: 9px 20px;
+            color: #cbd5e1; text-decoration: none; cursor: pointer; gap: 10px; font-size: 12.5px;
+            border-left: 3px solid transparent;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255,255,255,0.08); color: #fff; border-left-color: var(--gov-saffron);
+        }
+
         .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .topbar { background: #fff; border-bottom: 1px solid var(--border); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
-        .content-area { padding: 24px; flex: 1; overflow-y: auto; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; cursor: pointer; transition: transform 0.1s ease; }
-        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
-        .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
-        .stat-value { font-size: 22px; font-weight: 700; margin-top: 6px; }
-        .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 24px; }
-        .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .content-area { padding: 22px; flex: 1; overflow-y: auto; }
+
+        /* Stat Cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .stat-card {
+            background: #fff; border: 1px solid var(--gov-border); border-radius: 4px;
+            padding: 14px; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .stat-card:hover { transform: translateY(-2px); border-color: var(--gov-accent); }
+        .stat-label { font-size: 11px; font-weight: 700; color: var(--gov-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
+        .stat-value { font-size: 21px; font-weight: 800; margin-top: 6px; color: #0f2a59; }
+
+        /* Filter Box */
+        .filter-bar {
+            background: #fff; border: 1px solid var(--gov-border); border-radius: 4px;
+            padding: 14px; margin-bottom: 20px; display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) 90px; gap: 10px; align-items: end;
+        }
+
+        /* Tables & Badges */
+        .card { background: #fff; border: 1px solid var(--gov-border); border-radius: 4px; margin-bottom: 22px; }
+        .card-header { padding: 12px 16px; border-bottom: 1px solid var(--gov-border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); text-align: left; }
-        th { background: #f1f5f9; font-size: 12px; color: #475569; text-transform: uppercase; }
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; }
+        th, td { padding: 9px 13px; border-bottom: 1px solid var(--gov-border); text-align: left; }
+        th { background: #f8fafc; font-size: 11.5px; color: #334155; text-transform: uppercase; font-weight: 700; }
+
+        .badge { padding: 2px 7px; border-radius: 3px; font-size: 10.5px; font-weight: 700; display: inline-block; }
         .badge-present, .badge-active, .badge-ready, .badge-approved, .badge-paid { background: #dcfce7; color: #15803d; }
         .badge-absent, .badge-rejected { background: #fee2e2; color: #b91c1c; }
         .badge-pending, .badge-hold { background: #fef3c7; color: #b45309; }
         .badge-shortage { background: #ffedd5; color: #c2410c; }
-        .form-group { margin-bottom: 14px; }
-        label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
-        input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
-        .btn { padding: 8px 16px; border-radius: 4px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-sm { padding: 4px 8px; font-size: 11px; border-radius: 4px; }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-primary:hover { background: var(--primary-light); }
-        .btn-success { background: var(--success); color: #fff; }
-        .btn-danger { background: var(--danger); color: #fff; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
-        .filter-bar { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) 100px; gap: 12px; align-items: end; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
-        .modal-content { background: #fff; border-radius: 8px; max-width: 950px; width: 100%; max-height: 90vh; overflow-y: auto; }
-        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 20px; }
-        .modal-footer { padding: 12px 20px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
-        .shift-block { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; }
-        .shift-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
-        .camera-box { background: #000; width: 100%; height: 280px; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
-        .camera-box video, .camera-box canvas { width: 100%; height: 100%; object-fit: cover; }
-        .voucher-container { background: #ffffff; border: 2px solid #0f2a59; padding: 28px; border-radius: 8px; position: relative; color: #0f2a59; }
-        .voucher-header { text-align: center; border-bottom: 2px solid #0f2a59; padding-bottom: 14px; margin-bottom: 16px; }
-        .stamp-seal { width: 100px; height: 100px; border: 3px double #15803d; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #15803d; font-weight: 800; font-size: 10px; text-transform: uppercase; transform: rotate(-10deg); margin: 0 auto; }
+
+        .btn {
+            padding: 7px 14px; border-radius: 3px; font-weight: 600; font-size: 12px;
+            cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .btn-sm { padding: 3px 7px; font-size: 10.5px; }
+        .btn-primary { background: var(--gov-accent); color: #fff; }
+        .btn-primary:hover { background: var(--gov-blue); }
+        .btn-success { background: var(--gov-green); color: #fff; }
+        .btn-danger { background: var(--gov-danger); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid var(--gov-border); color: var(--gov-text); }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; color: #334155; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 12.5px; }
+
+        /* Biometric Live HUD Overlay */
+        .camera-viewport-container {
+            position: relative; width: 100%; height: 280px; background: #000; border-radius: 4px; overflow: hidden; margin-bottom: 12px;
+        }
+        .camera-viewport-container video, .camera-viewport-container canvas { width: 100%; height: 100%; object-fit: cover; }
+        .face-hud-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 170px; height: 220px; border: 2px dashed rgba(74, 222, 128, 0.85); border-radius: 50% 50% 45% 45%;
+            pointer-events: none; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
+        }
+        .hud-status-badge {
+            position: absolute; bottom: 8px; left: 8px; right: 8px;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px);
+            padding: 5px 10px; font-size: 10.5px; color: #fff; border-radius: 3px;
+            display: flex; justify-content: space-between;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 31, 58, 0.65); display: none; align-items: center; justify-content: center;
+            z-index: 9999; padding: 16px;
+        }
+        .modal-content {
+            background: #fff; border-radius: 4px; max-width: 900px; width: 100%; max-height: 92vh;
+            overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-top: 4px solid var(--gov-saffron);
+        }
+        .modal-header { padding: 14px 18px; border-bottom: 1px solid var(--gov-border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 18px; }
+        .modal-footer { padding: 12px 18px; background: #f8fafc; border-top: 1px solid var(--gov-border); display: flex; justify-content: flex-end; gap: 8px; }
+
+        /* Official Treasury Form TR-42 Styling */
+        .voucher-container {
+            border: 2px solid #0f2a59; padding: 24px; background: #fff; position: relative;
+        }
+        .voucher-container::before {
+            content: "GOVT DISBURSEMENT"; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg); font-size: 58px; font-weight: 900;
+            color: rgba(15, 42, 89, 0.03); pointer-events: none;
+        }
+        .barcode-container { text-align: center; margin: 12px 0; font-family: monospace; letter-spacing: 3px; font-size: 11px; }
+
         @media print {
             body * { visibility: hidden; }
             #paymentProofModal, #paymentProofModal * { visibility: visible; }
-            #paymentProofModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: transparent !important; }
+            #paymentProofModal { position: absolute; left: 0; top: 0; width: 100%; background: transparent !important; }
             .modal-content { box-shadow: none; border: none; max-width: 100%; }
             .modal-footer, .modal-header button { display: none !important; }
         }
@@ -90,158 +229,212 @@
 </head>
 <body>
 
-    <!-- LOGIN -->
+    <!-- 1. NIC ACCESSIBILITY TOP BANNER -->
+    <div class="nic-top-bar">
+        <div>
+            <span>GOVERNMENT OF TAMIL NADU • DEPARTMENT OF EXAMINATION CONTROLLER</span>
+        </div>
+        <div>
+            <span onclick="setFontSize('sm')">A-</span>
+            <span onclick="setFontSize('md')">A</span>
+            <span onclick="setFontSize('lg')">A+</span>
+            <span onclick="toggleContrast()">High Contrast</span>
+            <span>English / தமிழ்</span>
+        </div>
+    </div>
+
+    <!-- 2. OFFICIAL EMBLEM HEADER -->
+    <header class="portal-header">
+        <div class="emblem-title-group">
+            <div class="emblem-badge">TN</div>
+            <div class="portal-title-text">
+                <h1>EXAM MANPOWER MANAGEMENT SYSTEM (EMMS)</h1>
+                <p>Confidential Examination Personnel Deployment & Remuneration Portal</p>
+            </div>
+        </div>
+        <div style="text-align: right; font-size: 11px; color: #64748b;">
+            <div style="font-weight: 700; color: #0f2a59;" id="liveClock">27 September 2026</div>
+            <span>Authorized Network ID: <strong id="netSessionId">IP: Verified • SSL 256-bit</strong></span>
+        </div>
+    </header>
+
+    <!-- 3. OFFICIAL STATUTORY ADVISORY TICKER -->
+    <div class="gov-ticker">
+        <span class="ticker-pill">Notice</span>
+        <span>Strict Compliance: All duties must be completed as per the Public Examinations (Prevention of Unfair Means) Act. Biometric logs are audited by the Treasury Officer.</span>
+    </div>
+
+    <!-- 4. AUTHENTICATION VIEW -->
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
-                <h1>EXAM MANPOWER</h1>
+                <h1>EXAM MANPOWER PORTAL</h1>
                 <p>Government Examination Staff Management Portal</p>
             </div>
             <div class="auth-body">
-                <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
                     <button type="button" id="tabStaff" class="btn btn-primary" style="flex: 1;" onclick="setLoginType('STAFF')">Staff Login</button>
-                    <button type="button" id="tabAdmin" class="btn btn-outline" style="flex: 1;" onclick="setLoginType('ADMIN')">Admin Login</button>
+                    <button type="button" id="tabAdmin" class="btn btn-outline" style="flex: 1;" onclick="setLoginType('ADMIN')">Admin / Co-ordinator</button>
                 </div>
-                <div id="loginAlert" style="display:none; color: #dc2626; font-size: 13px; margin-bottom: 12px;"></div>
+                <div id="loginAlert" style="display:none; color: #dc2626; font-size: 12px; margin-bottom: 12px; font-weight: 600;"></div>
                 <form id="loginForm">
                     <div class="form-group">
-                        <label id="lblIdentifier">Staff ID</label>
+                        <label id="lblIdentifier">Staff Identification Number</label>
                         <input type="text" id="loginIdentifier" placeholder="e.g. LSTRI001" required>
                     </div>
                     <div class="form-group">
-                        <label id="lblPassword">Date of Birth (Password)</label>
+                        <label id="lblPassword">Secret PIN / Date of Birth</label>
                         <input type="password" id="loginPassword" placeholder="DDMMYYYY or YYYY-MM-DD" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px;">Sign In</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 9px; font-weight: 700;">Secure Portal Sign In</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- MAIN SHELL -->
+    <!-- 5. MAIN SECURE APPLICATION SHELL -->
     <div id="appShell" class="app-container" style="display: none;">
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <h2>EXAM MANPOWER</h2>
-                <span>Government Examination Staff Portal</span>
+            <div class="sidebar-user-card">
+                <div class="user-avatar-circle" id="userAvatarText">A</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 13px;" id="sessionUserDisplay">Chief Administrator</div>
+                    <div style="font-size: 10px; color: #93c5fd;" id="sessionRoleBadge">CO-ORDINATOR</div>
+                </div>
             </div>
 
             <!-- ADMIN NAVIGATION -->
             <div id="adminNav" class="sidebar-nav">
-                <div class="nav-category">Main</div>
-                <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Dashboard & Drilldown</a>
+                <div class="nav-category">Control Desk</div>
+                <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Operational Matrix</a>
 
                 <div class="nav-category">Staff Directory</div>
                 <a class="nav-link" onclick="switchRoute('admin-staff')">👥 Registered Staff</a>
                 <a class="nav-link" onclick="openModal('addStaffModal')">➕ Register New Staff</a>
 
-                <div class="nav-category">Examinations</div>
-                <a class="nav-link" onclick="switchRoute('admin-exams')">📝 Examinations</a>
-                <a class="nav-link" onclick="switchRoute('admin-centres')">🏫 Exam Centres</a>
-                <a class="nav-link" onclick="switchRoute('admin-deployments')">📌 Staff Deployment</a>
+                <div class="nav-category">Examinations & Venues</div>
+                <a class="nav-link" onclick="switchRoute('admin-exams')">📝 Examinations Master</a>
+                <a class="nav-link" onclick="switchRoute('admin-centres')">🏫 Exam Centres List</a>
+                <a class="nav-link" onclick="switchRoute('admin-deployments')">📌 Manpower Deployment</a>
 
-                <div class="nav-category">Verification & Treasury</div>
-                <a class="nav-link" onclick="switchRoute('admin-attendance')">🕒 Attendance Verification</a>
-                <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Payment Proofs & Ledger</a>
+                <div class="nav-category">Audit & Treasury</div>
+                <a class="nav-link" onclick="switchRoute('admin-attendance')">🕒 Attendance Audit Logs</a>
+                <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Treasury Disbursements</a>
             </div>
 
             <!-- STAFF NAVIGATION -->
             <div id="staffNav" class="sidebar-nav" style="display: none;">
-                <div class="nav-category">Staff Desk</div>
-                <a class="nav-link active" onclick="switchRoute('staff-duty')">📋 Today's Duty</a>
-                <a class="nav-link" onclick="switchRoute('staff-punch')">📸 Photo Attendance</a>
-                <a class="nav-link" onclick="switchRoute('staff-sheet')">📤 Upload Attendance Sheet</a>
-                <a class="nav-link" onclick="switchRoute('staff-history')">📅 My Work & Salary Ledger</a>
+                <div class="nav-category">Assigned Duties</div>
+                <a class="nav-link active" onclick="switchRoute('staff-duty')">📋 Today's Duty Order</a>
+                <a class="nav-link" onclick="switchRoute('staff-punch')">📸 Biometric Photo Punch</a>
+                <a class="nav-link" onclick="switchRoute('staff-sheet')">📤 Submit Signed Sheet</a>
+                <a class="nav-link" onclick="switchRoute('staff-history')">📅 Duty Ledger & Remuneration</a>
             </div>
 
-            <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <button onclick="logout()" class="btn btn-outline" style="width: 100%; color: #fff; border-color: rgba(255,255,255,0.3);">Logout</button>
+            <div style="padding: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
+                <button onclick="logout()" class="btn btn-outline" style="width: 100%; color: #fff; border-color: rgba(255,255,255,0.25);">Official Sign Out</button>
             </div>
         </aside>
 
         <main class="main-content">
-            <header class="topbar">
-                <div>
-                    <strong id="sessionUserDisplay">Chief Administrator</strong>
-                    <span id="sessionRoleBadge" class="badge badge-ready" style="margin-left: 8px;">ADMIN</span>
-                </div>
-                <div style="font-size: 13px; color: #64748b;" id="liveClock"></div>
-            </header>
-
             <section class="content-area">
 
-                <!-- 1. ADMIN DASHBOARD -->
+                <!-- VIEW 1: ADMIN DASHBOARD -->
                 <div id="view-admin-dashboard" class="page-view">
-                    <h1 style="font-size: 20px; font-weight: 700;">Executive Examination Dashboard</h1>
-                    <p style="color: #64748b; margin-bottom: 16px;">Real-time search, multi-filters, venue shortages, and role-wise attendance analytics.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <div>
+                            <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59;">Confidential Examination Command Center</h2>
+                            <p style="color: #64748b; font-size: 12px;">Real-time venue attendance, live shortage counters, and vendor compliance monitoring.</p>
+                        </div>
+                    </div>
 
+                    <!-- SEARCH & FILTER BAR -->
                     <div class="filter-bar">
                         <div class="form-group" style="margin: 0;">
-                            <label>Search Staff Name / ID</label>
-                            <input type="text" id="filterStaffSearch" placeholder="Type name or ID..." oninput="applyDashboardFilters()">
+                            <label>Personnel Search</label>
+                            <input type="text" id="filterStaffSearch" placeholder="Name or Staff ID..." oninput="applyDashboardFilters()">
                         </div>
                         <div class="form-group" style="margin: 0;">
-                            <label>Centre Venue</label>
+                            <label>Exam Centre Venue</label>
                             <select id="filterCentre" onchange="applyDashboardFilters()"><option value="">All Centres</option></select>
                         </div>
                         <div class="form-group" style="margin: 0;">
-                            <label>Staff Role</label>
+                            <label>Designated Role</label>
                             <select id="filterRole" onchange="applyDashboardFilters()"><option value="">All Roles</option></select>
                         </div>
                         <div class="form-group" style="margin: 0;">
-                            <label>Exam Name</label>
-                            <select id="filterExam" onchange="applyDashboardFilters()"><option value="">All Exams</option></select>
+                            <label>Active Examination</label>
+                            <select id="filterExam" onchange="applyDashboardFilters()"><option value="">All Examinations</option></select>
                         </div>
                         <div class="form-group" style="margin: 0;">
-                            <label>Vendor Name</label>
+                            <label>Contract Vendor</label>
                             <select id="filterVendor" onchange="applyDashboardFilters()"><option value="">All Vendors</option></select>
                         </div>
-                        <button class="btn btn-outline" onclick="resetDashboardFilters()" style="height: 35px;">Reset</button>
+                        <button class="btn btn-outline" onclick="resetDashboardFilters()" style="height: 33px;">Reset</button>
                     </div>
 
+                    <!-- METRIC CARDS -->
                     <div class="stats-grid">
-                        <div class="stat-card" onclick="openDrilldownModal('ALL', 'All Assigned Staff')">
-                            <div class="stat-label">Total Assigned <span>🔍 View</span></div>
+                        <div class="stat-card" onclick="openDrilldownModal('ALL', 'All Assigned Personnel')">
+                            <div class="stat-label">Total Assigned <span>🔍 Audit</span></div>
                             <div class="stat-value" id="dashTotalStaff">0</div>
                         </div>
-                        <div class="stat-card" onclick="openDrilldownModal('PRESENT', 'All Present Staff')">
-                            <div class="stat-label">Present On-Duty <span>🔍 View</span></div>
-                            <div class="stat-value" style="color: #16a34a;" id="dashPresent">0</div>
+                        <div class="stat-card" onclick="openDrilldownModal('PRESENT', 'Present On-Duty Personnel')">
+                            <div class="stat-label">Present On-Duty <span>🟢</span></div>
+                            <div class="stat-value" style="color: #15803d;" id="dashPresent">0</div>
                         </div>
-                        <div class="stat-card" onclick="openDrilldownModal('ABSENT', 'All Absent Staff')">
-                            <div class="stat-label">Absent Staff <span>🔍 View</span></div>
+                        <div class="stat-card" onclick="openDrilldownModal('ABSENT', 'Absent Personnel')">
+                            <div class="stat-label">Shortage / Absent <span>🔴</span></div>
                             <div class="stat-value" style="color: #dc2626;" id="dashAbsent">0</div>
                         </div>
                         <div class="stat-card" onclick="openDrilldownModal('PUNCHOUT_PENDING', 'Punch-Out Pending')">
-                            <div class="stat-label">Punch-Out Pending <span>🔍</span></div>
+                            <div class="stat-label">Active on Venue <span>⏱️</span></div>
                             <div class="stat-value" style="color: #d97706;" id="dashPunchOutPending">0</div>
                         </div>
                         <div class="stat-card" onclick="switchRoute('admin-payments')">
-                            <div class="stat-label">Payment Pending</div>
-                            <div class="stat-value" style="color: #2563eb;" id="dashPaymentPending">₹0</div>
+                            <div class="stat-label">Remuneration Ledger</div>
+                            <div class="stat-value" style="color: #1e40af;" id="dashPaymentPending">₹0</div>
                         </div>
                     </div>
 
+                    <!-- 10-ROLE MATRIX -->
                     <div class="card">
                         <div class="card-header">
-                            <strong>Role-Wise Manpower Status (Click any role to inspect Present & Absent staff)</strong>
+                            <strong>Official Manpower Requirement & Attendance Status by Role</strong>
+                            <small style="color: #64748b;">Click on any row to drill down into venue-by-venue deployments</small>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff Role</th><th>Assigned</th><th>Present</th><th>Absent</th><th>Shortage</th><th>Action</th></tr>
+                                    <tr>
+                                        <th>Staff Role Code</th>
+                                        <th>Sanctioned Quota</th>
+                                        <th>Present on Venue</th>
+                                        <th>Reported Absent</th>
+                                        <th>Net Shortage</th>
+                                        <th>Audit Inspection</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="roleMatrixTableBody"></tbody>
                             </table>
                         </div>
                     </div>
 
+                    <!-- VENUE MANPOWER MATRIX -->
                     <div class="card">
-                        <div class="card-header"><strong>Venue-Wise Manpower & Shortage Matrix</strong></div>
+                        <div class="card-header"><strong>Centre-Wise Deployment Compliance Matrix</strong></div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Centre Name</th><th>City</th><th>Assigned Staff</th><th>Present</th><th>Absent / Shortage</th><th>Status</th><th>Inspect</th></tr>
+                                    <tr>
+                                        <th>Examination Venue</th>
+                                        <th>District / City</th>
+                                        <th>Required Staff</th>
+                                        <th>Present</th>
+                                        <th>Deficit</th>
+                                        <th>Readiness</th>
+                                        <th>Inspect</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="centreStatusTableBody"></tbody>
                             </table>
@@ -249,12 +442,12 @@
                     </div>
                 </div>
 
-                <!-- 2. ALL STAFF -->
+                <!-- VIEW 2: STAFF LIST -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
-                            <h1 style="font-size: 20px; font-weight: 700;">Staff Management</h1>
-                            <p style="color: #64748b;">Registered personnel with Vendor attribution and auto-email credentials.</p>
+                            <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59;">Registered Examination Personnel Registry</h2>
+                            <p style="color: #64748b; font-size: 12px;">Complete database synchronized with Google Cloud Storage and verified mobile directories.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Register Staff</button>
                     </div>
@@ -262,7 +455,7 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>City</th><th>Mobile</th><th>Status</th><th>Actions</th></tr>
+                                    <tr><th>Staff ID</th><th>Full Name</th><th>Role</th><th>Sponsoring Vendor</th><th>City</th><th>Verified Contact</th><th>Status</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="staffTableBody"></tbody>
                             </table>
@@ -270,20 +463,20 @@
                     </div>
                 </div>
 
-                <!-- 3. EXAMS -->
+                <!-- VIEW 3: EXAMINATIONS -->
                 <div id="view-admin-exams" class="page-view" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
-                            <h1 style="font-size: 20px; font-weight: 700;">Examinations</h1>
-                            <p style="color: #64748b;">Manage examinations, Conducting Agencies, and Shift Schedules.</p>
+                            <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59;">Official Examinations Schedule Master</h2>
+                            <p style="color: #64748b; font-size: 12px;">Conducting Agencies, shift windows, and candidate reporting cutoff rules.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Create Examination</button>
+                        <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Schedule Examination</button>
                     </div>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Exam Name</th><th>Exam Conducting Agency</th><th>Vendor</th><th>Dates</th><th>Shift Mode</th><th>Shift Timings</th><th>Actions</th></tr>
+                                    <tr><th>Examination Title</th><th>Conducting Agency</th><th>Agency Partner</th><th>Session Dates</th><th>Shifts</th><th>Session Hours</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="examsTableBody"></tbody>
                             </table>
@@ -291,20 +484,20 @@
                     </div>
                 </div>
 
-                <!-- 4. CENTRES -->
+                <!-- VIEW 4: CENTRES -->
                 <div id="view-admin-centres" class="page-view" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
-                            <h1 style="font-size: 20px; font-weight: 700;">Examination Centres</h1>
-                            <p style="color: #64748b;">Venues, addresses, and maps.</p>
+                            <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59;">Authorized Examination Centres Directory</h2>
+                            <p style="color: #64748b; font-size: 12px;">Verified venues, physical addresses, and geo-tagged coordinates.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Add Centre</button>
+                        <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Register Centre</button>
                     </div>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Centre Name</th><th>City</th><th>Full Address</th><th>Map Link</th><th>Actions</th></tr>
+                                    <tr><th>Venue Name</th><th>District</th><th>Physical Address</th><th>Geo-Coordinates</th><th>Status</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="centresTableBody"></tbody>
                             </table>
@@ -312,12 +505,12 @@
                     </div>
                 </div>
 
-                <!-- 5. DEPLOYMENTS -->
+                <!-- VIEW 5: DEPLOYMENTS -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
-                            <h1 style="font-size: 20px; font-weight: 700;">Staff Deployment</h1>
-                            <p style="color: #64748b;">Deploy staff across single or multi-day exam sessions.</p>
+                            <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59;">Manpower Duty Deployment Orders</h2>
+                            <p style="color: #64748b; font-size: 12px;">Multi-day assignment schedules with automated email dispatching.</p>
                         </div>
                         <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff (Date Range)</button>
                     </div>
@@ -325,7 +518,7 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Exam</th><th>Shift</th><th>Centre Venue</th><th>Duty Date</th><th>Actions</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Designated Role</th><th>Vendor</th><th>Examination</th><th>Shift</th><th>Venue</th><th>Duty Date</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="deploymentsTableBody"></tbody>
                             </table>
@@ -333,15 +526,15 @@
                     </div>
                 </div>
 
-                <!-- 6. ATTENDANCE VERIFICATION -->
+                <!-- VIEW 6: ATTENDANCE AUDIT -->
                 <div id="view-admin-attendance" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Attendance Verification</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Review live photo punches and countersigned attendance sheets.</p>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59; margin-bottom: 4px;">Biometric Facial Attendance Audit Logs</h2>
+                    <p style="color: #64748b; font-size: 12px; margin-bottom: 16px;">Forensic verification of punch-in and punch-out photos alongside countersigned attendance sheets.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Punch In</th><th>Punch Out</th><th>Working Hours</th><th>Photo & Sheet</th><th>Status</th><th>Action</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Biometric Proofs</th><th>Audit Status</th><th>Sanction</th></tr>
                                 </thead>
                                 <tbody id="attendanceVerificationTableBody"></tbody>
                             </table>
@@ -349,15 +542,15 @@
                     </div>
                 </div>
 
-                <!-- 7. PAYMENT PROOFS -->
+                <!-- VIEW 7: TREASURY PAYMENTS -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Payment Approvals & Vouchers</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Authorize disbursements, generate treasury tokens, and inspect official payment vouchers.</p>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59; margin-bottom: 4px;">Treasury Remuneration Sanction & Vouchers</h2>
+                    <p style="color: #64748b; font-size: 12px; margin-bottom: 16px;">Disbursement approvals under Form TR-42 with electronic tokens.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Duty Date</th><th>Total Fee</th><th>Status</th><th>Txn Ref</th><th>Actions</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Duty Date</th><th>Net Sanctioned</th><th>Status</th><th>Treasury Token</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="paymentsTableBody"></tbody>
                             </table>
@@ -365,86 +558,90 @@
                     </div>
                 </div>
 
-                <!-- 8. STAFF PORTAL: TODAY'S DUTY -->
+                <!-- VIEW 8: STAFF TODAY'S DUTY -->
                 <div id="view-staff-duty" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Today's Active Duty</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Your designated examination assignment for today.</p>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59; margin-bottom: 4px;">Official Duty Assignment Order</h2>
+                    <p style="color: #64748b; font-size: 12px; margin-bottom: 16px;">Confidential reporting instructions and venue coordinates for your assigned exam session.</p>
                     <div id="dutyDetailsContainer"></div>
                 </div>
 
-                <!-- 9. STAFF PORTAL: PHOTO PUNCH -->
+                <!-- VIEW 9: STAFF BIOMETRIC PHOTO PUNCH -->
                 <div id="view-staff-punch" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Photo Attendance</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Take a live photo snapshot to record punch in / punch out.</p>
-                    <div class="card" style="max-width: 500px; margin: 0 auto; padding: 20px;">
-                        <div class="camera-box">
+                    <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59; margin-bottom: 4px;">Biometric Facial Attendance Recording</h2>
+                    <p style="color: #64748b; font-size: 12px; margin-bottom: 16px;">Please align your face within the bounding frame to record live photo punch-in or punch-out.</p>
+                    <div class="card" style="max-width: 520px; margin: 0 auto; padding: 18px;">
+                        <div class="camera-viewport-container">
                             <video id="webcam" autoplay playsinline></video>
                             <canvas id="snapshotCanvas" style="display:none;"></canvas>
+                            <div class="face-hud-box"></div>
+                            <div class="hud-status-badge">
+                                <span>LIVE VIEWFINDER</span>
+                                <span id="hudGeoNotice" style="color: #4ade80;">GEO-LOCATING...</span>
+                            </div>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-primary" style="flex: 1;" onclick="executePunch('in')">Punch In</button>
-                            <button class="btn btn-outline" style="flex: 1;" onclick="executePunch('out')">Punch Out</button>
+                            <button class="btn btn-primary" style="flex: 1;" onclick="executePunch('in')">Record Punch In</button>
+                            <button class="btn btn-outline" style="flex: 1;" onclick="executePunch('out')">Record Punch Out</button>
                         </div>
-                        <p id="punchMessage" style="margin-top: 12px; font-size: 13px; text-align: center;"></p>
+                        <p id="punchMessage" style="margin-top: 10px; font-size: 12px; text-align: center; font-weight: 600;"></p>
                     </div>
                 </div>
 
-                <!-- 10. STAFF PORTAL: UPLOAD SHEET -->
+                <!-- VIEW 10: STAFF UPLOAD SHEET -->
                 <div id="view-staff-sheet" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Upload Attendance Sheet</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Upload the signed examination hall sheet.</p>
-                    <div class="card" style="max-width: 600px; margin: 0 auto; padding: 24px;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59; margin-bottom: 4px;">Upload Countersigned Hall Attendance Sheet</h2>
+                    <p style="color: #64748b; font-size: 12px; margin-bottom: 16px;">Upload a scanned PDF or photograph of the physically signed room attendance roster.</p>
+                    <div class="card" style="max-width: 580px; margin: 0 auto; padding: 22px;">
                         <form id="sheetUploadForm">
-                            <div style="border: 2px dashed #94a3b8; border-radius: 6px; padding: 30px; text-align: center; cursor: pointer;" onclick="document.getElementById('sheetFileInput').click()">
-                                <p style="font-weight: 600;">Choose File (PDF, JPG, PNG)</p>
+                            <div style="border: 2px dashed #94a3b8; border-radius: 4px; padding: 28px; text-align: center; cursor: pointer; background: #f8fafc;" onclick="document.getElementById('sheetFileInput').click()">
+                                <p style="font-weight: 700; color: #0f2a59;">Click to Browse or Drag Signed Sheet (PDF / JPEG)</p>
+                                <span style="font-size: 11px; color: #64748b;">Must clearly show signature of the Room Invigilator & Centre Superintendent</span>
                                 <input type="file" id="sheetFileInput" name="attendance_sheet" accept=".pdf,image/*" style="display: none;" onchange="showSelectedFileName(this)">
                             </div>
-                            <p id="selectedFileNotice" style="margin-top: 10px; font-weight: 600; color: #2563eb;"></p>
-                            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px;">Submit Sheet</button>
+                            <p id="selectedFileNotice" style="margin-top: 10px; font-weight: 700; color: #2563eb;"></p>
+                            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 16px; padding: 9px;">Submit Document for Verification</button>
                         </form>
                     </div>
                 </div>
 
-                <!-- 11. STAFF PORTAL: FULL WORK HISTORY & SALARY LEDGER -->
+                <!-- VIEW 11: STAFF WORK & SALARY LEDGER -->
                 <div id="view-staff-history" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">My Work History & Salary Ledger</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Complete record of all days worked, remuneration sanctioned, and payment tracking.</p>
+                    <h2 style="font-size: 18px; font-weight: 800; color: #0f2a59; margin-bottom: 4px;">Official Duty Ledger & Remuneration Audit</h2>
+                    <p style="color: #64748b; font-size: 12px; margin-bottom: 16px;">Historical ledger of all examination days worked, sanction amounts, and treasury disbursement status.</p>
 
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-label">Total Days Worked</div>
-                            <div class="stat-value" id="ledgerDaysWorked" style="color: #0f2a59;">0</div>
+                            <div class="stat-value" id="ledgerDaysWorked">0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Total Remuneration</div>
-                            <div class="stat-value" id="ledgerTotalEarned" style="color: #2563eb;">₹0</div>
+                            <div class="stat-label">Sanctioned Amount</div>
+                            <div class="stat-value" id="ledgerTotalEarned" style="color: #1e40af;">₹0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Salary Received / Paid</div>
-                            <div class="stat-value" id="ledgerTotalReceived" style="color: #16a34a;">₹0</div>
+                            <div class="stat-label">Disbursed / Credited</div>
+                            <div class="stat-value" id="ledgerTotalReceived" style="color: #15803d;">₹0</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-label">Salary Pending</div>
-                            <div class="stat-value" id="ledgerTotalPending" style="color: #d97706;">₹0</div>
+                            <div class="stat-label">Disbursement Pending</div>
+                            <div class="stat-value" id="ledgerTotalPending" style="color: #b45309;">₹0</div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <div class="card-header">
-                            <strong>Day-by-Day Duty & Payment Ledger</strong>
-                        </div>
+                        <div class="card-header"><strong>Itemized Day-Wise Remuneration Ledger</strong></div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Duty Date</th>
-                                        <th>Exam & Venue</th>
-                                        <th>Assigned Role</th>
+                                        <th>Session Date</th>
+                                        <th>Examination & Venue</th>
+                                        <th>Role Assigned</th>
                                         <th>Shift</th>
-                                        <th>Duty Time</th>
-                                        <th>Amount</th>
-                                        <th>Salary Status</th>
-                                        <th>Treasury Ref</th>
+                                        <th>Working Time</th>
+                                        <th>Payable Fee</th>
+                                        <th>Payment Audit</th>
+                                        <th>Treasury Token</th>
                                     </tr>
                                 </thead>
                                 <tbody id="staffLedgerTableBody"></tbody>
@@ -457,23 +654,137 @@
         </main>
     </div>
 
-    <!-- ==================== MODALS ==================== -->
+    <!-- MODAL 1: FORENSIC ATTENDANCE AUDIT PROOF -->
+    <div id="attendanceProofModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 880px;">
+            <div class="modal-header" style="background: #0f2a59; color: #fff;">
+                <div>
+                    <h3 style="margin: 0; font-size: 15px;">Official Biometric Audit & Signed Roster Verification</h3>
+                    <small style="color: #93c5fd;" id="verifyStaffSubtitle">Staff ID: Loading...</small>
+                </div>
+                <button class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.3);" onclick="closeModal('attendanceProofModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+                    <div style="background: #0f172a; padding: 10px; border-radius: 4px; color: #fff;">
+                        <div style="display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 6px; color: #94a3b8;">
+                            <span>📷 PUNCH IN BIOMETRIC</span>
+                            <span id="hudPunchInTime" style="color: #4ade80;">--:--</span>
+                        </div>
+                        <div id="proofPunchInPhoto" style="height: 200px; background: #1e293b; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #64748b;">No Snapshot</span>
+                        </div>
+                    </div>
+                    <div style="background: #0f172a; padding: 10px; border-radius: 4px; color: #fff;">
+                        <div style="display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 6px; color: #94a3b8;">
+                            <span>📷 PUNCH OUT BIOMETRIC</span>
+                            <span id="hudPunchOutTime" style="color: #4ade80;">--:--</span>
+                        </div>
+                        <div id="proofPunchOutPhoto" style="height: 200px; background: #1e293b; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <span style="color: #64748b;">No Snapshot</span>
+                        </div>
+                    </div>
+                </div>
 
-    <!-- DRILLDOWN MODAL -->
+                <div id="lateReasonAlertBox" style="display:none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 8px; border-radius: 4px; font-size: 11.5px; margin-bottom: 14px;">
+                    <strong>Late Submission Advisory:</strong> <span id="lateReasonText"></span>
+                </div>
+
+                <div style="border: 1px solid var(--gov-border); padding: 14px; border-radius: 4px; text-align: center; background: #f8fafc;">
+                    <div style="font-weight: 700; margin-bottom: 8px; color: #0f2a59;">Countersigned Centre Hall Attendance Sheet</div>
+                    <div id="proofSheetContainer" style="min-height: 240px; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: #94a3b8;">No document available</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('attendanceProofModal')">Close</button>
+                <button class="btn btn-danger" onclick="actionVerifyCurrent('Rejected')">Reject Document</button>
+                <button class="btn btn-success" onclick="actionVerifyCurrent('Approved')">Sanction & Approve Attendance</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: FORM TR-42 TREASURY REMUNERATION VOUCHER -->
+    <div id="paymentProofModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 680px;">
+            <div class="modal-header">
+                <h3>Government Treasury Remuneration Instrument</h3>
+                <button class="btn btn-outline" onclick="closeModal('paymentProofModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="voucher-container" id="voucherPrintArea">
+                    <div class="voucher-header">
+                        <div style="font-size: 14px; font-weight: 800; color: #0f2a59;">GOVERNMENT OF TAMIL NADU • EXAMINATION COMMISSION</div>
+                        <div style="font-size: 11px; color: #475569;" id="vConductingAgency">Agency: Examination Authority</div>
+                        <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Form TR-42 (Rule 182 - Tamil Nadu Treasury Rules)</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 6px; margin-bottom: 12px;">
+                        <span><strong>TREASURY TOKEN:</strong> <code id="vRefNo" style="color: #1e40af; font-weight: 700;">TXN-GOV</code></span>
+                        <span><strong>DATE:</strong> <span id="vDutyDate"></span></span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; margin-bottom: 14px;">
+                        <div><span>Staff ID:</span> <strong id="vStaffId"></strong></div>
+                        <div><span>Full Name:</span> <strong id="vStaffName"></strong></div>
+                        <div><span>Designated Role:</span> <strong id="vRole"></strong></div>
+                        <div><span>Vendor Partner:</span> <strong id="vVendor"></strong></div>
+                        <div style="grid-column: span 2;"><span>Venue:</span> <strong id="vCentre"></strong></div>
+                    </div>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 14px;">
+                        <thead>
+                            <tr style="background: #0f2a59; color: #fff;">
+                                <th style="padding: 7px 10px; font-size: 11px;">Accounting Head</th>
+                                <th style="padding: 7px 10px; font-size: 11px; text-align: right;">Amount Sanctioned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">Duty Honorarium (Standard)</td><td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; text-align: right;" id="vDutyAmt">₹1,200.00</td></tr>
+                            <tr><td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">Travel & Distance Conveyance (TA)</td><td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; text-align: right;" id="vTravelAmt">₹500.00</td></tr>
+                            <tr><td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0;">Session Refreshment Allowance</td><td style="padding: 7px 10px; border-bottom: 1px solid #e2e8f0; text-align: right;" id="vOtherAmt">₹200.00</td></tr>
+                            <tr style="font-weight: 800; background: #f8fafc; border-top: 2px solid #0f2a59;">
+                                <td style="padding: 8px 10px;">NET DISBURSED AMOUNT</td>
+                                <td style="padding: 8px 10px; text-align: right; color: #0f2a59; font-size: 14px;" id="vTotalAmt">₹1,900.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="barcode-container">
+                        ||| | ||||| ||||||| ||| |||||||| |||| |||||| |||||||||||||||||||||<br>
+                        <span id="barcodeText">TXN-EMMS-2026-401924</span>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <span id="vStatusBadge" class="badge badge-paid">DISBURSED</span>
+                        <div class="stamp-seal" id="vStampSeal">
+                            <span>TREASURY</span>
+                            <span style="font-size: 10px;">PASSED</span>
+                            <span style="font-size: 8px;" id="vStampDate">2026-09-28</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('paymentProofModal')">Close</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Print Sanction Voucher</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: DRILLDOWN MODAL -->
     <div id="drilldownModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="drilldownTitle">Venue-Wise Personnel Drilldown</h3>
+                <h3 id="drilldownTitle" style="font-size: 15px;">Personnel Operational Drilldown</h3>
                 <button class="btn btn-outline" onclick="closeModal('drilldownModal')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
                     <table>
                         <thead>
-                            <tr>
-                                <th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th>
-                                <th>Centre Venue</th><th>Exam Name</th><th>Punch In</th><th>Punch Out</th><th>Status</th>
-                            </tr>
+                            <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Venue</th><th>Exam</th><th>Punch In</th><th>Punch Out</th><th>Status</th></tr>
                         </thead>
                         <tbody id="drilldownTbody"></tbody>
                     </table>
@@ -482,120 +793,7 @@
         </div>
     </div>
 
-    <!-- ATTENDANCE PROOF MODAL -->
-    <div id="attendanceProofModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 850px;">
-            <div class="modal-header" style="background: #0f2a59; color: #fff;">
-                <div>
-                    <h3 style="margin: 0; font-size: 16px;">Attendance Verification & Document Proof</h3>
-                    <small style="color: #93c5fd;" id="verifyStaffSubtitle">Staff ID: Loading...</small>
-                </div>
-                <button class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.3);" onclick="closeModal('attendanceProofModal')">✕</button>
-            </div>
-            <div class="modal-body" style="padding: 20px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                    <div style="background: #0f172a; padding: 12px; border-radius: 8px; color: #fff;">
-                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; color: #94a3b8;">
-                            <span>📷 Punch In Photo</span>
-                            <span id="hudPunchInTime" style="color: #4ade80;">--:--</span>
-                        </div>
-                        <div id="proofPunchInPhoto" style="height: 220px; background: #1e293b; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                            <span style="color: #64748b;">No Snapshot</span>
-                        </div>
-                    </div>
-                    <div style="background: #0f172a; padding: 12px; border-radius: 8px; color: #fff;">
-                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; color: #94a3b8;">
-                            <span>📷 Punch Out Photo</span>
-                            <span id="hudPunchOutTime" style="color: #4ade80;">--:--</span>
-                        </div>
-                        <div id="proofPunchOutPhoto" style="height: 220px; background: #1e293b; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                            <span style="color: #64748b;">No Snapshot</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="lateReasonAlertBox" style="display:none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px; border-radius: 4px; font-size: 12px; margin-bottom: 16px;">
-                    <strong>Late Submission Reason:</strong> <span id="lateReasonText"></span>
-                </div>
-
-                <div style="border: 1px solid var(--border); padding: 16px; border-radius: 6px; text-align: center; background: #f8fafc;">
-                    <div style="font-weight: 600; margin-bottom: 8px;">Countersigned Centre Attendance Sheet</div>
-                    <div id="proofSheetContainer" style="min-height: 250px; display: flex; align-items: center; justify-content: center;">
-                        <span style="color: #94a3b8;">No sheet attached</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('attendanceProofModal')">Close</button>
-                <button class="btn btn-danger" onclick="actionVerifyCurrent('Rejected')">Reject</button>
-                <button class="btn btn-success" onclick="actionVerifyCurrent('Approved')">Approve Sheet</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- PAYMENT VOUCHER MODAL -->
-    <div id="paymentProofModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 700px;">
-            <div class="modal-header">
-                <h3>Disbursement Remuneration Voucher</h3>
-                <button class="btn btn-outline" onclick="closeModal('paymentProofModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="voucher-container" id="voucherPrintArea">
-                    <div class="voucher-header">
-                        <div style="font-size: 15px; font-weight: 800; letter-spacing: 0.5px;">EXAMINATION COMMISSION • STAFF REMUNERATION</div>
-                        <div style="font-size: 11px; color: #475569;" id="vConductingAgency">Exam Conducting Agency</div>
-                    </div>
-
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px dashed var(--border); padding-bottom: 6px; margin-bottom: 16px;">
-                        <span><strong>TREASURY REF:</strong> <code id="vRefNo" style="color: #1e40af; font-weight: 700;">TXN-GOV</code></span>
-                        <span><strong>DUTY DATE:</strong> <span id="vDutyDate"></span></span>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; margin-bottom: 16px;">
-                        <div><strong>Staff ID:</strong> <span id="vStaffId"></span></div>
-                        <div><strong>Staff Name:</strong> <span id="vStaffName"></span></div>
-                        <div><strong>Role:</strong> <span id="vRole"></span></div>
-                        <div><strong>Vendor:</strong> <span id="vVendor"></span></div>
-                        <div style="grid-column: span 2;"><strong>Centre Venue:</strong> <span id="vCentre"></span></div>
-                    </div>
-
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
-                        <thead>
-                            <tr style="background: #0f2a59; color: #fff;">
-                                <th style="padding: 8px 12px; font-size: 12px;">Head Description</th>
-                                <th style="padding: 8px 12px; font-size: 12px; text-align: right;">Amount Sanctioned</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">Base Duty Honorarium</td><td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;" id="vDutyAmt">₹1,200.00</td></tr>
-                            <tr><td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">Travel Allowance (TA)</td><td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;" id="vTravelAmt">₹500.00</td></tr>
-                            <tr><td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0;">Refreshment & Session Allowance</td><td style="padding: 8px 12px; border-bottom: 1px solid #e2e8f0; text-align: right;" id="vOtherAmt">₹200.00</td></tr>
-                            <tr style="font-weight: 700; background: #f8fafc; border-top: 2px solid #0f2a59;">
-                                <td style="padding: 10px 12px;">NET REMUNERATION PAYABLE</td>
-                                <td style="padding: 10px 12px; text-align: right; color: #0f2a59; font-size: 15px;" id="vTotalAmt">₹1,900.00</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span id="vStatusBadge" class="badge badge-paid">PAID</span>
-                        <div class="stamp-seal" id="vStampSeal">
-                            <span>TREASURY</span>
-                            <span style="font-size: 11px;">PASSED</span>
-                            <span style="font-size: 8px;" id="vStampDate">2026-09-28</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('paymentProofModal')">Close</button>
-                <button class="btn btn-primary" onclick="window.print()">🖨️ Print Voucher</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADD STAFF MODAL -->
+    <!-- MODAL 4: ADD STAFF -->
     <div id="addStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -604,9 +802,9 @@
             </div>
             <form id="addStaffForm">
                 <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                         <div class="form-group">
-                            <label>Staff Role *</label>
+                            <label>Designated Role *</label>
                             <select name="role" required>
                                 <option value="Invigilator">Invigilator (IN)</option>
                                 <option value="Registration Staff">Registration Staff (RE)</option>
@@ -621,11 +819,11 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Vendor / Agency Name *</label>
-                            <input type="text" name="vendor_name" placeholder="e.g. Eduquity / TCS / Direct" required>
+                            <label>Sponsoring Vendor *</label>
+                            <input type="text" name="vendor_name" placeholder="Eduquity / TCS / Direct" required>
                         </div>
                         <div class="form-group">
-                            <label>EF CITY *</label>
+                            <label>District / City *</label>
                             <select name="ef_city" required>
                                 <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
                                 <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
@@ -635,298 +833,119 @@
                             </select>
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>EF FIRST NAME *</label><input type="text" name="ef_first_name" required></div>
-                        <div class="form-group"><label>EF MIDDLE NAME</label><input type="text" name="ef_middle_name"></div>
-                        <div class="form-group"><label>EF LAST NAME</label><input type="text" name="ef_last_name"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>First Name *</label><input type="text" name="ef_first_name" required></div>
+                        <div class="form-group"><label>Middle Name</label><input type="text" name="ef_middle_name"></div>
+                        <div class="form-group"><label>Last Name</label><input type="text" name="ef_last_name"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>EF DOB (Password) *</label><input type="date" name="ef_dob" required></div>
-                        <div class="form-group"><label>EF GENDER *</label><select name="ef_gender" required><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
-                        <div class="form-group"><label>EF MOBILE NUMBER *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Date of Birth (PIN) *</label><input type="date" name="ef_dob" required></div>
+                        <div class="form-group"><label>Gender *</label><select name="ef_gender" required><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                        <div class="form-group"><label>Mobile Contact *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit number"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>EF EMAIL ID *</label><input type="email" name="ef_email_id" required placeholder="official@domain.com"></div>
-                        <div class="form-group"><label>EF AADHAR NUMBER *</label><input type="text" name="ef_aadhar_number" required placeholder="12-digit number"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Official Email ID *</label><input type="email" name="ef_email_id" required placeholder="official@domain.com"></div>
+                        <div class="form-group"><label>Government ID Number *</label><input type="text" name="ef_aadhar_number" required placeholder="National ID / Document Ref"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>VENUE REGION</label><input type="text" name="venue_region" value="South Zone"></div>
-                        <div class="form-group"><label>VENUE STATE</label><input type="text" name="venue_state" value="Tamil Nadu"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>EF FATHER NAME</label><input type="text" name="ef_father_name"></div>
-                        <div class="form-group"><label>EF MOTHER NAME</label><input type="text" name="ef_mother_name"></div>
-                        <div class="form-group"><label>EF QUALIFICATION</label><input type="text" name="ef_qualification" placeholder="e.g. B.E / B.Sc"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>EF PRESENT ADDRESS</label><textarea name="ef_present_address" rows="2"></textarea></div>
-                        <div class="form-group"><label>EF PERMANENT ADDRESS</label><textarea name="ef_permanent_address" rows="2"></textarea></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Present Address</label><textarea name="ef_present_address" rows="2"></textarea></div>
+                        <div class="form-group"><label>Permanent Address</label><textarea name="ef_permanent_address" rows="2"></textarea></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save & Register</button>
+                    <button type="submit" class="btn btn-primary">Enroll Personnel & Dispatch PIN</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- EDIT STAFF MODAL -->
-    <div id="editStaffModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Staff Details</h3>
-                <button class="btn btn-outline" onclick="closeModal('editStaffModal')">✕</button>
-            </div>
-            <form id="editStaffForm">
-                <input type="hidden" name="id" id="editStaffId">
-                <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Full Name *</label><input type="text" name="name" id="editStaffName" required></div>
-                        <div class="form-group"><label>Mobile Number *</label><input type="tel" name="ef_mobile_number" id="editStaffMobile" required></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Role</label><select name="role" id="editStaffRole">
-                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
-                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
-                            <option value="Security">Security</option><option value="CCTV Operator">CCTV Operator</option>
-                            <option value="Jammer Operator">Jammer Operator</option><option value="Technical Staff">Technical Staff</option>
-                            <option value="Centre Head">Centre Head</option><option value="Exam Coordinator">Exam Coordinator</option>
-                        </select></div>
-                        <div class="form-group"><label>Vendor</label><input type="text" name="vendor_name" id="editStaffVendor"></div>
-                        <div class="form-group"><label>City</label><input type="text" name="ef_city" id="editStaffCity"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Status</label><select name="status" id="editStaffStatus"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
-                        <div class="form-group"><label>Qualification</label><input type="text" name="ef_qualification" id="editStaffQual"></div>
-                    </div>
-                    <div class="form-group"><label>Present Address</label><textarea name="ef_present_address" id="editStaffPresentAddr" rows="2"></textarea></div>
-                    <div class="form-group"><label>Permanent Address</label><textarea name="ef_permanent_address" id="editStaffPermAddr" rows="2"></textarea></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Staff Details</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ADD EXAM MODAL -->
+    <!-- MODAL 5: ADD EXAM -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Schedule Examination</h3>
+                <h3>Schedule Examination Session</h3>
                 <button class="btn btn-outline" onclick="closeModal('addExamModal')">✕</button>
             </div>
             <form id="addExamForm">
                 <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Examination Name *</label><input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV"></div>
-                        <div class="form-group"><label>Exam Conducting Agency *</label><input type="text" name="exam_conducting_agency" required placeholder="e.g. TNPSC / Govt Agency"></div>
-                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="e.g. Eduquity / TCS"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Examination Title *</label><input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV 2026"></div>
+                        <div class="form-group"><label>Conducting Agency *</label><input type="text" name="exam_conducting_agency" required placeholder="e.g. TNPSC / Examination Board"></div>
+                        <div class="form-group"><label>Delivery Partner</label><input type="text" name="vendor_name" placeholder="Eduquity / TCS"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Date From *</label><input type="date" name="date_from" required></div>
-                        <div class="form-group"><label>Date To *</label><input type="date" name="date_to" required></div>
-                        <div class="form-group"><label>Shift Selection *</label><select name="shift_mode" id="shiftModeSelect" required onchange="toggleShiftBlocks()">
-                            <option value="Shift 1">Shift 1 Only</option>
-                            <option value="Shift 2">Shift 2 Only</option>
-                            <option value="Shift 3">Shift 3 Only</option>
-                            <option value="Full Day">Full Day</option>
-                            <option value="Multiple">Multiple Shifts (1, 2, 3)</option>
-                        </select></div>
-                    </div>
-
-                    <div class="shift-block" id="blockShift1">
-                        <div class="shift-title">Shift 1 Timings</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s1_reporting_time" value="07:30"></div>
-                            <div class="form-group"><label>Exam Start Time</label><input type="time" name="s1_start_time" value="09:00"></div>
-                            <div class="form-group"><label>Exam End Time</label><input type="time" name="s1_end_time" value="11:00"></div>
-                        </div>
-                    </div>
-
-                    <div class="shift-block" id="blockShift2">
-                        <div class="shift-title">Shift 2 Timings</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s2_reporting_time" value="11:30"></div>
-                            <div class="form-group"><label>Exam Start Time</label><input type="time" name="s2_start_time" value="12:30"></div>
-                            <div class="form-group"><label>Exam End Time</label><input type="time" name="s2_end_time" value="14:30"></div>
-                        </div>
-                    </div>
-
-                    <div class="shift-block" id="blockShift3">
-                        <div class="shift-title">Shift 3 Timings</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s3_reporting_time" value="15:00"></div>
-                            <div class="form-group"><label>Exam Start Time</label><input type="time" name="s3_start_time" value="16:00"></div>
-                            <div class="form-group"><label>Exam End Time</label><input type="time" name="s3_end_time" value="18:00"></div>
-                        </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Session From *</label><input type="date" name="date_from" required></div>
+                        <div class="form-group"><label>Session To *</label><input type="date" name="date_to" required></div>
+                        <div class="form-group"><label>Shift Mode *</label><select name="shift_mode" required><option value="Shift 1">Shift 1 Only</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Schedule Examination</button>
+                    <button type="submit" class="btn btn-primary">Publish Examination</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- EDIT EXAM MODAL -->
-    <div id="editExamModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Examination Details</h3>
-                <button class="btn btn-outline" onclick="closeModal('editExamModal')">✕</button>
-            </div>
-            <form id="editExamForm">
-                <input type="hidden" name="id" id="editExamId">
-                <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Exam Name *</label><input type="text" name="exam_name" id="editExamName" required></div>
-                        <div class="form-group"><label>Exam Conducting Agency *</label><input type="text" name="exam_conducting_agency" id="editExamAuth" required></div>
-                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" id="editExamVendor"></div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Date From *</label><input type="date" name="date_from" id="editExamDateFrom" required></div>
-                        <div class="form-group"><label>Date To *</label><input type="date" name="date_to" id="editExamDateTo" required></div>
-                        <div class="form-group"><label>Shift Mode *</label><select name="shift_mode" id="editExamShiftMode"><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editExamModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Examination</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ADD CENTRE MODAL -->
+    <!-- MODAL 6: ADD CENTRE -->
     <div id="addCentreModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-content" style="max-width: 580px;">
             <div class="modal-header">
-                <h3>Add Examination Centre</h3>
+                <h3>Register Examination Centre Venue</h3>
                 <button class="btn btn-outline" onclick="closeModal('addCentreModal')">✕</button>
             </div>
             <form id="addCentreForm">
                 <div class="modal-body">
                     <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" required placeholder="e.g. ABC College of Engineering"></div>
-                    <div class="form-group"><label>City *</label><select name="city" required>
-                        <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
-                        <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
-                        <option value="Krishnagiri">Krishnagiri</option><option value="Coimbatore">Coimbatore</option>
-                        <option value="Madurai">Madurai</option><option value="Theni">Theni</option>
-                        <option value="Tirunelveli">Tirunelveli</option>
-                    </select></div>
-                    <div class="form-group"><label>Full Address (Optional)</label><textarea name="full_address" rows="2" placeholder="Street, area, pincode..."></textarea></div>
-                    <div class="form-group"><label>Google Maps Location Link (Optional)</label><input type="text" name="map_location" placeholder="https://maps.app.goo.gl/..."></div>
+                    <div class="form-group"><label>District / City *</label><select name="city" required><option value="Chennai">Chennai</option><option value="Trichy">Trichy</option><option value="Coimbatore">Coimbatore</option><option value="Salem">Salem</option><option value="Madurai">Madurai</option></select></div>
+                    <div class="form-group"><label>Physical Address (Optional)</label><textarea name="full_address" rows="2"></textarea></div>
+                    <div class="form-group"><label>Google Maps Coordinates (Optional)</label><input type="text" name="map_location" placeholder="https://maps.app.goo.gl/..."></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('addCentreModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Centre</button>
+                    <button type="submit" class="btn btn-primary">Save Venue Record</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- EDIT CENTRE MODAL -->
-    <div id="editCentreModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>Edit Examination Centre</h3>
-                <button class="btn btn-outline" onclick="closeModal('editCentreModal')">✕</button>
-            </div>
-            <form id="editCentreForm">
-                <input type="hidden" name="id" id="editCentreId">
-                <div class="modal-body">
-                    <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" id="editCentreName" required></div>
-                    <div class="form-group"><label>City *</label><select name="city" id="editCentreCity" required>
-                        <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
-                        <option value="Vellore">Vellore</option><option value="Salem">Salem</option>
-                        <option value="Krishnagiri">Krishnagiri</option><option value="Coimbatore">Coimbatore</option>
-                        <option value="Madurai">Madurai</option><option value="Theni">Theni</option>
-                        <option value="Tirunelveli">Tirunelveli</option>
-                    </select></div>
-                    <div class="form-group"><label>Full Address</label><textarea name="full_address" id="editCentreAddr" rows="2"></textarea></div>
-                    <div class="form-group"><label>Google Maps Link</label><input type="text" name="map_location" id="editCentreMap"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editCentreModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Centre</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- DEPLOY STAFF MODAL (MULTI-DAY SUPPORT) -->
+    <!-- MODAL 7: DEPLOY STAFF -->
     <div id="deployStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Deploy Staff Across Date Range</h3>
+                <h3>Issue Duty Deployment Orders</h3>
                 <button class="btn btn-outline" onclick="closeModal('deployStaffModal')">✕</button>
             </div>
             <form id="deployStaffForm">
                 <div class="modal-body">
-                    <div class="form-group"><label>Select Examination *</label><select name="exam_id" id="deployExamSelect" required></select></div>
-                    <div class="form-group"><label>Select Centre Venue *</label><select name="centre_id" id="deployCentreSelect" required></select></div>
-                    <div class="form-group"><label>Select Staff Member *</label><select name="staff_id" id="deployStaffSelect" required></select></div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group"><label>Active Examination *</label><select name="exam_id" id="deployExamSelect" required></select></div>
+                    <div class="form-group"><label>Designated Venue *</label><select name="centre_id" id="deployCentreSelect" required></select></div>
+                    <div class="form-group"><label>Personnel Candidate *</label><select name="staff_id" id="deployStaffSelect" required></select></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div class="form-group"><label>Assigned Role *</label><select name="assigned_role" required>
                             <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
                             <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
                             <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
                             <option value="Centre Head">Centre Head</option>
                         </select></div>
-                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="Leave empty for staff's default vendor"></div>
+                        <div class="form-group"><label>Vendor Override</label><input type="text" name="vendor_name" placeholder="Default: Profile Vendor"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                         <div class="form-group"><label>Duty Date From *</label><input type="date" name="duty_date_from" required id="deployDutyDateFrom"></div>
                         <div class="form-group"><label>Duty Date To *</label><input type="date" name="duty_date_to" required id="deployDutyDateTo"></div>
-                        <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
+                        <div class="form-group"><label>Assigned Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Full Day">Full Day</option></select></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('deployStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Deploy Across Date Range</button>
+                    <button type="submit" class="btn btn-primary">Dispatch Official Duty Orders</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- EDIT DEPLOYMENT MODAL -->
-    <div id="editDeployModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit Staff Deployment</h3>
-                <button class="btn btn-outline" onclick="closeModal('editDeployModal')">✕</button>
-            </div>
-            <form id="editDeployForm">
-                <input type="hidden" name="id" id="editDeployId">
-                <div class="modal-body">
-                    <div class="form-group"><label>Examination</label><select name="exam_id" id="editDeployExamSelect" required></select></div>
-                    <div class="form-group"><label>Centre Venue</label><select name="centre_id" id="editDeployCentreSelect" required></select></div>
-                    <div class="form-group"><label>Staff Member</label><select name="staff_id" id="editDeployStaffSelect" required></select></div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Role</label><select name="assigned_role" id="editDeployRole">
-                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
-                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
-                            <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
-                            <option value="Centre Head">Centre Head</option>
-                        </select></div>
-                        <div class="form-group"><label>Vendor</label><input type="text" name="vendor_name" id="editDeployVendor"></div>
-                        <div class="form-group"><label>Duty Date</label><input type="date" name="duty_date" id="editDeployDate" required></div>
-                    </div>
-                    <div class="form-group"><label>Shift</label><select name="shift" id="editDeployShift"><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('editDeployModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Update Deployment</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT CONTROLLER -->
+    <!-- JAVASCRIPT LOGIC CONTROLLER -->
     <script>
         let CURRENT_USER = null;
         let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
@@ -934,7 +953,7 @@
         let currentLoginType = 'STAFF';
         let rawDeployments = [];
         let filteredDeployments = [];
-        let cachedStaff = [], cachedExams = [], cachedCentres = [], cachedDeployments = [];
+        let cachedStaff = [], cachedExams = [], cachedCentres = [];
         let currentInspectingAttendanceId = null;
         let videoStream = null;
 
@@ -957,6 +976,16 @@
             }
         });
 
+        // Accessibility tools
+        function setFontSize(size) {
+            if (size === 'sm') document.body.style.fontSize = '12px';
+            else if (size === 'md') document.body.style.fontSize = '13px';
+            else if (size === 'lg') document.body.style.fontSize = '14.5px';
+        }
+        function toggleContrast() {
+            document.body.classList.toggle('contrast-mode');
+        }
+
         function setLoginType(type) {
             currentLoginType = type;
             const tabStaff = document.getElementById('tabStaff');
@@ -968,12 +997,12 @@
 
             if (type === 'STAFF') {
                 tabStaff.className = 'btn btn-primary'; tabAdmin.className = 'btn btn-outline';
-                lblId.innerText = 'Staff ID'; inpId.placeholder = 'e.g. LSTRI001';
-                lblPass.innerText = 'Date of Birth (Password)'; inpPass.placeholder = 'DDMMYYYY or YYYY-MM-DD';
+                lblId.innerText = 'Staff Identification Number'; inpId.placeholder = 'e.g. LSTRI001';
+                lblPass.innerText = 'Secret PIN / Date of Birth'; inpPass.placeholder = 'DDMMYYYY or YYYY-MM-DD';
             } else {
                 tabAdmin.className = 'btn btn-primary'; tabStaff.className = 'btn btn-outline';
-                lblId.innerText = 'Admin Email Address'; inpId.placeholder = 'e.g. admin@gmail.com';
-                lblPass.innerText = 'Admin Password'; inpPass.placeholder = '••••••••';
+                lblId.innerText = 'Administrator Government Email'; inpId.placeholder = 'admin@examgov.in';
+                lblPass.innerText = 'Portal Access Security Password'; inpPass.placeholder = '••••••••';
             }
         }
 
@@ -991,7 +1020,7 @@
                 });
                 const data = await res.json();
                 if (!res.ok) {
-                    alertBox.innerText = data.error || 'Authentication failed';
+                    alertBox.innerText = data.error || 'Authentication failure. Check authorization code.';
                     alertBox.style.display = 'block';
                     return;
                 }
@@ -1000,7 +1029,7 @@
                 localStorage.setItem('EMMS_USER', JSON.stringify(CURRENT_USER));
                 initSession();
             } catch (err) {
-                alertBox.innerText = 'Unable to connect to server';
+                alertBox.innerText = 'Central server timeout. Contact the Command Helpdesk.';
                 alertBox.style.display = 'block';
             }
         });
@@ -1009,7 +1038,8 @@
             document.getElementById('authView').style.display = 'none';
             document.getElementById('appShell').style.display = 'flex';
             document.getElementById('sessionUserDisplay').innerText = CURRENT_USER.name;
-            document.getElementById('sessionRoleBadge').innerText = CURRENT_USER.role;
+            document.getElementById('sessionRoleBadge').innerText = CURRENT_USER.role.toUpperCase();
+            document.getElementById('userAvatarText').innerText = (CURRENT_USER.name || 'A').charAt(0).toUpperCase();
 
             if (CURRENT_USER.user_type === 'ADMIN') {
                 document.getElementById('adminNav').style.display = 'block';
@@ -1054,692 +1084,4 @@
             const res = await fetch(url, options);
             if (res.status === 401 || res.status === 403) { logout(); return null; }
             return res.json();
-        }
-
-        // ================= DASHBOARD & SEARCH FILTERS =================
-        async function loadDashboardData() {
-            const data = await api('/api/admin/dashboard');
-            if (!data) return;
-
-            rawDeployments = data.allDeployments || [];
-            document.getElementById('dashPaymentPending').innerText = `₹${(data.totalPaymentPending || 0).toLocaleString()}`;
-
-            populateDashboardFilterOptions();
-            applyDashboardFilters();
-        }
-
-        function populateDashboardFilterOptions() {
-            const curCentre = document.getElementById('filterCentre').value;
-            const curRole = document.getElementById('filterRole').value;
-            const curExam = document.getElementById('filterExam').value;
-            const curVendor = document.getElementById('filterVendor').value;
-
-            const centres = [...new Set(rawDeployments.map(d => d.centre_name).filter(Boolean))];
-            const roles = [...new Set(rawDeployments.map(d => d.assigned_role).filter(Boolean))];
-            const exams = [...new Set(rawDeployments.map(d => d.exam_name).filter(Boolean))];
-            const vendors = [...new Set(rawDeployments.map(d => d.vendor_name).filter(Boolean))];
-
-            document.getElementById('filterCentre').innerHTML = '<option value="">All Centres</option>' + centres.map(c => `<option value="${c}" ${c === curCentre ? 'selected' : ''}>${c}</option>`).join('');
-            document.getElementById('filterRole').innerHTML = '<option value="">All Roles</option>' + roles.map(r => `<option value="${r}" ${r === curRole ? 'selected' : ''}>${r}</option>`).join('');
-            document.getElementById('filterExam').innerHTML = '<option value="">All Exams</option>' + exams.map(e => `<option value="${e}" ${e === curExam ? 'selected' : ''}>${e}</option>`).join('');
-            document.getElementById('filterVendor').innerHTML = '<option value="">All Vendors</option>' + vendors.map(v => `<option value="${v}" ${v === curVendor ? 'selected' : ''}>${v}</option>`).join('');
-        }
-
-        function resetDashboardFilters() {
-            document.getElementById('filterStaffSearch').value = '';
-            document.getElementById('filterCentre').value = '';
-            document.getElementById('filterRole').value = '';
-            document.getElementById('filterExam').value = '';
-            document.getElementById('filterVendor').value = '';
-            applyDashboardFilters();
-        }
-
-        function applyDashboardFilters() {
-            const search = (document.getElementById('filterStaffSearch').value || '').toLowerCase().trim();
-            const centre = document.getElementById('filterCentre').value;
-            const role = document.getElementById('filterRole').value;
-            const exam = document.getElementById('filterExam').value;
-            const vendor = document.getElementById('filterVendor').value;
-
-            filteredDeployments = rawDeployments.filter(d => {
-                const sName = (d.staff_name || '').toLowerCase();
-                const sId = (d.staff_id || '').toLowerCase();
-                const matchSearch = !search || sName.includes(search) || sId.includes(search);
-                const matchCentre = !centre || d.centre_name === centre;
-                const matchRole = !role || d.assigned_role === role;
-                const matchExam = !exam || d.exam_name === exam;
-                const matchVendor = !vendor || d.vendor_name === vendor;
-                return matchSearch && matchCentre && matchRole && matchExam && matchVendor;
-            });
-
-            renderDashboardMetrics();
-            renderRoleMatrix();
-            renderVenueMatrix();
-        }
-
-        function renderDashboardMetrics() {
-            const total = filteredDeployments.length;
-            const present = filteredDeployments.filter(d => d.attendance_status === 'Present').length;
-            const absent = filteredDeployments.filter(d => d.attendance_status === 'Absent').length;
-            const punchOutPending = filteredDeployments.filter(d => d.punch_in_time && !d.punch_out_time).length;
-
-            document.getElementById('dashTotalStaff').innerText = total;
-            document.getElementById('dashPresent').innerText = present;
-            document.getElementById('dashAbsent').innerText = absent;
-            document.getElementById('dashPunchOutPending').innerText = punchOutPending;
-        }
-
-        function renderRoleMatrix() {
-            const tbody = document.getElementById('roleMatrixTableBody');
-            tbody.innerHTML = ALL_ROLES.map(role => {
-                const roleList = filteredDeployments.filter(d => (d.assigned_role || '').toLowerCase() === role.toLowerCase());
-                const assigned = roleList.length;
-                const present = roleList.filter(d => d.attendance_status === 'Present').length;
-                const absent = assigned - present;
-                const shortage = absent;
-
-                return `
-                    <tr style="cursor: pointer;" onclick="openDrilldownModal('ROLE', '${role}', '${role}')">
-                        <td><strong>${role}</strong></td>
-                        <td>${assigned}</td>
-                        <td style="color: #16a34a; font-weight: 600;">${present}</td>
-                        <td style="color: #dc2626; font-weight: 600;">${absent}</td>
-                        <td style="color: ${shortage > 0 ? '#ea580c' : '#16a34a'}; font-weight: 700;">${shortage}</td>
-                        <td><button class="btn btn-outline btn-sm">Inspect Staff 🔍</button></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderVenueMatrix() {
-            const tbody = document.getElementById('centreStatusTableBody');
-            const uniqueCentres = [...new Set(filteredDeployments.map(d => d.centre_name).filter(Boolean))];
-
-            if (uniqueCentres.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94a3b8;">No matching venue data for current filter.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = uniqueCentres.map(cName => {
-                const cList = filteredDeployments.filter(d => d.centre_name === cName);
-                const city = cList[0]?.centre_city || 'N/A';
-                const assigned = cList.length;
-                const present = cList.filter(d => d.attendance_status === 'Present').length;
-                const absent = assigned - present;
-                const statusBadge = absent > 0 ? `<span class="badge badge-shortage">Shortage (${absent})</span>` : `<span class="badge badge-present">Completed</span>`;
-
-                return `
-                    <tr>
-                        <td><strong>${cName}</strong></td>
-                        <td>${city}</td>
-                        <td>${assigned}</td>
-                        <td style="color: #16a34a; font-weight: 600;">${present}</td>
-                        <td style="color: #ea580c; font-weight: 600;">${absent}</td>
-                        <td>${statusBadge}</td>
-                        <td><button class="btn btn-outline btn-sm" onclick="openDrilldownModal('CENTRE', '${cName}', '${cName}')">View Venue</button></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function openDrilldownModal(type, title, filterValue) {
-            document.getElementById('drilldownTitle').innerText = `Drilldown: ${title}`;
-            let list = [];
-
-            if (type === 'ALL') list = filteredDeployments;
-            else if (type === 'PRESENT') list = filteredDeployments.filter(d => d.attendance_status === 'Present');
-            else if (type === 'ABSENT') list = filteredDeployments.filter(d => d.attendance_status === 'Absent');
-            else if (type === 'PUNCHOUT_PENDING') list = filteredDeployments.filter(d => d.punch_in_time && !d.punch_out_time);
-            else if (type === 'ROLE') list = filteredDeployments.filter(d => (d.assigned_role || '').toLowerCase() === filterValue.toLowerCase());
-            else if (type === 'CENTRE') list = filteredDeployments.filter(d => d.centre_name === filterValue);
-
-            const tbody = document.getElementById('drilldownTbody');
-            if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No staff records matching this category.</td></tr>`;
-            } else {
-                tbody.innerHTML = list.map(s => `
-                    <tr>
-                        <td><strong>${s.staff_id}</strong></td>
-                        <td>${s.staff_name}</td>
-                        <td>${s.assigned_role}</td>
-                        <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
-                        <td>${s.centre_name}</td>
-                        <td>${s.exam_name}</td>
-                        <td>${s.punch_in_time || '--'}</td>
-                        <td>${s.punch_out_time || '--'}</td>
-                        <td><span class="badge badge-${s.attendance_status.toLowerCase()}">${s.attendance_status}</span></td>
-                    </tr>
-                `).join('');
-            }
-
-            openModal('drilldownModal');
-        }
-
-        // ================= ATTENDANCE PROOF INSPECTION =================
-        async function loadAttendanceSheets() {
-            const sheets = await api('/api/admin/attendance-sheets');
-            const tbody = document.getElementById('attendanceVerificationTableBody');
-            if (!sheets || sheets.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">No attendance sheets available.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = sheets.map((s, idx) => `
-                <tr>
-                    <td><strong>${s.staff_id}</strong></td>
-                    <td>${s.staff_name}</td>
-                    <td>${s.role}</td>
-                    <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
-                    <td>${s.punch_in_time || '--'}</td>
-                    <td>${s.punch_out_time || '--'}</td>
-                    <td>${s.working_hours || '--'}</td>
-                    <td>
-                        <button class="btn btn-outline btn-sm" onclick="inspectAttendanceProof(${idx})">📷 Inspect Proof</button>
-                    </td>
-                    <td><span class="badge badge-${(s.sheet_verification_status || 'pending').toLowerCase()}">${s.sheet_verification_status}</span></td>
-                    <td>
-                        ${s.sheet_verification_status === 'Submitted' ? `
-                            <button class="btn btn-success btn-sm" onclick="verifySheet(${s.id}, 'Approved')">Approve</button>
-                            <button class="btn btn-danger btn-sm" onclick="verifySheet(${s.id}, 'Rejected')">Reject</button>
-                        ` : 'Verified'}
-                    </td>
-                </tr>
-            `).join('');
-
-            window._cachedSheets = sheets;
-        }
-
-        function inspectAttendanceProof(idx) {
-            const s = window._cachedSheets[idx];
-            if (!s) return;
-
-            currentInspectingAttendanceId = s.id;
-            document.getElementById('verifyStaffSubtitle').innerText = `${s.staff_name} (${s.staff_id}) • Role: ${s.role}`;
-            document.getElementById('hudPunchInTime').innerText = s.punch_in_time || '--:--';
-            document.getElementById('hudPunchOutTime').innerText = s.punch_out_time || '--:--';
-
-            document.getElementById('proofPunchInPhoto').innerHTML = s.punch_in_photo && s.punch_in_photo !== 'null' 
-                ? `<img src="${s.punch_in_photo}" style="width:100%; height:100%; object-fit:cover;">` 
-                : '<span style="color:#64748b;">No Punch-In Photo</span>';
-
-            document.getElementById('proofPunchOutPhoto').innerHTML = s.punch_out_photo && s.punch_out_photo !== 'null' 
-                ? `<img src="${s.punch_out_photo}" style="width:100%; height:100%; object-fit:cover;">` 
-                : '<span style="color:#64748b;">No Punch-Out Photo</span>';
-
-            const lateBox = document.getElementById('lateReasonAlertBox');
-            if (s.is_late_submission === 1 || s.is_late_submission === '1') {
-                lateBox.style.display = 'block';
-                document.getElementById('lateReasonText').innerText = s.late_reason || 'No reason specified.';
-            } else {
-                lateBox.style.display = 'none';
-            }
-
-            if (s.sheet_file && s.sheet_file !== 'null') {
-                if (s.sheet_file.toLowerCase().endsWith('.pdf')) {
-                    document.getElementById('proofSheetContainer').innerHTML = `<iframe src="${s.sheet_file}" style="width:100%; height:320px; border:none;"></iframe>`;
-                } else {
-                    document.getElementById('proofSheetContainer').innerHTML = `<a href="${s.sheet_file}" target="_blank"><img src="${s.sheet_file}" style="max-height:300px; max-width:100%; object-fit:contain;"></a>`;
-                }
-            } else {
-                document.getElementById('proofSheetContainer').innerHTML = '<span style="color:#94a3b8;">No sheet attached</span>';
-            }
-
-            openModal('attendanceProofModal');
-        }
-
-        async function actionVerifyCurrent(status) {
-            if (!currentInspectingAttendanceId) return;
-            await api('/api/admin/verify-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance_id: currentInspectingAttendanceId, status }) });
-            closeModal('attendanceProofModal');
-            loadAttendanceSheets();
-            loadDashboardData();
-        }
-
-        async function verifySheet(id, status) {
-            await api('/api/admin/verify-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance_id: id, status }) });
-            loadAttendanceSheets();
-            loadDashboardData();
-        }
-
-        // ================= PAYMENT VOUCHERS =================
-        async function loadPaymentsList() {
-            const payments = await api('/api/admin/payments');
-            const tbody = document.getElementById('paymentsTableBody');
-            if (!payments || payments.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#94a3b8;">No payment records.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = payments.map((p, idx) => `
-                <tr>
-                    <td><strong>${p.staff_id}</strong></td>
-                    <td>${p.staff_name}</td>
-                    <td>${p.role}</td>
-                    <td><span class="badge badge-ready">${p.vendor_name || 'Direct'}</span></td>
-                    <td>${p.duty_date}</td>
-                    <td><strong>₹${(p.total_payable || 0).toLocaleString()}</strong></td>
-                    <td><span class="badge badge-${(p.payment_status || 'pending').toLowerCase()}">${p.payment_status}</span></td>
-                    <td><code>${p.reference_no || 'Pending'}</code></td>
-                    <td>
-                        <button class="btn btn-outline btn-sm" onclick="showPaymentVoucher(${idx})">🧾 Voucher</button>
-                        ${p.payment_status === 'Pending' ? `
-                            <button class="btn btn-success btn-sm" onclick="updatePaymentStatus(${p.id}, 'Approved')">Approve</button>
-                        ` : p.payment_status === 'Approved' ? `
-                            <button class="btn btn-primary btn-sm" onclick="updatePaymentStatus(${p.id}, 'Paid')">Mark Paid</button>
-                        ` : ''}
-                    </td>
-                </tr>
-            `).join('');
-
-            window._cachedPayments = payments;
-        }
-
-        function showPaymentVoucher(idx) {
-            const p = window._cachedPayments[idx];
-            document.getElementById('vConductingAgency').innerText = `Exam Conducting Agency: ${p.exam_conducting_agency || 'Government Examination Authority'}`;
-            document.getElementById('vStatusBadge').className = `badge badge-${(p.payment_status || 'pending').toLowerCase()}`;
-            document.getElementById('vStatusBadge').innerText = (p.payment_status || 'Pending').toUpperCase();
-            document.getElementById('vStaffId').innerText = p.staff_id;
-            document.getElementById('vStaffName').innerText = p.staff_name;
-            document.getElementById('vRole').innerText = p.role;
-            document.getElementById('vVendor').innerText = p.vendor_name || 'Direct';
-            document.getElementById('vDutyDate').innerText = p.duty_date;
-            document.getElementById('vCentre').innerText = p.centre_name;
-            document.getElementById('vDutyAmt').innerText = `₹${(p.duty_amount || 0).toLocaleString()}.00`;
-            document.getElementById('vTravelAmt').innerText = `₹${(p.travel_allowance || 0).toLocaleString()}.00`;
-            document.getElementById('vOtherAmt').innerText = `₹${(p.other_allowance || 0).toLocaleString()}.00`;
-            document.getElementById('vTotalAmt').innerText = `₹${(p.total_payable || 0).toLocaleString()}.00`;
-            document.getElementById('vRefNo').innerText = p.reference_no || 'VOUCHER-PENDING-SANCTION';
-            document.getElementById('vStampDate').innerText = new Date().toISOString().split('T')[0];
-
-            const stamp = document.getElementById('vStampSeal');
-            if (p.payment_status === 'Paid') {
-                stamp.style.borderColor = '#15803d'; stamp.style.color = '#15803d';
-                stamp.querySelector('span:nth-child(2)').innerText = 'DISBURSED';
-            } else if (p.payment_status === 'Approved') {
-                stamp.style.borderColor = '#1d4ed8'; stamp.style.color = '#1d4ed8';
-                stamp.querySelector('span:nth-child(2)').innerText = 'SANCTIONED';
-            } else {
-                stamp.style.borderColor = '#b45309'; stamp.style.color = '#b45309';
-                stamp.querySelector('span:nth-child(2)').innerText = 'PENDING';
-            }
-
-            openModal('paymentProofModal');
-        }
-
-        async function updatePaymentStatus(payment_id, status) {
-            await api('/api/admin/update-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_id, status }) });
-            loadPaymentsList();
-        }
-
-        // ================= EDIT BUTTON ACTION TRIGGERS =================
-        async function loadStaffList() {
-            cachedStaff = await api('/api/staff') || [];
-            const tbody = document.getElementById('staffTableBody');
-            tbody.innerHTML = cachedStaff.map((s, idx) => `
-                <tr>
-                    <td><strong>${s.staff_id}</strong></td>
-                    <td>${s.name}</td>
-                    <td>${s.role}</td>
-                    <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
-                    <td>${s.ef_city}</td>
-                    <td>${s.ef_mobile_number || 'N/A'}</td>
-                    <td><span class="badge badge-active">${s.status}</span></td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openEditStaff(${idx})">✏️ Edit</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function openEditStaff(idx) {
-            const s = cachedStaff[idx];
-            if (!s) return;
-            document.getElementById('editStaffId').value = s.id;
-            document.getElementById('editStaffName').value = s.name || '';
-            document.getElementById('editStaffMobile').value = s.ef_mobile_number || '';
-            document.getElementById('editStaffRole').value = s.role || 'Invigilator';
-            document.getElementById('editStaffVendor').value = s.vendor_name || 'Direct';
-            document.getElementById('editStaffCity').value = s.ef_city || '';
-            document.getElementById('editStaffStatus').value = s.status || 'Active';
-            document.getElementById('editStaffQual').value = s.ef_qualification || '';
-            document.getElementById('editStaffPresentAddr').value = s.ef_present_address || '';
-            document.getElementById('editStaffPermAddr').value = s.ef_permanent_address || '';
-            openModal('editStaffModal');
-        }
-
-        async function loadExamsList() {
-            cachedExams = await api('/api/exams') || [];
-            const tbody = document.getElementById('examsTableBody');
-            tbody.innerHTML = cachedExams.map((e, idx) => {
-                let timingSummary = [];
-                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time}`);
-                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time}`);
-                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time}`);
-
-                return `
-                    <tr>
-                        <td><strong>${e.exam_name}</strong></td>
-                        <td><strong>${e.exam_conducting_agency}</strong></td>
-                        <td><span class="badge badge-ready">${e.vendor_name || 'Direct'}</span></td>
-                        <td>${e.date_from} to ${e.date_to}</td>
-                        <td>${e.shift_mode}</td>
-                        <td><small>${timingSummary.join('<br>') || 'N/A'}</small></td>
-                        <td><button class="btn btn-outline btn-sm" onclick="openEditExam(${idx})">✏️ Edit</button></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function openEditExam(idx) {
-            const e = cachedExams[idx];
-            if (!e) return;
-            document.getElementById('editExamId').value = e.id;
-            document.getElementById('editExamName').value = e.exam_name || '';
-            document.getElementById('editExamAuth').value = e.exam_conducting_agency || '';
-            document.getElementById('editExamVendor').value = e.vendor_name || 'Direct';
-            document.getElementById('editExamDateFrom').value = e.date_from || '';
-            document.getElementById('editExamDateTo').value = e.date_to || '';
-            document.getElementById('editExamShiftMode').value = e.shift_mode || 'Shift 1';
-            openModal('editExamModal');
-        }
-
-        async function loadCentresList() {
-            cachedCentres = await api('/api/centres') || [];
-            const tbody = document.getElementById('centresTableBody');
-            tbody.innerHTML = cachedCentres.map((c, idx) => `
-                <tr>
-                    <td><strong>${c.centre_name}</strong></td>
-                    <td>${c.city}</td>
-                    <td>${c.full_address || 'Not specified'}</td>
-                    <td>${c.map_location ? `<a href="${c.map_location}" target="_blank" style="color:#2563eb;">View Map</a>` : 'N/A'}</td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openEditCentre(${idx})">✏️ Edit</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function openEditCentre(idx) {
-            const c = cachedCentres[idx];
-            if (!c) return;
-            document.getElementById('editCentreId').value = c.id;
-            document.getElementById('editCentreName').value = c.centre_name || '';
-            document.getElementById('editCentreCity').value = c.city || '';
-            document.getElementById('editCentreAddr').value = c.full_address || '';
-            document.getElementById('editCentreMap').value = c.map_location || '';
-            openModal('editCentreModal');
-        }
-
-        async function loadDeploymentsList() {
-            cachedDeployments = await api('/api/deployments') || [];
-            const tbody = document.getElementById('deploymentsTableBody');
-            tbody.innerHTML = cachedDeployments.map((d, idx) => `
-                <tr>
-                    <td><strong>${d.staff_id}</strong></td>
-                    <td>${d.staff_name}</td>
-                    <td>${d.assigned_role}</td>
-                    <td><span class="badge badge-ready">${d.vendor_name || 'Direct'}</span></td>
-                    <td>${d.exam_name}</td>
-                    <td>${d.shift}</td>
-                    <td>${d.centre_name} (${d.city})</td>
-                    <td>${d.duty_date}</td>
-                    <td><button class="btn btn-outline btn-sm" onclick="openEditDeployment(${idx})">✏️ Edit</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function openEditDeployment(idx) {
-            const d = cachedDeployments[idx];
-            if (!d) return;
-
-            Promise.all([api('/api/exams'), api('/api/centres'), api('/api/staff')]).then(([exams, centres, staff]) => {
-                document.getElementById('editDeployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}" ${e.id === d.exam_id ? 'selected' : ''}>${e.exam_name}</option>`).join('');
-                document.getElementById('editDeployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}" ${c.id === d.centre_id ? 'selected' : ''}>${c.centre_name} (${c.city})</option>`).join('');
-                document.getElementById('editDeployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}" ${s.id === d.staff_id ? 'selected' : ''}>${s.staff_id} - ${s.name}</option>`).join('');
-
-                document.getElementById('editDeployId').value = d.id;
-                document.getElementById('editDeployRole').value = d.assigned_role;
-                document.getElementById('editDeployVendor').value = d.vendor_name || 'Direct';
-                document.getElementById('editDeployDate').value = d.duty_date;
-                document.getElementById('editDeployShift').value = d.shift;
-                openModal('editDeployModal');
-            });
-        }
-
-        async function openDeployModal() {
-            const [exams, centres, staff] = await Promise.all([
-                api('/api/exams'), api('/api/centres'), api('/api/staff')
-            ]);
-            document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name} (${e.exam_conducting_agency})</option>`).join('');
-            document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
-            document.getElementById('deployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role} | Vendor: ${s.vendor_name || 'Direct'})</option>`).join('');
-            
-            const todayStr = new Date().toISOString().split('T')[0];
-            document.getElementById('deployDutyDateFrom').value = todayStr;
-            document.getElementById('deployDutyDateTo').value = todayStr;
-            openModal('deployStaffModal');
-        }
-
-        function toggleShiftBlocks() {
-            const mode = document.getElementById('shiftModeSelect').value;
-            const b1 = document.getElementById('blockShift1');
-            const b2 = document.getElementById('blockShift2');
-            const b3 = document.getElementById('blockShift3');
-
-            if (mode === 'Shift 1' || mode === 'Full Day') {
-                b1.style.display = 'block'; b2.style.display = 'none'; b3.style.display = 'none';
-            } else if (mode === 'Shift 2') {
-                b1.style.display = 'none'; b2.style.display = 'block'; b3.style.display = 'none';
-            } else if (mode === 'Shift 3') {
-                b1.style.display = 'none'; b2.style.display = 'none'; b3.style.display = 'block';
-            } else {
-                b1.style.display = 'block'; b2.style.display = 'block'; b3.style.display = 'block';
-            }
-        }
-
-        // ================= FORM SUBMISSION DISPATCHERS =================
-        document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && res.staff_id) {
-                alert(`Staff Registered! Assigned Staff ID: ${res.staff_id}\nCredentials emailed to registered ID!`);
-                closeModal('addStaffModal'); e.target.reset(); loadStaffList();
-            } else if (res && res.error) alert(res.error);
-        });
-
-        document.getElementById('editStaffForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/staff/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Staff details updated successfully!');
-                closeModal('editStaffModal'); loadStaffList();
-            }
-        });
-
-        document.getElementById('addExamForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/exams', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && res.id) {
-                alert('Exam scheduled successfully with shift timings!');
-                closeModal('addExamModal'); e.target.reset(); loadExamsList();
-            }
-        });
-
-        document.getElementById('editExamForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/exams/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Examination schedule updated successfully!');
-                closeModal('editExamModal'); loadExamsList();
-            }
-        });
-
-        document.getElementById('addCentreForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/centres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && res.id) {
-                alert('Centre venue saved successfully!');
-                closeModal('addCentreModal'); e.target.reset(); loadCentresList();
-            }
-        });
-
-        document.getElementById('editCentreForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/centres/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Centre venue updated successfully!');
-                closeModal('editCentreModal'); loadCentresList();
-            }
-        });
-
-        document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert(res.message || 'Staff deployment saved across date range!');
-                closeModal('deployStaffModal'); loadDeploymentsList();
-            }
-        });
-
-        document.getElementById('editDeployForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api(`/api/deployments/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert('Staff deployment updated!');
-                closeModal('editDeployModal'); loadDeploymentsList();
-            }
-        });
-
-        // ================= STAFF PORTAL: WORK & SALARY LEDGER =================
-        async function loadStaffPortalData() {
-            const data = await api('/api/staff/my-portal-data');
-            if (!data) return;
-
-            // Summary Counters
-            document.getElementById('ledgerDaysWorked').innerText = data.summary.totalWorkedDays || 0;
-            document.getElementById('ledgerTotalEarned').innerText = `₹${(data.summary.totalEarned || 0).toLocaleString()}`;
-            document.getElementById('ledgerTotalReceived').innerText = `₹${(data.summary.totalReceived || 0).toLocaleString()}`;
-            document.getElementById('ledgerTotalPending').innerText = `₹${(data.summary.totalPending || 0).toLocaleString()}`;
-
-            // Today's Active Assignment
-            const todayAssignment = (data.history || []).find(h => h.is_today === 1);
-            USER_ASSIGNMENT = todayAssignment || null;
-
-            const dutyContainer = document.getElementById('dutyDetailsContainer');
-            if (!todayAssignment) {
-                dutyContainer.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty scheduled for your account today. Check your complete Work History below.</div>`;
-            } else {
-                dutyContainer.innerHTML = `
-                    <div class="card" style="padding: 24px;">
-                        <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${todayAssignment.exam_name}</h2>
-                        <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
-                            Agency: <strong>${todayAssignment.exam_conducting_agency}</strong> | Venue: <strong>${todayAssignment.centre_name} (${todayAssignment.city})</strong> | Assigned Shift: <strong>${todayAssignment.shift}</strong>
-                            ${todayAssignment.map_location ? ` | <a href="${todayAssignment.map_location}" target="_blank" style="color:#2563eb;">View Maps</a>` : ''}
-                        </p>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
-                            <div><label>Assigned Role</label><p><strong>${todayAssignment.assigned_role}</strong></p></div>
-                            <div><label>Reporting Time</label><p><strong>${todayAssignment.s1_reporting_time || '07:30'}</strong></p></div>
-                            <div><label>Duty Remuneration</label><p><strong>₹${(todayAssignment.total_payable || 1900).toLocaleString()}</strong></p></div>
-                        </div>
-                        <div style="background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">
-                            <span>Punch In: <strong>${todayAssignment.punch_in_time || '--:--'}</strong></span> | 
-                            <span>Punch Out: <strong>${todayAssignment.punch_out_time || '--:--'}</strong></span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Historical Salary Ledger Table
-            const tbody = document.getElementById('staffLedgerTableBody');
-            if (!data.history || data.history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No assigned work history on record.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = data.history.map(row => {
-                const isPaid = row.payment_status === 'Paid';
-                const statusBadge = isPaid 
-                    ? `<span class="badge badge-paid">PAID / RECEIVED</span>` 
-                    : `<span class="badge badge-pending">PENDING APPROVAL</span>`;
-
-                return `
-                    <tr>
-                        <td><strong>${row.duty_date}</strong></td>
-                        <td>${row.exam_name}<br><small style="color:#64748b;">${row.centre_name}</small></td>
-                        <td>${row.assigned_role}</td>
-                        <td><span class="badge badge-ready">${row.shift}</span></td>
-                        <td><small>In: ${row.punch_in_time || '--'} | Out: ${row.punch_out_time || '--'}</small></td>
-                        <td><strong>₹${(row.total_payable || 1900).toLocaleString()}</strong></td>
-                        <td>${statusBadge}</td>
-                        <td><code>${row.reference_no || 'Pending Sanction'}</code></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        async function startCamera() {
-            try {
-                const video = document.getElementById('webcam');
-                if (!video) return;
-                videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
-                video.srcObject = videoStream;
-            } catch (e) { console.warn('Camera inaccessible'); }
-        }
-
-        async function executePunch(type) {
-            if (!USER_ASSIGNMENT) { alert('No active assignment scheduled for today.'); return; }
-            const video = document.getElementById('webcam');
-            const canvas = document.getElementById('snapshotCanvas');
-            canvas.width = 640; canvas.height = 480;
-            canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
-            const photoBase64 = canvas.toDataURL('image/jpeg');
-
-            const endpoint = type === 'in' ? '/api/attendance/punch-in' : '/api/attendance/punch-out';
-            const res = await api(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ deployment_id: USER_ASSIGNMENT.deployment_id, photo_base64: photoBase64 })
-            });
-
-            const msg = document.getElementById('punchMessage');
-            if (res && !res.error) {
-                msg.style.color = '#16a34a'; msg.innerText = `${type === 'in' ? 'Punch In' : 'Punch Out'} recorded successfully!`;
-                loadStaffPortalData();
-            } else {
-                msg.style.color = '#dc2626'; msg.innerText = (res && res.error) ? res.error : 'Failed to record attendance';
-            }
-        }
-
-        function showSelectedFileName(input) {
-            const notice = document.getElementById('selectedFileNotice');
-            if (input.files && input.files[0]) { notice.innerText = `Selected: ${input.files[0].name}`; }
-        }
-
-        document.getElementById('sheetUploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!USER_ASSIGNMENT) { alert('No active duty assignment found for today.'); return; }
-            const fileInput = document.getElementById('sheetFileInput');
-            if (!fileInput.files[0]) { alert('Please attach the signed attendance sheet first.'); return; }
-
-            const formData = new FormData();
-            formData.append('deployment_id', USER_ASSIGNMENT.deployment_id);
-            formData.append('attendance_sheet', fileInput.files[0]);
-            formData.append('is_late', 'false');
-
-            const res = await fetch('/api/attendance/upload-sheet', { method: 'POST', headers: { 'Authorization': `Bearer ${TOKEN}` }, body: formData });
-            const data = await res.json();
-            if (res.ok) {
-                alert('Attendance sheet submitted for Admin verification!');
-                switchRoute('staff-history');
-                loadStaffPortalData();
-            } else { alert(data.error || 'Upload error'); }
-        });
-
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    </script>
-</body>
-</html>
+  
