@@ -13,12 +13,16 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_GOVT_SECURE_TOKEN_2026';
 const GOOGLE_SHEET_WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
 
-// HTTPS Webhook Dispatcher (Bypasses Render's SMTP port blocks)
+// Webhook Dispatcher with Follow-Redirects for Google Apps Script
 async function dispatchGoogleWebhook(payload) {
-    if (!GOOGLE_SHEET_WEBHOOK_URL) return;
+    if (!GOOGLE_SHEET_WEBHOOK_URL) {
+        console.warn('GOOGLE_SHEET_WEBHOOK_URL is not configured.');
+        return;
+    }
     try {
         const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
             method: 'POST',
+            redirect: 'follow',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
@@ -54,7 +58,7 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
     else console.log('Database connected.');
 });
 
-// Setup Schema with Vendor Name and Exam Conducting Agency
+// Setup Schema
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -164,7 +168,7 @@ db.serialize(() => {
         FOREIGN KEY(staff_id) REFERENCES users(id)
     )`);
 
-    // Master Admin Auto-Setup
+    // Master Admin Setup
     const adminEmail = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
 
@@ -261,7 +265,7 @@ app.post('/api/auth/login', (req, res) => {
     );
 });
 
-// 2. Comprehensive Admin Dashboard Data
+// 2. Admin Dashboard Complete Data Feed
 app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     const today = new Date().toISOString().split('T')[0];
 
@@ -273,7 +277,7 @@ app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
                c.id as centre_id, c.centre_name, c.city as centre_city,
                a.id as attendance_id, a.punch_in_time, a.punch_in_photo,
                a.punch_out_time, a.punch_out_photo, a.working_hours,
-               a.sheet_file, a.sheet_verification_status,
+               a.sheet_file, a.sheet_verification_status, a.is_late_submission, a.late_reason,
                p.id as payment_id, p.duty_amount, p.travel_allowance, p.other_allowance,
                p.total_payable, p.payment_status, p.reference_no,
                CASE WHEN a.punch_in_time IS NOT NULL THEN 'Present' ELSE 'Absent' END as attendance_status
@@ -305,7 +309,7 @@ app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
     });
 });
 
-// 3. Staff Registry (With automatic email dispatch)
+// 3. Staff Registry (With edit endpoint)
 app.get('/api/staff', authenticateToken, (req, res) => {
     db.all("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -322,7 +326,7 @@ app.post('/api/staff', authenticateToken, (req, res) => {
     } = req.body;
 
     const fullName = [ef_first_name, ef_middle_name, ef_last_name].filter(Boolean).join(' ');
-    const officialEmail = ef_email_id || email_address;
+    const officialEmail = (ef_email_id || email_address || '').trim();
     const assignedVendor = vendor_name || 'Direct / In-House';
 
     generateStaffId(role, ef_city, (assignedStaffId) => {
@@ -347,11 +351,12 @@ app.post('/api/staff', authenticateToken, (req, res) => {
                     return res.status(500).json({ error: err.message });
                 }
 
-                // Dispatch to Google Webhook to sync Sheet & send login email
+                // Send email & sync to Google Sheet
                 dispatchGoogleWebhook({
+                    action: 'REGISTER_STAFF',
                     staff_id: assignedStaffId, role, vendor_name: assignedVendor, email: officialEmail,
                     venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
-                    ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
+                    ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number: ef_aadhar_number ? '[Aadhaar Redacted]' : '', ef_father_name, ef_mother_name,
                     ef_email_id: officialEmail, ef_qualification, ef_present_address, ef_permanent_address
                 });
 
@@ -372,7 +377,7 @@ app.put('/api/staff/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 4. Exams Management (With all shift timings captured and stored)
+// 4. Exams Management (With full shift timings)
 app.get('/api/exams', authenticateToken, (req, res) => {
     db.all("SELECT * FROM exams ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -459,7 +464,7 @@ app.put('/api/centres/:id', authenticateToken, (req, res) => {
     });
 });
 
-// 6. Deployments Management (With automatic assignment email dispatch)
+// 6. Deployments Management (With assignment email trigger)
 app.get('/api/deployments', authenticateToken, (req, res) => {
     const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.email as staff_email,
                         e.exam_name, e.exam_conducting_agency, c.centre_name, c.city, c.full_address, c.map_location
@@ -546,7 +551,7 @@ app.post('/api/admin/verify-sheet', authenticateToken, (req, res) => {
     });
 });
 
-// 8. Payment Approvals & Proof Generation
+// 8. Payment Approvals
 app.get('/api/admin/payments', authenticateToken, (req, res) => {
     const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name,
                         a.duty_date, a.punch_in_time, a.punch_out_time, a.sheet_verification_status,
