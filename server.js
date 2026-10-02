@@ -1,4 +1,127 @@
-TEXT,
+require('dotenv').config();
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_GOVT_SECURE_TOKEN_2026';
+const GOOGLE_SHEET_WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
+
+// 1. Database Connection Engine (Cloud Postgres if DATABASE_URL exists, otherwise SQLite)
+const usePostgres = !!process.env.DATABASE_URL;
+let pgPool = null;
+let sqliteDb = null;
+
+if (usePostgres) {
+    pgPool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+    });
+    console.log('Connected to Permanent Cloud PostgreSQL Database.');
+} else {
+    sqliteDb = new sqlite3.Database('./database.sqlite', (err) => {
+        if (err) console.error('SQLite Error:', err);
+        else console.log('Connected to local SQLite database.');
+    });
+}
+
+// Unified Query Runner
+function runQuery(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        if (usePostgres) {
+            let paramIndex = 1;
+            const pgSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
+            pgPool.query(pgSql, params, (err, res) => {
+                if (err) reject(err);
+                else resolve(res.rows);
+            });
+        } else {
+            sqliteDb.all(sql, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows || []);
+            });
+        }
+    });
+}
+
+function runExec(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        if (usePostgres) {
+            let paramIndex = 1;
+            const pgSql = sql.replace(/\?/g, () => `$${paramIndex++}`);
+            pgPool.query(pgSql, params, (err, res) => {
+                if (err) reject(err);
+                else resolve({ lastID: res.rowCount });
+            });
+        } else {
+            sqliteDb.run(sql, params, function (err) {
+                if (err) reject(err);
+                else resolve({ lastID: this.lastID });
+            });
+        }
+    });
+}
+
+// Webhook Dispatcher
+async function dispatchGoogleWebhook(payload) {
+    if (!GOOGLE_SHEET_WEBHOOK_URL) return;
+    try {
+        const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const result = await response.text();
+        console.log('Webhook dispatched:', result);
+    } catch (err) {
+        console.error('Webhook error:', err.message);
+    }
+}
+
+app.use(cors());
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => {
+        const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + unique + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
+// Initialize Permanent Schema
+async function initDatabase() {
+    const autoId = usePostgres ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
+
+    await runExec(`CREATE TABLE IF NOT EXISTS users (
+        id ${autoId},
+        staff_id TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        role TEXT NOT NULL,
+        vendor_name TEXT DEFAULT 'Direct / In-House',
+        email TEXT UNIQUE,
+        password TEXT NOT NULL,
+        user_type TEXT NOT NULL,
+        venue_region TEXT,
+        venue_state TEXT,
+        ef_city TEXT,
         ef_first_name TEXT,
         ef_middle_name TEXT,
         ef_last_name TEXT,
@@ -13,11 +136,11 @@ TEXT,
         ef_present_address TEXT,
         ef_permanent_address TEXT,
         status TEXT DEFAULT 'Active',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS exams (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await runExec(`CREATE TABLE IF NOT EXISTS exams (
+        id ${autoId},
         exam_name TEXT NOT NULL,
         exam_conducting_agency TEXT NOT NULL,
         vendor_name TEXT DEFAULT 'Govt Examination Board',
@@ -36,8 +159,8 @@ TEXT,
         status TEXT DEFAULT 'Active'
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS centres (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await runExec(`CREATE TABLE IF NOT EXISTS centres (
+        id ${autoId},
         centre_name TEXT NOT NULL,
         city TEXT NOT NULL,
         full_address TEXT,
@@ -45,8 +168,8 @@ TEXT,
         status TEXT DEFAULT 'Ready'
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS deployments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await runExec(`CREATE TABLE IF NOT EXISTS deployments (
+        id ${autoId},
         exam_id INTEGER,
         centre_id INTEGER,
         staff_id INTEGER,
@@ -56,14 +179,11 @@ TEXT,
         shift TEXT NOT NULL,
         duty_amount REAL DEFAULT 1200.0,
         travel_allowance REAL DEFAULT 500.0,
-        other_allowance REAL DEFAULT 200.0,
-        FOREIGN KEY(exam_id) REFERENCES exams(id),
-        FOREIGN KEY(centre_id) REFERENCES centres(id),
-        FOREIGN KEY(staff_id) REFERENCES users(id)
+        other_allowance REAL DEFAULT 200.0
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS attendance (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await runExec(`CREATE TABLE IF NOT EXISTS attendance (
+        id ${autoId},
         deployment_id INTEGER UNIQUE,
         staff_id INTEGER NOT NULL,
         duty_date DATE NOT NULL,
@@ -76,13 +196,11 @@ TEXT,
         sheet_submission_time TEXT,
         is_late_submission INTEGER DEFAULT 0,
         late_reason TEXT,
-        sheet_verification_status TEXT DEFAULT 'Pending',
-        FOREIGN KEY(deployment_id) REFERENCES deployments(id),
-        FOREIGN KEY(staff_id) REFERENCES users(id)
+        sheet_verification_status TEXT DEFAULT 'Pending'
     )`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS payments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await runExec(`CREATE TABLE IF NOT EXISTS payments (
+        id ${autoId},
         attendance_id INTEGER UNIQUE,
         staff_id INTEGER NOT NULL,
         duty_amount REAL NOT NULL,
@@ -90,25 +208,24 @@ TEXT,
         other_allowance REAL NOT NULL,
         total_payable REAL NOT NULL,
         payment_status TEXT DEFAULT 'Pending',
-        reference_no TEXT,
-        FOREIGN KEY(attendance_id) REFERENCES attendance(id),
-        FOREIGN KEY(staff_id) REFERENCES users(id)
+        reference_no TEXT
     )`);
 
-    // Master Admin Auto-Setup
+    // Master Admin Setup
     const adminEmail = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
+    const hash = await bcrypt.hash(adminPassword, 10);
 
-    bcrypt.hash(adminPassword, 10, (err, hash) => {
-        db.run("DELETE FROM users WHERE user_type = 'ADMIN'", [], () => {
-            db.run(
-                `INSERT INTO users (staff_id, name, role, email, password, user_type, ef_city)
-                 VALUES ('ADMIN_HQ', 'Chief Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
-                [adminEmail, hash]
-            );
-        });
-    });
-});
+    await runExec("DELETE FROM users WHERE user_type = 'ADMIN'");
+    await runExec(
+        `INSERT INTO users (staff_id, name, role, email, password, user_type, ef_city)
+         VALUES ('ADMIN_HQ', 'Chief Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
+        [adminEmail, hash]
+    );
+    console.log(`Admin configured -> Email: ${adminEmail}`);
+}
+
+initDatabase().catch(console.error);
 
 const ROLE_CODES = {
     'Invigilator': 'IN', 'Registration Staff': 'RE', 'Support Staff': 'SU',
@@ -123,18 +240,16 @@ const CITY_CODES = {
     'Coimbatore': 'COI', 'Madurai': 'MAD', 'Theni': 'THE', 'Tirunelveli': 'TIN'
 };
 
-function generateStaffId(role, city, callback) {
+async function generateStaffId(role, city) {
     const rolePrefix = ROLE_CODES[role] || 'ST';
     const cleanCity = (city || 'Chennai').trim();
     const cityKey = Object.keys(CITY_CODES).find(k => k.toLowerCase() === cleanCity.toLowerCase());
     const cityCode = cityKey ? CITY_CODES[cityKey] : cleanCity.substring(0, 3).toUpperCase();
     const pattern = `${rolePrefix}${cityCode}%`;
 
-    db.get("SELECT COUNT(*) as count FROM users WHERE staff_id LIKE ?", [pattern], (err, row) => {
-        const nextNum = (row ? row.count : 0) + 1;
-        const formattedId = `${rolePrefix}${cityCode}${String(nextNum).padStart(3, '0')}`;
-        callback(formattedId);
-    });
+    const rows = await runQuery("SELECT COUNT(*) as count FROM users WHERE staff_id LIKE ?", [pattern]);
+    const nextNum = parseInt(rows[0]?.count || 0) + 1;
+    return `${rolePrefix}${cityCode}${String(nextNum).padStart(3, '0')}`;
 }
 
 const authenticateToken = (req, res, next) => {
@@ -151,358 +266,387 @@ const authenticateToken = (req, res, next) => {
 
 // ======================== API ROUTES ========================
 
-// 1. Dual Login (Admin with Email, Staff with StaffID + DOB)
-app.post('/api/auth/login', (req, res) => {
-    const { identifier, password } = req.body;
-    const cleanId = (identifier || '').trim();
+// 1. Dual Login
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { identifier, password } = req.body;
+        const cleanId = (identifier || '').trim();
 
-    db.get(
-        "SELECT * FROM users WHERE staff_id = ? OR LOWER(email) = LOWER(?)",
-        [cleanId, cleanId],
-        (err, user) => {
-            if (err || !user) return res.status(401).json({ error: 'Invalid Credentials' });
+        const rows = await runQuery(
+            "SELECT * FROM users WHERE staff_id = ? OR LOWER(email) = LOWER(?)",
+            [cleanId, cleanId]
+        );
+        const user = rows[0];
 
-            if (user.user_type === 'STAFF') {
-                const cleanInputDob = (password || '').replace(/[-/]/g, '').trim();
-                const cleanUserDob = (user.ef_dob || '').replace(/[-/]/g, '').trim();
+        if (!user) return res.status(401).json({ error: 'Invalid Credentials' });
 
-                if (cleanInputDob !== cleanUserDob) {
-                    return res.status(401).json({ error: 'Invalid Staff ID or Date of Birth' });
-                }
+        if (user.user_type === 'STAFF') {
+            const cleanInputDob = (password || '').replace(/[-/]/g, '').trim();
+            const cleanUserDob = (user.ef_dob || '').replace(/[-/]/g, '').trim();
 
-                const token = jwt.sign(
-                    { id: user.id, staff_id: user.staff_id, role: user.role, user_type: user.user_type, name: user.name },
-                    JWT_SECRET,
-                    { expiresIn: '24h' }
-                );
-                return res.json({ token, user });
+            if (cleanInputDob !== cleanUserDob) {
+                return res.status(401).json({ error: 'Invalid Staff ID or Date of Birth' });
             }
 
-            bcrypt.compare(password, user.password, (err, isMatch) => {
-                if (!isMatch) return res.status(401).json({ error: 'Invalid Admin Email or Password' });
-
-                const token = jwt.sign(
-                    { id: user.id, staff_id: user.staff_id, role: user.role, user_type: user.user_type, name: user.name },
-                    JWT_SECRET,
-                    { expiresIn: '24h' }
-                );
-                res.json({ token, user });
-            });
+            const token = jwt.sign(
+                { id: user.id, staff_id: user.staff_id, role: user.role, user_type: user.user_type, name: user.name },
+                JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+            return res.json({ token, user });
         }
-    );
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(401).json({ error: 'Invalid Admin Email or Password' });
+
+        const token = jwt.sign(
+            { id: user.id, staff_id: user.staff_id, role: user.role, user_type: user.user_type, name: user.name },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+        res.json({ token, user });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 2. Admin Dashboard Feed
-app.get('/api/admin/dashboard', authenticateToken, (req, res) => {
-    const today = new Date().toISOString().split('T')[0];
+app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
 
-    const sqlDeployments = `
-        SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role, 
-               COALESCE(d.vendor_name, u.vendor_name, 'Direct') as vendor_name,
-               u.id as staff_user_id, u.staff_id, u.name as staff_name, u.ef_mobile_number,
-               e.id as exam_id, e.exam_name, e.exam_conducting_agency,
-               c.id as centre_id, c.centre_name, c.city as centre_city,
-               a.id as attendance_id, a.punch_in_time, a.punch_in_photo,
-               a.punch_out_time, a.punch_out_photo, a.working_hours,
-               a.sheet_file, a.sheet_verification_status, a.is_late_submission, a.late_reason,
-               p.id as payment_id, p.duty_amount, p.travel_allowance, p.other_allowance,
-               p.total_payable, p.payment_status, p.reference_no,
-               CASE WHEN a.punch_in_time IS NOT NULL THEN 'Present' ELSE 'Absent' END as attendance_status
-        FROM deployments d
-        JOIN users u ON d.staff_id = u.id
-        JOIN exams e ON d.exam_id = e.id
-        JOIN centres c ON d.centre_id = c.id
-        LEFT JOIN attendance a ON d.id = a.deployment_id
-        LEFT JOIN payments p ON a.id = p.attendance_id
-        ORDER BY d.duty_date DESC
-    `;
+        const sqlDeployments = `
+            SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role, 
+                   COALESCE(d.vendor_name, u.vendor_name, 'Direct') as vendor_name,
+                   u.id as staff_user_id, u.staff_id, u.name as staff_name, u.ef_mobile_number,
+                   e.id as exam_id, e.exam_name, e.exam_conducting_agency,
+                   c.id as centre_id, c.centre_name, c.city as centre_city,
+                   a.id as attendance_id, a.punch_in_time, a.punch_in_photo,
+                   a.punch_out_time, a.punch_out_photo, a.working_hours,
+                   a.sheet_file, a.sheet_verification_status, a.is_late_submission, a.late_reason,
+                   p.id as payment_id, p.duty_amount, p.travel_allowance, p.other_allowance,
+                   p.total_payable, p.payment_status, p.reference_no,
+                   CASE WHEN a.punch_in_time IS NOT NULL THEN 'Present' ELSE 'Absent' END as attendance_status
+            FROM deployments d
+            JOIN users u ON d.staff_id = u.id
+            JOIN exams e ON d.exam_id = e.id
+            JOIN centres c ON d.centre_id = c.id
+            LEFT JOIN attendance a ON d.id = a.deployment_id
+            LEFT JOIN payments p ON a.id = p.attendance_id
+            ORDER BY d.duty_date DESC
+        `;
 
-    db.all(sqlDeployments, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+        const [rows, staffCount, payPending, payPaid] = await Promise.all([
+            runQuery(sqlDeployments),
+            runQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'STAFF'"),
+            runQuery("SELECT COALESCE(SUM(total_payable), 0) as pending_pay FROM payments WHERE payment_status = 'Pending'"),
+            runQuery("SELECT COALESCE(SUM(total_payable), 0) as paid_pay FROM payments WHERE payment_status = 'Paid'")
+        ]);
 
-        db.get("SELECT COUNT(*) as count FROM users WHERE user_type = 'STAFF'", [], (e1, rStaff) => {
-            db.get("SELECT COALESCE(SUM(total_payable), 0) as pending_pay FROM payments WHERE payment_status = 'Pending'", [], (e2, rPayPending) => {
-                db.get("SELECT COALESCE(SUM(total_payable), 0) as paid_pay FROM payments WHERE payment_status = 'Paid'", [], (e3, rPayPaid) => {
-                    res.json({
-                        todayDate: today,
-                        totalStaffCount: rStaff ? rStaff.count : 0,
-                        totalPaymentPending: rPayPending ? rPayPending.pending_pay : 0,
-                        totalPaymentPaid: rPayPaid ? rPayPaid.paid_pay : 0,
-                        allDeployments: rows || []
-                    });
-                });
-            });
+        res.json({
+            todayDate: today,
+            totalStaffCount: staffCount[0]?.count || 0,
+            totalPaymentPending: payPending[0]?.pending_pay || 0,
+            totalPaymentPaid: payPaid[0]?.paid_pay || 0,
+            allDeployments: rows || []
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 3. Staff Registry
-app.get('/api/staff', authenticateToken, (req, res) => {
-    db.all("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+app.get('/api/staff', authenticateToken, async (req, res) => {
+    try {
+        const rows = await runQuery("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC");
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/staff', authenticateToken, (req, res) => {
-    const {
-        role, vendor_name, email_address, venue_region, venue_state, ef_city,
-        ef_first_name, ef_middle_name, ef_last_name, ef_dob, ef_gender,
-        ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
-        ef_email_id, ef_qualification, ef_present_address, ef_permanent_address
-    } = req.body;
+app.post('/api/staff', authenticateToken, async (req, res) => {
+    try {
+        const {
+            role, vendor_name, email_address, venue_region, venue_state, ef_city,
+            ef_first_name, ef_middle_name, ef_last_name, ef_dob, ef_gender,
+            ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
+            ef_email_id, ef_qualification, ef_present_address, ef_permanent_address
+        } = req.body;
 
-    const fullName = [ef_first_name, ef_middle_name, ef_last_name].filter(Boolean).join(' ');
-    const officialEmail = (ef_email_id || email_address || '').trim();
-    const assignedVendor = vendor_name || 'Direct / In-House';
+        const fullName = [ef_first_name, ef_middle_name, ef_last_name].filter(Boolean).join(' ');
+        const officialEmail = (ef_email_id || email_address || '').trim();
+        const assignedVendor = vendor_name || 'Direct / In-House';
 
-    generateStaffId(role, ef_city, (assignedStaffId) => {
-        bcrypt.hash(ef_dob, 10, (err, hash) => {
-            const sql = `INSERT INTO users (
-                staff_id, name, role, vendor_name, email, password, user_type,
-                venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
-                ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
-                ef_email_id, ef_qualification, ef_present_address, ef_permanent_address
-            ) VALUES (?, ?, ?, ?, ?, ?, 'STAFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const assignedStaffId = await generateStaffId(role, ef_city);
+        const hash = await bcrypt.hash(ef_dob, 10);
 
-            const params = [
-                assignedStaffId, fullName, role, assignedVendor, officialEmail, hash,
-                venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
-                ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
-                officialEmail, ef_qualification, ef_present_address, ef_permanent_address
-            ];
+        const sql = `INSERT INTO users (
+            staff_id, name, role, vendor_name, email, password, user_type,
+            venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
+            ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
+            ef_email_id, ef_qualification, ef_present_address, ef_permanent_address
+        ) VALUES (?, ?, ?, ?, ?, ?, 'STAFF', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-            db.run(sql, params, function (err) {
-                if (err) {
-                    if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Mobile number or Email already exists.' });
-                    return res.status(500).json({ error: err.message });
-                }
+        const params = [
+            assignedStaffId, fullName, role, assignedVendor, officialEmail, hash,
+            venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
+            ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
+            officialEmail, ef_qualification, ef_present_address, ef_permanent_address
+        ];
 
-                // Cloud Sync + Auto-Email
-                dispatchGoogleWebhook({
-                    action: 'REGISTER_STAFF',
-                    staff_id: assignedStaffId, role, vendor_name: assignedVendor, email: officialEmail,
-                    venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
-                    ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number: ef_aadhar_number ? '[Aadhaar Redacted]' : '', ef_father_name, ef_mother_name,
-                    ef_email_id: officialEmail, ef_qualification, ef_present_address, ef_permanent_address
-                });
+        const result = await runExec(sql, params);
 
-                res.json({ message: 'Staff registered successfully', staff_id: assignedStaffId, id: this.lastID });
-            });
+        dispatchGoogleWebhook({
+            action: 'REGISTER_STAFF',
+            staff_id: assignedStaffId, role, vendor_name: assignedVendor, email: officialEmail,
+            venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
+            ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number: ef_aadhar_number ? '[Aadhaar Redacted]' : '', ef_father_name, ef_mother_name,
+            ef_email_id: officialEmail, ef_qualification, ef_present_address, ef_permanent_address
         });
-    });
+
+        res.json({ message: 'Staff registered successfully', staff_id: assignedStaffId, id: result.lastID });
+    } catch (err) {
+        if (err.message && err.message.includes('UNIQUE')) {
+            return res.status(400).json({ error: 'Mobile number or Email already exists.' });
+        }
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.put('/api/staff/:id', authenticateToken, (req, res) => {
-    const { name, role, vendor_name, ef_city, ef_mobile_number, ef_qualification, ef_present_address, ef_permanent_address, status } = req.body;
-    const sql = `UPDATE users SET name = ?, role = ?, vendor_name = ?, ef_city = ?, ef_mobile_number = ?,
-                 ef_qualification = ?, ef_present_address = ?, ef_permanent_address = ?, status = ?
-                 WHERE id = ? AND user_type = 'STAFF'`;
-    db.run(sql, [name, role, vendor_name || 'Direct', ef_city, ef_mobile_number, ef_qualification, ef_present_address, ef_permanent_address, status, req.params.id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.put('/api/staff/:id', authenticateToken, async (req, res) => {
+    try {
+        const { name, role, vendor_name, ef_city, ef_mobile_number, ef_qualification, ef_present_address, ef_permanent_address, status } = req.body;
+        const sql = `UPDATE users SET name = ?, role = ?, vendor_name = ?, ef_city = ?, ef_mobile_number = ?,
+                     ef_qualification = ?, ef_present_address = ?, ef_permanent_address = ?, status = ?
+                     WHERE id = ? AND user_type = 'STAFF'`;
+        await runExec(sql, [name, role, vendor_name || 'Direct', ef_city, ef_mobile_number, ef_qualification, ef_present_address, ef_permanent_address, status, req.params.id]);
         res.json({ message: 'Staff details updated successfully' });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 4. Exams Management
-app.get('/api/exams', authenticateToken, (req, res) => {
-    db.all("SELECT * FROM exams ORDER BY id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+app.get('/api/exams', authenticateToken, async (req, res) => {
+    try {
+        const rows = await runQuery("SELECT * FROM exams ORDER BY id DESC");
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/exams', authenticateToken, (req, res) => {
-    const {
-        exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-        s1_reporting_time, s1_start_time, s1_end_time,
-        s2_reporting_time, s2_start_time, s2_end_time,
-        s3_reporting_time, s3_start_time, s3_end_time
-    } = req.body;
+app.post('/api/exams', authenticateToken, async (req, res) => {
+    try {
+        const {
+            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
+            s1_reporting_time, s1_start_time, s1_end_time,
+            s2_reporting_time, s2_start_time, s2_end_time,
+            s3_reporting_time, s3_start_time, s3_end_time
+        } = req.body;
 
-    const sql = `INSERT INTO exams (
-        exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-        s1_reporting_time, s1_start_time, s1_end_time,
-        s2_reporting_time, s2_start_time, s2_end_time,
-        s3_reporting_time, s3_start_time, s3_end_time
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const sql = `INSERT INTO exams (
+            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
+            s1_reporting_time, s1_start_time, s1_end_time,
+            s2_reporting_time, s2_start_time, s2_end_time,
+            s3_reporting_time, s3_start_time, s3_end_time
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.run(sql, [
-        exam_name, exam_conducting_agency, vendor_name || 'Direct Agency', date_from, date_to, shift_mode,
-        s1_reporting_time || null, s1_start_time || null, s1_end_time || null,
-        s2_reporting_time || null, s2_start_time || null, s2_end_time || null,
-        s3_reporting_time || null, s3_start_time || null, s3_end_time || null
-    ], function (err) {
-        if (err) return res.status(400).json({ error: err.message });
-        res.json({ message: 'Exam created successfully', id: this.lastID });
-    });
+        const result = await runExec(sql, [
+            exam_name, exam_conducting_agency, vendor_name || 'Direct Agency', date_from, date_to, shift_mode,
+            s1_reporting_time || null, s1_start_time || null, s1_end_time || null,
+            s2_reporting_time || null, s2_start_time || null, s2_end_time || null,
+            s3_reporting_time || null, s3_start_time || null, s3_end_time || null
+        ]);
+        res.json({ message: 'Exam created successfully', id: result.lastID });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.put('/api/exams/:id', authenticateToken, (req, res) => {
-    const {
-        exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-        s1_reporting_time, s1_start_time, s1_end_time,
-        s2_reporting_time, s2_start_time, s2_end_time,
-        s3_reporting_time, s3_start_time, s3_end_time
-    } = req.body;
+app.put('/api/exams/:id', authenticateToken, async (req, res) => {
+    try {
+        const {
+            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
+            s1_reporting_time, s1_start_time, s1_end_time,
+            s2_reporting_time, s2_start_time, s2_end_time,
+            s3_reporting_time, s3_start_time, s3_end_time
+        } = req.body;
 
-    const sql = `UPDATE exams SET
-        exam_name = ?, exam_conducting_agency = ?, vendor_name = ?, date_from = ?, date_to = ?, shift_mode = ?,
-        s1_reporting_time = ?, s1_start_time = ?, s1_end_time = ?,
-        s2_reporting_time = ?, s2_start_time = ?, s2_end_time = ?,
-        s3_reporting_time = ?, s3_start_time = ?, s3_end_time = ?
-        WHERE id = ?`;
+        const sql = `UPDATE exams SET
+            exam_name = ?, exam_conducting_agency = ?, vendor_name = ?, date_from = ?, date_to = ?, shift_mode = ?,
+            s1_reporting_time = ?, s1_start_time = ?, s1_end_time = ?,
+            s2_reporting_time = ?, s2_start_time = ?, s2_end_time = ?,
+            s3_reporting_time = ?, s3_start_time = ?, s3_end_time = ?
+            WHERE id = ?`;
 
-    db.run(sql, [
-        exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-        s1_reporting_time, s1_start_time, s1_end_time,
-        s2_reporting_time, s2_start_time, s2_end_time,
-        s3_reporting_time, s3_start_time, s3_end_time,
-        req.params.id
-    ], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+        await runExec(sql, [
+            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
+            s1_reporting_time, s1_start_time, s1_end_time,
+            s2_reporting_time, s2_start_time, s2_end_time,
+            s3_reporting_time, s3_start_time, s3_end_time,
+            req.params.id
+        ]);
         res.json({ message: 'Examination updated successfully' });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 5. Centres Management
-app.get('/api/centres', authenticateToken, (req, res) => {
-    db.all("SELECT * FROM centres ORDER BY id DESC", [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+app.get('/api/centres', authenticateToken, async (req, res) => {
+    try {
+        const rows = await runQuery("SELECT * FROM centres ORDER BY id DESC");
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/centres', authenticateToken, (req, res) => {
-    const { centre_name, city, full_address, map_location } = req.body;
-    const sql = `INSERT INTO centres (centre_name, city, full_address, map_location) VALUES (?, ?, ?, ?)`;
-    db.run(sql, [centre_name, city, full_address || '', map_location || ''], function (err) {
-        if (err) return res.status(400).json({ error: err.message });
-        res.json({ message: 'Centre created successfully', id: this.lastID });
-    });
+app.post('/api/centres', authenticateToken, async (req, res) => {
+    try {
+        const { centre_name, city, full_address, map_location } = req.body;
+        const sql = `INSERT INTO centres (centre_name, city, full_address, map_location) VALUES (?, ?, ?, ?)`;
+        const result = await runExec(sql, [centre_name, city, full_address || '', map_location || '']);
+        res.json({ message: 'Centre created successfully', id: result.lastID });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.put('/api/centres/:id', authenticateToken, (req, res) => {
-    const { centre_name, city, full_address, map_location } = req.body;
-    const sql = `UPDATE centres SET centre_name = ?, city = ?, full_address = ?, map_location = ? WHERE id = ?`;
-    db.run(sql, [centre_name, city, full_address || '', map_location || '', req.params.id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.put('/api/centres/:id', authenticateToken, async (req, res) => {
+    try {
+        const { centre_name, city, full_address, map_location } = req.body;
+        const sql = `UPDATE centres SET centre_name = ?, city = ?, full_address = ?, map_location = ? WHERE id = ?`;
+        await runExec(sql, [centre_name, city, full_address || '', map_location || '', req.params.id]);
         res.json({ message: 'Centre updated successfully' });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// 6. Multi-Day Deployments Engine (Assign from date_from to date_to)
-app.get('/api/deployments', authenticateToken, (req, res) => {
-    const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.email as staff_email,
-                        e.exam_name, e.exam_conducting_agency, c.centre_name, c.city, c.full_address, c.map_location
-                 FROM deployments d
-                 JOIN users u ON d.staff_id = u.id
-                 JOIN exams e ON d.exam_id = e.id
-                 JOIN centres c ON d.centre_id = c.id
-                 ORDER BY d.duty_date DESC`;
-    db.all(sql, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+// 6. Deployments: Multi-Day Date Range Engine
+app.get('/api/deployments', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.email as staff_email,
+                            e.exam_name, e.exam_conducting_agency, c.centre_name, c.city, c.full_address, c.map_location
+                     FROM deployments d
+                     JOIN users u ON d.staff_id = u.id
+                     JOIN exams e ON d.exam_id = e.id
+                     JOIN centres c ON d.centre_id = c.id
+                     ORDER BY d.duty_date DESC`;
+        const rows = await runQuery(sql);
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/deployments', authenticateToken, (req, res) => {
-    const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date_from, duty_date_to, shift } = req.body;
+app.post('/api/deployments', authenticateToken, async (req, res) => {
+    try {
+        const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date_from, duty_date_to, shift } = req.body;
 
-    const startDate = new Date(duty_date_from);
-    const endDate = new Date(duty_date_to || duty_date_from);
+        const startDate = new Date(duty_date_from);
+        const endDate = new Date(duty_date_to || duty_date_from);
 
-    db.get("SELECT vendor_name, email, name FROM users WHERE id = ?", [staff_id], (err, u) => {
+        const users = await runQuery("SELECT vendor_name, email, name FROM users WHERE id = ?", [staff_id]);
+        const u = users[0];
         const resolvedVendor = vendor_name || (u ? u.vendor_name : 'Direct');
-
-        const insertStmt = db.prepare(`INSERT INTO deployments (exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift)
-                                       VALUES (?, ?, ?, ?, ?, ?, ?)`);
 
         let currentDate = new Date(startDate);
         let daysCount = 0;
 
         while (currentDate <= endDate) {
             const dateStr = currentDate.toISOString().split('T')[0];
-            insertStmt.run([exam_id, centre_id, staff_id, assigned_role, resolvedVendor, dateStr, shift]);
+            await runExec(
+                `INSERT INTO deployments (exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [exam_id, centre_id, staff_id, assigned_role, resolvedVendor, dateStr, shift]
+            );
             currentDate.setDate(currentDate.getDate() + 1);
             daysCount++;
         }
-        insertStmt.finalize();
 
-        // Email Notification for Full Multi-Day Period
-        const queryDetails = `SELECT e.exam_name, c.centre_name, c.city, c.full_address, c.map_location FROM exams e, centres c WHERE e.id = ? AND c.id = ?`;
-        db.get(queryDetails, [exam_id, centre_id], (err, row) => {
-            if (row && u && u.email) {
-                dispatchGoogleWebhook({
-                    action: 'SEND_ASSIGNMENT_EMAIL',
-                    to_email: u.email,
-                    staff_name: u.name,
-                    exam_name: row.exam_name,
-                    assigned_role,
-                    duty_date_from,
-                    duty_date_to: duty_date_to || duty_date_from,
-                    total_days: daysCount,
-                    shift,
-                    centre_name: row.centre_name,
-                    city: row.city,
-                    full_address: row.full_address,
-                    map_location: row.map_location
-                });
-            }
-        });
+        const details = await runQuery(
+            `SELECT e.exam_name, c.centre_name, c.city, c.full_address, c.map_location FROM exams e, centres c WHERE e.id = ? AND c.id = ?`,
+            [exam_id, centre_id]
+        );
+        const row = details[0];
+
+        if (row && u && u.email) {
+            dispatchGoogleWebhook({
+                action: 'SEND_ASSIGNMENT_EMAIL',
+                to_email: u.email,
+                staff_name: u.name,
+                exam_name: row.exam_name,
+                assigned_role,
+                duty_date_from,
+                duty_date_to: duty_date_to || duty_date_from,
+                total_days: daysCount,
+                shift,
+                centre_name: row.centre_name,
+                city: row.city,
+                full_address: row.full_address,
+                map_location: row.map_location
+            });
+        }
 
         res.json({ message: `Successfully assigned ${daysCount} day(s) of examination duty!` });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.put('/api/deployments/:id', authenticateToken, (req, res) => {
-    const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift } = req.body;
-    const sql = `UPDATE deployments SET exam_id = ?, centre_id = ?, staff_id = ?, assigned_role = ?, vendor_name = ?, duty_date = ?, shift = ?
-                 WHERE id = ?`;
-    db.run(sql, [exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift, req.params.id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.put('/api/deployments/:id', authenticateToken, async (req, res) => {
+    try {
+        const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift } = req.body;
+        const sql = `UPDATE deployments SET exam_id = ?, centre_id = ?, staff_id = ?, assigned_role = ?, vendor_name = ?, duty_date = ?, shift = ?
+                     WHERE id = ?`;
+        await runExec(sql, [exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift, req.params.id]);
         res.json({ message: 'Deployment updated successfully' });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 7. Staff Portal: All Duty Assignments & Complete Salary Ledger
-app.get('/api/staff/my-portal-data', authenticateToken, (req, res) => {
-    const today = new Date().toISOString().split('T')[0];
+app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
 
-    const sqlDuties = `
-        SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role,
-               d.duty_amount, d.travel_allowance, d.other_allowance,
-               (d.duty_amount + d.travel_allowance + d.other_allowance) as total_payable,
-               e.exam_name, e.exam_conducting_agency,
-               e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
-               e.s2_reporting_time, e.s2_start_time, e.s2_end_time,
-               e.s3_reporting_time, e.s3_start_time, e.s3_end_time,
-               c.centre_name, c.city, c.full_address, c.map_location,
-               a.id as attendance_id, a.punch_in_time, a.punch_out_time,
-               a.working_hours, a.sheet_verification_status, a.sheet_file,
-               COALESCE(p.payment_status, 'Pending') as payment_status,
-               p.reference_no,
-               CASE WHEN d.duty_date = ? THEN 1 ELSE 0 END as is_today
-        FROM deployments d
-        JOIN exams e ON d.exam_id = e.id
-        JOIN centres c ON d.centre_id = c.id
-        LEFT JOIN attendance a ON d.id = a.deployment_id
-        LEFT JOIN payments p ON a.id = p.attendance_id
-        WHERE d.staff_id = ?
-        ORDER BY d.duty_date DESC
-    `;
+        const sqlDuties = `
+            SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role,
+                   d.duty_amount, d.travel_allowance, d.other_allowance,
+                   (d.duty_amount + d.travel_allowance + d.other_allowance) as total_payable,
+                   e.exam_name, e.exam_conducting_agency,
+                   e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
+                   e.s2_reporting_time, e.s2_start_time, e.s2_end_time,
+                   e.s3_reporting_time, e.s3_start_time, e.s3_end_time,
+                   c.centre_name, c.city, c.full_address, c.map_location,
+                   a.id as attendance_id, a.punch_in_time, a.punch_out_time,
+                   a.working_hours, a.sheet_verification_status, a.sheet_file,
+                   COALESCE(p.payment_status, 'Pending') as payment_status,
+                   p.reference_no,
+                   CASE WHEN d.duty_date = ? THEN 1 ELSE 0 END as is_today
+            FROM deployments d
+            JOIN exams e ON d.exam_id = e.id
+            JOIN centres c ON d.centre_id = c.id
+            LEFT JOIN attendance a ON d.id = a.deployment_id
+            LEFT JOIN payments p ON a.id = p.attendance_id
+            WHERE d.staff_id = ?
+            ORDER BY d.duty_date DESC
+        `;
 
-    db.all(sqlDuties, [today, req.user.id], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+        const rows = await runQuery(sqlDuties, [today, req.user.id]);
 
-        // Calculate Salary Aggregations
         let totalWorkedDays = 0;
         let totalEarned = 0;
         let totalReceived = 0;
         let totalPending = 0;
 
         (rows || []).forEach(r => {
-            const amount = r.total_payable || 1900;
+            const amount = parseFloat(r.total_payable) || 1900;
             if (r.punch_in_time) totalWorkedDays++;
             totalEarned += amount;
 
@@ -522,41 +666,47 @@ app.get('/api/staff/my-portal-data', authenticateToken, (req, res) => {
             },
             history: rows || []
         });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 8. Staff Attendance & Uploads
-app.post('/api/attendance/punch-in', authenticateToken, (req, res) => {
-    const { deployment_id, photo_base64 } = req.body;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
-    const today = now.toISOString().split('T')[0];
+app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
+    try {
+        const { deployment_id, photo_base64 } = req.body;
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+        const today = now.toISOString().split('T')[0];
 
-    const filename = `punchin-${req.user.id}-${Date.now()}.jpg`;
-    const filepath = path.join(uploadDir, filename);
-    const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
-    fs.writeFileSync(filepath, base64Data, 'base64');
+        const filename = `punchin-${req.user.id}-${Date.now()}.jpg`;
+        const filepath = path.join(uploadDir, filename);
+        const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
+        fs.writeFileSync(filepath, base64Data, 'base64');
 
-    const sql = `INSERT INTO attendance (deployment_id, staff_id, duty_date, punch_in_time, punch_in_photo)
-                 VALUES (?, ?, ?, ?, ?)`;
-    db.run(sql, [deployment_id, req.user.id, today, timeStr, `/uploads/${filename}`], function (err) {
-        if (err) return res.status(400).json({ error: 'Punch-in already recorded.' });
+        const sql = `INSERT INTO attendance (deployment_id, staff_id, duty_date, punch_in_time, punch_in_photo)
+                     VALUES (?, ?, ?, ?, ?)`;
+        await runExec(sql, [deployment_id, req.user.id, today, timeStr, `/uploads/${filename}`]);
         res.json({ message: 'Punch-in registered', punch_in_time: timeStr });
-    });
+    } catch (err) {
+        res.status(400).json({ error: 'Punch-in already recorded.' });
+    }
 });
 
-app.post('/api/attendance/punch-out', authenticateToken, (req, res) => {
-    const { deployment_id, photo_base64 } = req.body;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+app.post('/api/attendance/punch-out', authenticateToken, async (req, res) => {
+    try {
+        const { deployment_id, photo_base64 } = req.body;
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
 
-    const filename = `punchout-${req.user.id}-${Date.now()}.jpg`;
-    const filepath = path.join(uploadDir, filename);
-    const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
-    fs.writeFileSync(filepath, base64Data, 'base64');
+        const filename = `punchout-${req.user.id}-${Date.now()}.jpg`;
+        const filepath = path.join(uploadDir, filename);
+        const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
+        fs.writeFileSync(filepath, base64Data, 'base64');
 
-    db.get("SELECT * FROM attendance WHERE deployment_id = ?", [deployment_id], (err, record) => {
-        if (err || !record) return res.status(400).json({ error: 'No punch-in recorded' });
+        const records = await runQuery("SELECT * FROM attendance WHERE deployment_id = ?", [deployment_id]);
+        const record = records[0];
+        if (!record) return res.status(400).json({ error: 'No punch-in recorded' });
 
         const [h1, m1] = record.punch_in_time.split(':').map(Number);
         const [h2, m2] = timeStr.split(':').map(Number);
@@ -564,90 +714,99 @@ app.post('/api/attendance/punch-out', authenticateToken, (req, res) => {
         const workingHours = `${Math.floor(diffMinutes / 60)}h ${diffMinutes % 60}m`;
 
         const sql = `UPDATE attendance SET punch_out_time = ?, punch_out_photo = ?, working_hours = ? WHERE deployment_id = ?`;
-        db.run(sql, [timeStr, `/uploads/${filename}`, workingHours, deployment_id], function (err) {
-            if (err) return res.status(500).json({ error: err.message });
+        await runExec(sql, [timeStr, `/uploads/${filename}`, workingHours, deployment_id]);
 
-            db.get("SELECT duty_amount, travel_allowance, other_allowance FROM deployments WHERE id = ?", [deployment_id], (err, dep) => {
-                if (dep) {
-                    const total = dep.duty_amount + dep.travel_allowance + dep.other_allowance;
-                    db.run(
-                        `INSERT OR IGNORE INTO payments (attendance_id, staff_id, duty_amount, travel_allowance, other_allowance, total_payable, payment_status)
-                         VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
-                        [record.id, req.user.id, dep.duty_amount, dep.travel_allowance, dep.other_allowance, total]
-                    );
-                }
-            });
+        const deps = await runQuery("SELECT duty_amount, travel_allowance, other_allowance FROM deployments WHERE id = ?", [deployment_id]);
+        const dep = deps[0];
+        if (dep) {
+            const total = dep.duty_amount + dep.travel_allowance + dep.other_allowance;
+            await runExec(
+                `INSERT INTO payments (attendance_id, staff_id, duty_amount, travel_allowance, other_allowance, total_payable, payment_status)
+                 VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
+                [record.id, req.user.id, dep.duty_amount, dep.travel_allowance, dep.other_allowance, total]
+            );
+        }
 
-            res.json({ message: 'Punch-out recorded', punch_out_time: timeStr, working_hours: workingHours });
-        });
-    });
+        res.json({ message: 'Punch-out recorded', punch_out_time: timeStr, working_hours: workingHours });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('attendance_sheet'), (req, res) => {
-    const { deployment_id, is_late, late_reason } = req.body;
-    if (!req.file) return res.status(400).json({ error: 'File upload missing' });
+app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('attendance_sheet'), async (req, res) => {
+    try {
+        const { deployment_id, is_late, late_reason } = req.body;
+        if (!req.file) return res.status(400).json({ error: 'File upload missing' });
 
-    const submissionTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-    const sheetFilePath = `/uploads/${req.file.filename}`;
+        const submissionTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const sheetFilePath = `/uploads/${req.file.filename}`;
 
-    const sql = `UPDATE attendance 
-                 SET sheet_file = ?, sheet_submission_time = ?, is_late_submission = ?, late_reason = ?, sheet_verification_status = 'Submitted'
-                 WHERE deployment_id = ?`;
-    db.run(sql, [sheetFilePath, submissionTime, is_late === 'true' ? 1 : 0, late_reason || null, deployment_id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+        const sql = `UPDATE attendance 
+                     SET sheet_file = ?, sheet_submission_time = ?, is_late_submission = ?, late_reason = ?, sheet_verification_status = 'Submitted'
+                     WHERE deployment_id = ?`;
+        await runExec(sql, [sheetFilePath, submissionTime, is_late === 'true' ? 1 : 0, late_reason || null, deployment_id]);
         res.json({ message: 'Sheet submitted successfully', file: sheetFilePath });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // 9. Verification & Payment Ledger Actions
-app.get('/api/admin/attendance-sheets', authenticateToken, (req, res) => {
-    const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name,
-                        c.centre_name, e.exam_name
-                 FROM attendance a
-                 JOIN users u ON a.staff_id = u.id
-                 JOIN deployments d ON a.deployment_id = d.id
-                 JOIN exams e ON d.exam_id = e.id
-                 JOIN centres c ON d.centre_id = c.id
-                 ORDER BY a.id DESC`;
-    db.all(sql, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+app.get('/api/admin/attendance-sheets', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name,
+                            c.centre_name, e.exam_name
+                     FROM attendance a
+                     JOIN users u ON a.staff_id = u.id
+                     JOIN deployments d ON a.deployment_id = d.id
+                     JOIN exams e ON d.exam_id = e.id
+                     JOIN centres c ON d.centre_id = c.id
+                     ORDER BY a.id DESC`;
+        const rows = await runQuery(sql);
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/admin/verify-sheet', authenticateToken, (req, res) => {
-    const { attendance_id, status } = req.body;
-    db.run("UPDATE attendance SET sheet_verification_status = ? WHERE id = ?", [status, attendance_id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.post('/api/admin/verify-sheet', authenticateToken, async (req, res) => {
+    try {
+        const { attendance_id, status } = req.body;
+        await runExec("UPDATE attendance SET sheet_verification_status = ? WHERE id = ?", [status, attendance_id]);
         res.json({ message: `Sheet ${status}` });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.get('/api/admin/payments', authenticateToken, (req, res) => {
-    const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name,
-                        a.duty_date, a.punch_in_time, a.punch_out_time, a.sheet_verification_status,
-                        c.centre_name, e.exam_name, e.exam_conducting_agency
-                 FROM payments p
-                 JOIN users u ON p.staff_id = u.id
-                 JOIN attendance a ON p.attendance_id = a.id
-                 JOIN deployments d ON a.deployment_id = d.id
-                 JOIN exams e ON d.exam_id = e.id
-                 JOIN centres c ON d.centre_id = c.id
-                 ORDER BY p.id DESC`;
-    db.all(sql, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+app.get('/api/admin/payments', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name,
+                            a.duty_date, a.punch_in_time, a.punch_out_time, a.sheet_verification_status,
+                            c.centre_name, e.exam_name, e.exam_conducting_agency
+                     FROM payments p
+                     JOIN users u ON p.staff_id = u.id
+                     JOIN attendance a ON p.attendance_id = a.id
+                     JOIN deployments d ON a.deployment_id = d.id
+                     JOIN exams e ON d.exam_id = e.id
+                     JOIN centres c ON d.centre_id = c.id
+                     ORDER BY p.id DESC`;
+        const rows = await runQuery(sql);
         res.json(rows);
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-app.post('/api/admin/update-payment', authenticateToken, (req, res) => {
-    const { payment_id, status } = req.body;
-    const ref = status === 'Paid' ? 'TXN-GOV-' + Math.floor(10000000 + Math.random() * 90000000) : null;
-    const sql = `UPDATE payments SET payment_status = ?, reference_no = COALESCE(?, reference_no) WHERE id = ?`;
-    db.run(sql, [status, ref, payment_id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+app.post('/api/admin/update-payment', authenticateToken, async (req, res) => {
+    try {
+        const { payment_id, status } = req.body;
+        const ref = status === 'Paid' ? 'TXN-GOV-' + Math.floor(10000000 + Math.random() * 90000000) : null;
+        await runExec(`UPDATE payments SET payment_status = ?, reference_no = COALESCE(?, reference_no) WHERE id = ?`, [status, ref, payment_id]);
         res.json({ message: `Payment marked as ${status}` });
-    });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('*', (req, res) => {
@@ -657,22 +816,3 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
     console.log(`EMMS Server running on port ${PORT}`);
 });
-Step 3: Complete Frontend (public/index.html)
-Open public/index.html in your GitHub repository and replace it with this all-in-one code:
-
-HTML
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXAM MANPOWER MANAGEMENT SYSTEM</title>
-    <style>
-        :root {
-            --primary: #0f2a59;
-            --primary-light: #1e40af;
-            --accent: #2563eb;
-            --surface: #ffffff;
-            --bg: #f8fafc;
-            --border: #e2e8f0;
-            --text-main: #0f172a;
