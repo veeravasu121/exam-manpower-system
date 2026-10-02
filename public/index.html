@@ -41,7 +41,7 @@
         .topbar { background: #fff; border-bottom: 1px solid var(--border); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
         .content-area { padding: 24px; flex: 1; overflow-y: auto; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; cursor: pointer; transition: transform 0.1s ease, border-color 0.1s ease; }
+        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; cursor: pointer; transition: transform 0.1s ease; }
         .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
         .stat-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
         .stat-value { font-size: 22px; font-weight: 700; margin-top: 6px; }
@@ -76,13 +76,6 @@
         .shift-title { font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
         .camera-box { background: #000; width: 100%; height: 280px; border-radius: 6px; overflow: hidden; margin-bottom: 16px; }
         .camera-box video, .camera-box canvas { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Biometric & Voucher High-Impact Styles */
-        .bio-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .bio-card { background: #0f172a; border-radius: 8px; padding: 12px; color: #fff; }
-        .bio-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; color: #94a3b8; }
-        .bio-img-frame { height: 220px; background: #1e293b; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #334155; }
-        .bio-img-frame img { width: 100%; height: 100%; object-fit: cover; }
         .voucher-container { background: #ffffff; border: 2px solid #0f2a59; padding: 28px; border-radius: 8px; position: relative; color: #0f2a59; }
         .voucher-header { text-align: center; border-bottom: 2px solid #0f2a59; padding-bottom: 14px; margin-bottom: 16px; }
         .stamp-seal { width: 100px; height: 100px; border: 3px double #15803d; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #15803d; font-weight: 800; font-size: 10px; text-transform: uppercase; transform: rotate(-10deg); margin: 0 auto; }
@@ -97,7 +90,7 @@
 </head>
 <body>
 
-    <!-- LOGIN INTERFACE -->
+    <!-- LOGIN -->
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
@@ -125,7 +118,7 @@
         </div>
     </div>
 
-    <!-- MAIN APPLICATION -->
+    <!-- MAIN SHELL -->
     <div id="appShell" class="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -133,6 +126,7 @@
                 <span>Government Examination Staff Portal</span>
             </div>
 
+            <!-- ADMIN NAVIGATION -->
             <div id="adminNav" class="sidebar-nav">
                 <div class="nav-category">Main</div>
                 <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Dashboard & Drilldown</a>
@@ -151,11 +145,13 @@
                 <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Payment Proofs & Ledger</a>
             </div>
 
+            <!-- STAFF NAVIGATION -->
             <div id="staffNav" class="sidebar-nav" style="display: none;">
-                <div class="nav-category">Staff Portal</div>
+                <div class="nav-category">Staff Desk</div>
                 <a class="nav-link active" onclick="switchRoute('staff-duty')">📋 Today's Duty</a>
                 <a class="nav-link" onclick="switchRoute('staff-punch')">📸 Photo Attendance</a>
                 <a class="nav-link" onclick="switchRoute('staff-sheet')">📤 Upload Attendance Sheet</a>
+                <a class="nav-link" onclick="switchRoute('staff-history')">📅 My Work & Salary Ledger</a>
             </div>
 
             <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -174,12 +170,11 @@
 
             <section class="content-area">
 
-                <!-- 1. DASHBOARD -->
+                <!-- 1. ADMIN DASHBOARD -->
                 <div id="view-admin-dashboard" class="page-view">
                     <h1 style="font-size: 20px; font-weight: 700;">Executive Examination Dashboard</h1>
-                    <p style="color: #64748b; margin-bottom: 16px;">Real-time search, filters, venue shortages, and role-wise attendance analytics.</p>
+                    <p style="color: #64748b; margin-bottom: 16px;">Real-time search, multi-filters, venue shortages, and role-wise attendance analytics.</p>
 
-                    <!-- SEARCH & FILTER BAR -->
                     <div class="filter-bar">
                         <div class="form-group" style="margin: 0;">
                             <label>Search Staff Name / ID</label>
@@ -204,7 +199,6 @@
                         <button class="btn btn-outline" onclick="resetDashboardFilters()" style="height: 35px;">Reset</button>
                     </div>
 
-                    <!-- METRICS CARDS -->
                     <div class="stats-grid">
                         <div class="stat-card" onclick="openDrilldownModal('ALL', 'All Assigned Staff')">
                             <div class="stat-label">Total Assigned <span>🔍 View</span></div>
@@ -228,44 +222,26 @@
                         </div>
                     </div>
 
-                    <!-- ROLE-WISE MANPOWER MATRIX -->
                     <div class="card">
                         <div class="card-header">
-                            <strong>Role-Wise Manpower Status (Click any role to see Present & Absent Staff)</strong>
-                            <small style="color: #64748b;">Interactive Drilldown Available</small>
+                            <strong>Role-Wise Manpower Status (Click any role to inspect Present & Absent staff)</strong>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Staff Role</th>
-                                        <th>Required / Assigned</th>
-                                        <th>Present</th>
-                                        <th>Absent</th>
-                                        <th>Shortage</th>
-                                        <th>Action</th>
-                                    </tr>
+                                    <tr><th>Staff Role</th><th>Assigned</th><th>Present</th><th>Absent</th><th>Shortage</th><th>Action</th></tr>
                                 </thead>
                                 <tbody id="roleMatrixTableBody"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- VENUE SHORTAGE SUMMARY -->
                     <div class="card">
                         <div class="card-header"><strong>Venue-Wise Manpower & Shortage Matrix</strong></div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr>
-                                        <th>Centre Name</th>
-                                        <th>City</th>
-                                        <th>Assigned Staff</th>
-                                        <th>Present</th>
-                                        <th>Absent / Shortage</th>
-                                        <th>Status</th>
-                                        <th>Inspect</th>
-                                    </tr>
+                                    <tr><th>Centre Name</th><th>City</th><th>Assigned Staff</th><th>Present</th><th>Absent / Shortage</th><th>Status</th><th>Inspect</th></tr>
                                 </thead>
                                 <tbody id="centreStatusTableBody"></tbody>
                             </table>
@@ -273,7 +249,7 @@
                     </div>
                 </div>
 
-                <!-- 2. STAFF DIRECTORY -->
+                <!-- 2. ALL STAFF -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
@@ -294,7 +270,7 @@
                     </div>
                 </div>
 
-                <!-- 3. EXAMINATIONS -->
+                <!-- 3. EXAMS -->
                 <div id="view-admin-exams" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
@@ -341,9 +317,9 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <div>
                             <h1 style="font-size: 20px; font-weight: 700;">Staff Deployment</h1>
-                            <p style="color: #64748b;">Allocated duty personnel by Exam, Centre, and Vendor.</p>
+                            <p style="color: #64748b;">Deploy staff across single or multi-day exam sessions.</p>
                         </div>
-                        <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff</button>
+                        <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff (Date Range)</button>
                     </div>
                     <div class="card">
                         <div class="table-responsive">
@@ -373,7 +349,7 @@
                     </div>
                 </div>
 
-                <!-- 7. PAYMENT PROOFS & LEDGER -->
+                <!-- 7. PAYMENT PROOFS -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Payment Approvals & Vouchers</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Authorize disbursements, generate treasury tokens, and inspect official payment vouchers.</p>
@@ -389,13 +365,14 @@
                     </div>
                 </div>
 
-                <!-- STAFF VIEWS -->
+                <!-- 8. STAFF PORTAL: TODAY'S DUTY -->
                 <div id="view-staff-duty" class="page-view" style="display: none;">
-                    <h1 style="font-size: 20px; font-weight: 700;">Today's Assignment</h1>
-                    <p style="color: #64748b; margin-bottom: 20px;">Your allocated examination schedule.</p>
+                    <h1 style="font-size: 20px; font-weight: 700;">Today's Active Duty</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Your designated examination assignment for today.</p>
                     <div id="dutyDetailsContainer"></div>
                 </div>
 
+                <!-- 9. STAFF PORTAL: PHOTO PUNCH -->
                 <div id="view-staff-punch" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Photo Attendance</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Take a live photo snapshot to record punch in / punch out.</p>
@@ -412,6 +389,7 @@
                     </div>
                 </div>
 
+                <!-- 10. STAFF PORTAL: UPLOAD SHEET -->
                 <div id="view-staff-sheet" class="page-view" style="display: none;">
                     <h1 style="font-size: 20px; font-weight: 700;">Upload Attendance Sheet</h1>
                     <p style="color: #64748b; margin-bottom: 20px;">Upload the signed examination hall sheet.</p>
@@ -427,13 +405,61 @@
                     </div>
                 </div>
 
+                <!-- 11. STAFF PORTAL: FULL WORK HISTORY & SALARY LEDGER -->
+                <div id="view-staff-history" class="page-view" style="display: none;">
+                    <h1 style="font-size: 20px; font-weight: 700;">My Work History & Salary Ledger</h1>
+                    <p style="color: #64748b; margin-bottom: 20px;">Complete record of all days worked, remuneration sanctioned, and payment tracking.</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Days Worked</div>
+                            <div class="stat-value" id="ledgerDaysWorked" style="color: #0f2a59;">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Total Remuneration</div>
+                            <div class="stat-value" id="ledgerTotalEarned" style="color: #2563eb;">₹0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Salary Received / Paid</div>
+                            <div class="stat-value" id="ledgerTotalReceived" style="color: #16a34a;">₹0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Salary Pending</div>
+                            <div class="stat-value" id="ledgerTotalPending" style="color: #d97706;">₹0</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Day-by-Day Duty & Payment Ledger</strong>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Duty Date</th>
+                                        <th>Exam & Venue</th>
+                                        <th>Assigned Role</th>
+                                        <th>Shift</th>
+                                        <th>Duty Time</th>
+                                        <th>Amount</th>
+                                        <th>Salary Status</th>
+                                        <th>Treasury Ref</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staffLedgerTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </section>
         </main>
     </div>
 
     <!-- ==================== MODALS ==================== -->
 
-    <!-- DRILLDOWN DETAIL MODAL -->
+    <!-- DRILLDOWN MODAL -->
     <div id="drilldownModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -456,7 +482,7 @@
         </div>
     </div>
 
-    <!-- ATTENDANCE PROOF INSPECTION MODAL -->
+    <!-- ATTENDANCE PROOF MODAL -->
     <div id="attendanceProofModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 850px;">
             <div class="modal-header" style="background: #0f2a59; color: #fff;">
@@ -467,22 +493,22 @@
                 <button class="btn btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.3);" onclick="closeModal('attendanceProofModal')">✕</button>
             </div>
             <div class="modal-body" style="padding: 20px;">
-                <div class="bio-grid">
-                    <div class="bio-card">
-                        <div class="bio-card-header">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                    <div style="background: #0f172a; padding: 12px; border-radius: 8px; color: #fff;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; color: #94a3b8;">
                             <span>📷 Punch In Photo</span>
                             <span id="hudPunchInTime" style="color: #4ade80;">--:--</span>
                         </div>
-                        <div class="bio-img-frame" id="proofPunchInPhoto">
+                        <div id="proofPunchInPhoto" style="height: 220px; background: #1e293b; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                             <span style="color: #64748b;">No Snapshot</span>
                         </div>
                     </div>
-                    <div class="bio-card">
-                        <div class="bio-card-header">
+                    <div style="background: #0f172a; padding: 12px; border-radius: 8px; color: #fff;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; color: #94a3b8;">
                             <span>📷 Punch Out Photo</span>
                             <span id="hudPunchOutTime" style="color: #4ade80;">--:--</span>
                         </div>
-                        <div class="bio-img-frame" id="proofPunchOutPhoto">
+                        <div id="proofPunchOutPhoto" style="height: 220px; background: #1e293b; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                             <span style="color: #64748b;">No Snapshot</span>
                         </div>
                     </div>
@@ -507,7 +533,7 @@
         </div>
     </div>
 
-    <!-- PAYMENT PROOF VOUCHER MODAL -->
+    <!-- PAYMENT VOUCHER MODAL -->
     <div id="paymentProofModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
@@ -627,7 +653,7 @@
                         <div class="form-group"><label>VENUE REGION</label><input type="text" name="venue_region" value="South Zone"></div>
                         <div class="form-group"><label>VENUE STATE</label><input type="text" name="venue_state" value="Tamil Nadu"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>EF FATHER NAME</label><input type="text" name="ef_father_name"></div>
                         <div class="form-group"><label>EF MOTHER NAME</label><input type="text" name="ef_mother_name"></div>
                         <div class="form-group"><label>EF QUALIFICATION</label><input type="text" name="ef_qualification" placeholder="e.g. B.E / B.Sc"></div>
@@ -685,7 +711,7 @@
         </div>
     </div>
 
-    <!-- ADD EXAM MODAL (WITH CONDUCTING AGENCY & ALL SHIFT TIMINGS) -->
+    <!-- ADD EXAM MODAL -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -766,21 +792,6 @@
                         <div class="form-group"><label>Date To *</label><input type="date" name="date_to" id="editExamDateTo" required></div>
                         <div class="form-group"><label>Shift Mode *</label><select name="shift_mode" id="editExamShiftMode"><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple Shifts</option></select></div>
                     </div>
-                    <div class="shift-block"><div class="shift-title">Shift 1 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s1_reporting_time" id="editExamS1Rep"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s1_start_time" id="editExamS1Start"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s1_end_time" id="editExamS1End"></div>
-                    </div></div>
-                    <div class="shift-block"><div class="shift-title">Shift 2 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s2_reporting_time" id="editExamS2Rep"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s2_start_time" id="editExamS2Start"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s2_end_time" id="editExamS2End"></div>
-                    </div></div>
-                    <div class="shift-block"><div class="shift-title">Shift 3 Timings</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
-                        <div class="form-group"><label>Reporting</label><input type="time" name="s3_reporting_time" id="editExamS3Rep"></div>
-                        <div class="form-group"><label>Start</label><input type="time" name="s3_start_time" id="editExamS3Start"></div>
-                        <div class="form-group"><label>End</label><input type="time" name="s3_end_time" id="editExamS3End"></div>
-                    </div></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('editExamModal')">Cancel</button>
@@ -847,11 +858,11 @@
         </div>
     </div>
 
-    <!-- DEPLOY STAFF MODAL -->
+    <!-- DEPLOY STAFF MODAL (MULTI-DAY SUPPORT) -->
     <div id="deployStaffModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Deploy Staff to Centre</h3>
+                <h3>Deploy Staff Across Date Range</h3>
                 <button class="btn btn-outline" onclick="closeModal('deployStaffModal')">✕</button>
             </div>
             <form id="deployStaffForm">
@@ -859,21 +870,24 @@
                     <div class="form-group"><label>Select Examination *</label><select name="exam_id" id="deployExamSelect" required></select></div>
                     <div class="form-group"><label>Select Centre Venue *</label><select name="centre_id" id="deployCentreSelect" required></select></div>
                     <div class="form-group"><label>Select Staff Member *</label><select name="staff_id" id="deployStaffSelect" required></select></div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div class="form-group"><label>Assigned Role *</label><select name="assigned_role" required>
                             <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
                             <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
                             <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
                             <option value="Centre Head">Centre Head</option>
                         </select></div>
-                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="Optional override"></div>
-                        <div class="form-group"><label>Duty Date *</label><input type="date" name="duty_date" required id="deployDutyDate"></div>
+                        <div class="form-group"><label>Vendor Name</label><input type="text" name="vendor_name" placeholder="Leave empty for staff's default vendor"></div>
                     </div>
-                    <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                        <div class="form-group"><label>Duty Date From *</label><input type="date" name="duty_date_from" required id="deployDutyDateFrom"></div>
+                        <div class="form-group"><label>Duty Date To *</label><input type="date" name="duty_date_to" required id="deployDutyDateTo"></div>
+                        <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option><option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option></select></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline" onclick="closeModal('deployStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Confirm Deployment</button>
+                    <button type="submit" class="btn btn-primary">Deploy Across Date Range</button>
                 </div>
             </form>
         </div>
@@ -912,7 +926,7 @@
         </div>
     </div>
 
-    <!-- CONTROLLER JAVASCRIPT -->
+    <!-- JAVASCRIPT CONTROLLER -->
     <script>
         let CURRENT_USER = null;
         let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
@@ -1005,6 +1019,7 @@
                 document.getElementById('adminNav').style.display = 'none';
                 document.getElementById('staffNav').style.display = 'block';
                 switchRoute('staff-duty');
+                loadStaffPortalData();
                 startCamera();
             }
         }
@@ -1030,7 +1045,7 @@
             if (route === 'admin-deployments') loadDeploymentsList();
             if (route === 'admin-attendance') loadAttendanceSheets();
             if (route === 'admin-payments') loadPaymentsList();
-            if (route === 'staff-duty') loadStaffAssignment();
+            if (route === 'staff-duty' || route === 'staff-history') loadStaffPortalData();
         }
 
         async function api(url, options = {}) {
@@ -1041,7 +1056,7 @@
             return res.json();
         }
 
-        // ================= DASHBOARD SEARCH & FILTER ENGINE =================
+        // ================= DASHBOARD & SEARCH FILTERS =================
         async function loadDashboardData() {
             const data = await api('/api/admin/dashboard');
             if (!data) return;
@@ -1167,7 +1182,6 @@
             }).join('');
         }
 
-        // ================= DRILLDOWN MODAL =================
         function openDrilldownModal(type, title, filterValue) {
             document.getElementById('drilldownTitle').innerText = `Drilldown: ${title}`;
             let list = [];
@@ -1181,7 +1195,7 @@
 
             const tbody = document.getElementById('drilldownTbody');
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No staff records matching this drilldown category.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No staff records matching this category.</td></tr>`;
             } else {
                 tbody.innerHTML = list.map(s => `
                     <tr>
@@ -1201,7 +1215,7 @@
             openModal('drilldownModal');
         }
 
-        // ================= ATTENDANCE VERIFICATION PROOFS =================
+        // ================= ATTENDANCE PROOF INSPECTION =================
         async function loadAttendanceSheets() {
             const sheets = await api('/api/admin/attendance-sheets');
             const tbody = document.getElementById('attendanceVerificationTableBody');
@@ -1286,7 +1300,7 @@
             loadDashboardData();
         }
 
-        // ================= PAYMENT PROOFS & VOUCHERS =================
+        // ================= PAYMENT VOUCHERS =================
         async function loadPaymentsList() {
             const payments = await api('/api/admin/payments');
             const tbody = document.getElementById('paymentsTableBody');
@@ -1395,9 +1409,9 @@
             const tbody = document.getElementById('examsTableBody');
             tbody.innerHTML = cachedExams.map((e, idx) => {
                 let timingSummary = [];
-                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time} (Rep: ${e.s1_reporting_time})`);
-                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time} (Rep: ${e.s2_reporting_time})`);
-                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time} (Rep: ${e.s3_reporting_time})`);
+                if (e.s1_start_time) timingSummary.push(`S1: ${e.s1_start_time}-${e.s1_end_time}`);
+                if (e.s2_start_time) timingSummary.push(`S2: ${e.s2_start_time}-${e.s2_end_time}`);
+                if (e.s3_start_time) timingSummary.push(`S3: ${e.s3_start_time}-${e.s3_end_time}`);
 
                 return `
                     <tr>
@@ -1423,15 +1437,6 @@
             document.getElementById('editExamDateFrom').value = e.date_from || '';
             document.getElementById('editExamDateTo').value = e.date_to || '';
             document.getElementById('editExamShiftMode').value = e.shift_mode || 'Shift 1';
-            document.getElementById('editExamS1Rep').value = e.s1_reporting_time || '';
-            document.getElementById('editExamS1Start').value = e.s1_start_time || '';
-            document.getElementById('editExamS1End').value = e.s1_end_time || '';
-            document.getElementById('editExamS2Rep').value = e.s2_reporting_time || '';
-            document.getElementById('editExamS2Start').value = e.s2_start_time || '';
-            document.getElementById('editExamS2End').value = e.s2_end_time || '';
-            document.getElementById('editExamS3Rep').value = e.s3_reporting_time || '';
-            document.getElementById('editExamS3Start').value = e.s3_start_time || '';
-            document.getElementById('editExamS3End').value = e.s3_end_time || '';
             openModal('editExamModal');
         }
 
@@ -1478,24 +1483,22 @@
             `).join('');
         }
 
-        async function openEditDeployment(idx) {
+        function openEditDeployment(idx) {
             const d = cachedDeployments[idx];
             if (!d) return;
 
-            const [exams, centres, staff] = await Promise.all([
-                api('/api/exams'), api('/api/centres'), api('/api/staff')
-            ]);
+            Promise.all([api('/api/exams'), api('/api/centres'), api('/api/staff')]).then(([exams, centres, staff]) => {
+                document.getElementById('editDeployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}" ${e.id === d.exam_id ? 'selected' : ''}>${e.exam_name}</option>`).join('');
+                document.getElementById('editDeployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}" ${c.id === d.centre_id ? 'selected' : ''}>${c.centre_name} (${c.city})</option>`).join('');
+                document.getElementById('editDeployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}" ${s.id === d.staff_id ? 'selected' : ''}>${s.staff_id} - ${s.name}</option>`).join('');
 
-            document.getElementById('editDeployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}" ${e.id === d.exam_id ? 'selected' : ''}>${e.exam_name}</option>`).join('');
-            document.getElementById('editDeployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}" ${c.id === d.centre_id ? 'selected' : ''}>${c.centre_name} (${c.city})</option>`).join('');
-            document.getElementById('editDeployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}" ${s.id === d.staff_id ? 'selected' : ''}>${s.staff_id} - ${s.name}</option>`).join('');
-
-            document.getElementById('editDeployId').value = d.id;
-            document.getElementById('editDeployRole').value = d.assigned_role;
-            document.getElementById('editDeployVendor').value = d.vendor_name || 'Direct';
-            document.getElementById('editDeployDate').value = d.duty_date;
-            document.getElementById('editDeployShift').value = d.shift;
-            openModal('editDeployModal');
+                document.getElementById('editDeployId').value = d.id;
+                document.getElementById('editDeployRole').value = d.assigned_role;
+                document.getElementById('editDeployVendor').value = d.vendor_name || 'Direct';
+                document.getElementById('editDeployDate').value = d.duty_date;
+                document.getElementById('editDeployShift').value = d.shift;
+                openModal('editDeployModal');
+            });
         }
 
         async function openDeployModal() {
@@ -1505,7 +1508,10 @@
             document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name} (${e.exam_conducting_agency})</option>`).join('');
             document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
             document.getElementById('deployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role} | Vendor: ${s.vendor_name || 'Direct'})</option>`).join('');
-            document.getElementById('deployDutyDate').value = new Date().toISOString().split('T')[0];
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('deployDutyDateFrom').value = todayStr;
+            document.getElementById('deployDutyDateTo').value = todayStr;
             openModal('deployStaffModal');
         }
 
@@ -1532,7 +1538,7 @@
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.staff_id) {
-                alert(`Staff Registered! Assigned Staff ID: ${res.staff_id}\nCredentials sent to registered email!`);
+                alert(`Staff Registered! Assigned Staff ID: ${res.staff_id}\nCredentials emailed to registered ID!`);
                 closeModal('addStaffModal'); e.target.reset(); loadStaffList();
             } else if (res && res.error) alert(res.error);
         });
@@ -1591,8 +1597,8 @@
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && res.id) {
-                alert('Staff deployment saved & assignment order emailed!');
+            if (res && !res.error) {
+                alert(res.message || 'Staff deployment saved across date range!');
                 closeModal('deployStaffModal'); loadDeploymentsList();
             }
         });
@@ -1607,43 +1613,71 @@
             }
         });
 
-        // ================= STAFF PORTAL DUTY & CAMERA PUNCH =================
-        async function loadStaffAssignment() {
-            const duty = await api('/api/staff/my-assignment');
-            USER_ASSIGNMENT = duty;
-            const container = document.getElementById('dutyDetailsContainer');
-            if (!duty) { container.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty assigned to you for today.</div>`; return; }
+        // ================= STAFF PORTAL: WORK & SALARY LEDGER =================
+        async function loadStaffPortalData() {
+            const data = await api('/api/staff/my-portal-data');
+            if (!data) return;
 
-            let reporting = duty.s1_reporting_time || '07:30';
-            let examTime = `${duty.s1_start_time || '09:00'} - ${duty.s1_end_time || '11:00'}`;
-            if (duty.shift === 'Shift 2') {
-                reporting = duty.s2_reporting_time || '11:30';
-                examTime = `${duty.s2_start_time || '12:30'} - ${duty.s2_end_time || '14:30'}`;
-            } else if (duty.shift === 'Shift 3') {
-                reporting = duty.s3_reporting_time || '15:00';
-                examTime = `${duty.s3_start_time || '16:00'} - ${duty.s3_end_time || '18:00'}`;
+            // Summary Counters
+            document.getElementById('ledgerDaysWorked').innerText = data.summary.totalWorkedDays || 0;
+            document.getElementById('ledgerTotalEarned').innerText = `₹${(data.summary.totalEarned || 0).toLocaleString()}`;
+            document.getElementById('ledgerTotalReceived').innerText = `₹${(data.summary.totalReceived || 0).toLocaleString()}`;
+            document.getElementById('ledgerTotalPending').innerText = `₹${(data.summary.totalPending || 0).toLocaleString()}`;
+
+            // Today's Active Assignment
+            const todayAssignment = (data.history || []).find(h => h.is_today === 1);
+            USER_ASSIGNMENT = todayAssignment || null;
+
+            const dutyContainer = document.getElementById('dutyDetailsContainer');
+            if (!todayAssignment) {
+                dutyContainer.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duty scheduled for your account today. Check your complete Work History below.</div>`;
+            } else {
+                dutyContainer.innerHTML = `
+                    <div class="card" style="padding: 24px;">
+                        <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${todayAssignment.exam_name}</h2>
+                        <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
+                            Agency: <strong>${todayAssignment.exam_conducting_agency}</strong> | Venue: <strong>${todayAssignment.centre_name} (${todayAssignment.city})</strong> | Assigned Shift: <strong>${todayAssignment.shift}</strong>
+                            ${todayAssignment.map_location ? ` | <a href="${todayAssignment.map_location}" target="_blank" style="color:#2563eb;">View Maps</a>` : ''}
+                        </p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                            <div><label>Assigned Role</label><p><strong>${todayAssignment.assigned_role}</strong></p></div>
+                            <div><label>Reporting Time</label><p><strong>${todayAssignment.s1_reporting_time || '07:30'}</strong></p></div>
+                            <div><label>Duty Remuneration</label><p><strong>₹${(todayAssignment.total_payable || 1900).toLocaleString()}</strong></p></div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                            <span>Punch In: <strong>${todayAssignment.punch_in_time || '--:--'}</strong></span> | 
+                            <span>Punch Out: <strong>${todayAssignment.punch_out_time || '--:--'}</strong></span>
+                        </div>
+                    </div>
+                `;
             }
 
-            container.innerHTML = `
-                <div class="card" style="padding: 24px;">
-                    <h2 style="font-size: 18px; color: #0f2a59; margin-bottom: 8px;">${duty.exam_name}</h2>
-                    <p style="color: #64748b; font-size: 13px; margin-bottom: 16px;">
-                        Agency: <strong>${duty.exam_conducting_agency}</strong> | Venue: <strong>${duty.centre_name} (${duty.city})</strong> | Assigned Shift: <strong>${duty.shift}</strong>
-                        ${duty.map_location ? ` | <a href="${duty.map_location}" target="_blank" style="color:#2563eb;">View Maps</a>` : ''}
-                    </p>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px;">
-                        <div><label>Assigned Role</label><p><strong>${duty.assigned_role}</strong></p></div>
-                        <div><label>Candidate Reporting</label><p><strong>${reporting}</strong></p></div>
-                        <div><label>Exam Timing</label><p><strong>${examTime}</strong></p></div>
-                        <div><label>Duty Remuneration</label><p><strong>₹${((duty.duty_amount || 0) + (duty.travel_allowance || 0) + (duty.other_allowance || 0)).toLocaleString()}</strong></p></div>
-                    </div>
-                    ${duty.full_address ? `<p style="font-size: 12px; color:#475569; margin-bottom: 12px;"><strong>Address:</strong> ${duty.full_address}</p>` : ''}
-                    <div style="background: #f8fafc; padding: 12px; border: 1px solid #e2e8f0; border-radius: 4px;">
-                        <span>Punch In: <strong>${duty.punch_in_time || '--:--'}</strong></span> | 
-                        <span>Punch Out: <strong>${duty.punch_out_time || '--:--'}</strong></span>
-                    </div>
-                </div>
-            `;
+            // Historical Salary Ledger Table
+            const tbody = document.getElementById('staffLedgerTableBody');
+            if (!data.history || data.history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No assigned work history on record.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.history.map(row => {
+                const isPaid = row.payment_status === 'Paid';
+                const statusBadge = isPaid 
+                    ? `<span class="badge badge-paid">PAID / RECEIVED</span>` 
+                    : `<span class="badge badge-pending">PENDING APPROVAL</span>`;
+
+                return `
+                    <tr>
+                        <td><strong>${row.duty_date}</strong></td>
+                        <td>${row.exam_name}<br><small style="color:#64748b;">${row.centre_name}</small></td>
+                        <td>${row.assigned_role}</td>
+                        <td><span class="badge badge-ready">${row.shift}</span></td>
+                        <td><small>In: ${row.punch_in_time || '--'} | Out: ${row.punch_out_time || '--'}</small></td>
+                        <td><strong>₹${(row.total_payable || 1900).toLocaleString()}</strong></td>
+                        <td>${statusBadge}</td>
+                        <td><code>${row.reference_no || 'Pending Sanction'}</code></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function startCamera() {
@@ -1656,7 +1690,7 @@
         }
 
         async function executePunch(type) {
-            if (!USER_ASSIGNMENT) { alert('No active assignment for today'); return; }
+            if (!USER_ASSIGNMENT) { alert('No active assignment scheduled for today.'); return; }
             const video = document.getElementById('webcam');
             const canvas = document.getElementById('snapshotCanvas');
             canvas.width = 640; canvas.height = 480;
@@ -1672,8 +1706,8 @@
 
             const msg = document.getElementById('punchMessage');
             if (res && !res.error) {
-                msg.style.color = '#16a34a'; msg.innerText = `${type === 'in' ? 'Punch In' : 'Punch Out'} registered successfully!`;
-                loadStaffAssignment();
+                msg.style.color = '#16a34a'; msg.innerText = `${type === 'in' ? 'Punch In' : 'Punch Out'} recorded successfully!`;
+                loadStaffPortalData();
             } else {
                 msg.style.color = '#dc2626'; msg.innerText = (res && res.error) ? res.error : 'Failed to record attendance';
             }
@@ -1686,9 +1720,9 @@
 
         document.getElementById('sheetUploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!USER_ASSIGNMENT) { alert('No duty assignment found'); return; }
+            if (!USER_ASSIGNMENT) { alert('No active duty assignment found for today.'); return; }
             const fileInput = document.getElementById('sheetFileInput');
-            if (!fileInput.files[0]) { alert('Please attach the attendance sheet first'); return; }
+            if (!fileInput.files[0]) { alert('Please attach the signed attendance sheet first.'); return; }
 
             const formData = new FormData();
             formData.append('deployment_id', USER_ASSIGNMENT.deployment_id);
@@ -1699,7 +1733,8 @@
             const data = await res.json();
             if (res.ok) {
                 alert('Attendance sheet submitted for Admin verification!');
-                switchRoute('staff-duty');
+                switchRoute('staff-history');
+                loadStaffPortalData();
             } else { alert(data.error || 'Upload error'); }
         });
 
