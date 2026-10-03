@@ -12,14 +12,15 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_CONFIDENTIAL_KEY_2026';
+const GOOGLE_SHEET_WEBHOOK_URL = (process.env.GOOGLE_SHEET_WEBHOOK_URL || '').trim();
 
-// 1. Ensure Absolute Path for Upload Directory
+// Ensure absolute upload folder path
 const uploadDir = path.resolve(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// 2. Database Connection
+// Database Connection
 const usePostgres = !!process.env.DATABASE_URL;
 let pgPool = null;
 let sqliteDb = null;
@@ -73,12 +74,28 @@ function runExec(sql, params = []) {
     });
 }
 
-// Core Express Middleware
+// Resilient Google Sheets Webhook Dispatcher (Follows 302 Redirects)
+async function dispatchGoogleWebhook(payload) {
+    if (!GOOGLE_SHEET_WEBHOOK_URL) return;
+    try {
+        const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
+            method: 'POST',
+            redirect: 'follow', // Follows Google's 302/307 redirect
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const text = await response.text();
+        console.log('[SHEETS SYNC SUCCESS]', text);
+    } catch (err) {
+        console.error('[SHEETS SYNC FAILED]', err.message);
+    }
+}
+
 app.use(cors());
 app.use(express.json({ limit: '40mb' }));
 app.use(express.urlencoded({ extended: true, limit: '40mb' }));
 
-// 3. CRITICAL: Static file serving placed BEFORE all API and wildcard routes
+// Static uploads mounted early
 app.use('/uploads', express.static(uploadDir));
 app.use(express.static(path.resolve(__dirname, 'public')));
 
@@ -86,13 +103,12 @@ const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadDir),
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname) || '.pdf';
-        const cleanName = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
-        cb(null, cleanName);
+        cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
     }
 });
 const upload = multer({ storage });
 
-// Database Initializer
+// Database Initializer & Admin Account Provisioner
 async function initDatabase() {
     const autoId = usePostgres ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
 
@@ -121,7 +137,6 @@ async function initDatabase() {
         ef_qualification TEXT,
         ef_present_address TEXT,
         ef_permanent_address TEXT,
-        selfie_photo_path TEXT,
         status TEXT DEFAULT 'Active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -179,7 +194,6 @@ async function initDatabase() {
         sheet_submission_time TEXT,
         is_late_submission INTEGER DEFAULT 0,
         late_reason TEXT,
-        match_confidence TEXT,
         sheet_verification_status TEXT DEFAULT 'Pending'
     )`);
 
@@ -195,7 +209,18 @@ async function initDatabase() {
         reference_no TEXT
     )`);
 
-    // Ensure Master Admin Exists
+    await runExec(`CREATE TABLE IF NOT EXISTS operational_forms (
+        id ${autoId},
+        deployment_id INTEGER,
+        staff_id INTEGER NOT NULL,
+        role TEXT NOT NULL,
+        duty_date DATE NOT NULL,
+        form_data_json TEXT NOT NULL,
+        photo_proof_path TEXT,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // Ensure Master Administrator
     const adminEmail = (process.env.ADMIN_EMAIL || 'shankaranv161@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin@123';
     const hash = await bcrypt.hash(adminPassword, 10);
@@ -219,7 +244,7 @@ async function initDatabase() {
              VALUES ('ADMIN_HQ', 'Chief Examination Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai', 'Active')`,
             [adminEmail, hash]
         );
-        console.log(`[AUTH] Master Admin created -> ${adminEmail}`);
+        console.log(`[AUTH] Master Admin provisioned -> ${adminEmail}`);
     }
 }
 
@@ -264,7 +289,7 @@ const authenticateToken = (req, res, next) => {
 
 // ======================== API ROUTES ========================
 
-// Dual Login
+// 1. Dual Login
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { identifier, password, expected_type } = req.body;
@@ -277,7 +302,7 @@ app.post('/api/auth/login', async (req, res) => {
         );
         let user = rows[0];
 
-        if (!user) return res.status(401).json({ error: 'Invalid ID or Credentials.' });
+        if (!user) return res.status(401).json({ error: 'Invalid Staff ID or Password.' });
 
         if (cleanId.toLowerCase() === configuredAdminEmail || cleanId.toUpperCase() === 'ADMIN_HQ') {
             user.user_type = 'ADMIN';
@@ -294,10 +319,6 @@ app.post('/api/auth/login', async (req, res) => {
         }
 
         if (user.user_type === 'STAFF') {
-            if (user.status !== 'Active') {
-                return res.status(403).json({ error: 'Account Pending: Awaiting Administrator verification.' });
-            }
-
             const cleanInputDob = (password || '').replace(/[-/]/g, '').trim();
             const cleanUserDob = (user.ef_dob || '').replace(/[-/]/g, '').trim();
 
@@ -327,7 +348,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Self-Service Registration
+// 2. Staff Registration (Syncs with Neon PostgreSQL and Google Sheets)
 app.post('/api/auth/register-staff', async (req, res) => {
     try {
         const {
@@ -356,6 +377,22 @@ app.post('/api/auth/register-staff', async (req, res) => {
         ];
 
         const result = await runExec(sql, params);
+
+        // Dispatches directly to Google Sheets Webhook
+        dispatchGoogleWebhook({
+            event_type: 'REGISTER_STAFF',
+            staff_id: assignedStaffId,
+            name: fullName,
+            role,
+            vendor: vendor_name || 'Direct',
+            city: ef_city,
+            mobile: ef_mobile_number,
+            dob: ef_dob,
+            email: officialEmail,
+            qualification: ef_qualification,
+            registered_time: new Date().toISOString()
+        });
+
         res.json({
             message: 'Application registered successfully!',
             staff_id: assignedStaffId,
@@ -372,7 +409,7 @@ app.post('/api/auth/register-staff', async (req, res) => {
     }
 });
 
-// Admin Dashboard Data
+// 3. Admin Dashboard Metrics
 app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
@@ -384,7 +421,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
                    e.id as exam_id, e.exam_name, e.exam_conducting_agency,
                    c.id as centre_id, c.centre_name, c.city as centre_city, c.full_address,
                    a.id as attendance_id, a.punch_in_time, a.punch_in_photo,
-                   a.punch_out_time, a.punch_out_photo, a.working_hours, a.match_confidence,
+                   a.punch_out_time, a.punch_out_photo, a.working_hours,
                    a.sheet_file, a.sheet_verification_status,
                    p.id as payment_id, p.payment_status, p.reference_no,
                    CASE WHEN a.punch_in_time IS NOT NULL THEN 'Present' ELSE 'Absent' END as attendance_status
@@ -416,7 +453,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     }
 });
 
-// Staff Management
+// 4. Staff Directory
 app.get('/api/staff', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC");
@@ -458,7 +495,19 @@ app.post('/api/staff', authenticateToken, async (req, res) => {
         ];
 
         const result = await runExec(sql, params);
-        res.json({ message: 'Staff registered successfully', staff_id: assignedStaffId, id: result.lastID });
+
+        dispatchGoogleWebhook({
+            event_type: 'REGISTER_STAFF',
+            staff_id: assignedStaffId,
+            name: fullName,
+            role,
+            vendor: assignedVendor,
+            city: ef_city,
+            mobile: ef_mobile_number,
+            dob: ef_dob
+        });
+
+        res.json({ message: 'Staff enrolled successfully', staff_id: assignedStaffId, id: result.lastID });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -477,7 +526,7 @@ app.delete('/api/staff/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Exams Management
+// 5. Examinations Master (Supports Dynamic N-Shifts)
 app.get('/api/exams', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM exams ORDER BY id DESC");
@@ -506,6 +555,17 @@ app.post('/api/exams', authenticateToken, async (req, res) => {
             parseFloat(default_travel_allowance) || 500.0,
             parseFloat(default_other_allowance) || 200.0
         ]);
+
+        dispatchGoogleWebhook({
+            event_type: 'SCHEDULE_EXAM',
+            exam_name,
+            agency: exam_conducting_agency,
+            date_from,
+            date_to,
+            shift_mode,
+            shifts_json: JSON.stringify(shift_timings || {})
+        });
+
         res.json({ message: 'Exam scheduled successfully', id: result.lastID });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -523,7 +583,7 @@ app.delete('/api/exams/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Centres Management
+// 6. Centres Directory
 app.get('/api/centres', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM centres ORDER BY id DESC");
@@ -555,7 +615,7 @@ app.delete('/api/centres/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Deployments
+// 7. Deployments (Multi-Day Date Range & Custom Salary Rates)
 app.get('/api/deployments', authenticateToken, async (req, res) => {
     try {
         const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.ef_mobile_number, u.ef_city, u.ef_dob,
@@ -588,7 +648,7 @@ app.post('/api/deployments', authenticateToken, async (req, res) => {
         const oAmt = parseFloat(other_allowance) || 200.0;
         const totalAmt = dAmt + tAmt + oAmt;
 
-        const users = await runQuery("SELECT vendor_name, name, staff_id FROM users WHERE id = ?", [staff_id]);
+        const users = await runQuery("SELECT vendor_name, name, staff_id, ef_mobile_number FROM users WHERE id = ?", [staff_id]);
         const u = users[0];
         const resolvedVendor = vendor_name || (u ? u.vendor_name : 'Direct');
 
@@ -605,6 +665,22 @@ app.post('/api/deployments', authenticateToken, async (req, res) => {
             currentDate.setDate(currentDate.getDate() + 1);
             daysCount++;
         }
+
+        const details = await runQuery("SELECT exam_name FROM exams WHERE id = ?", [exam_id]);
+        const centre = await runQuery("SELECT centre_name, city FROM centres WHERE id = ?", [centre_id]);
+
+        dispatchGoogleWebhook({
+            event_type: 'DEPLOY_DUTY',
+            staff_id: u?.staff_id,
+            staff_name: u?.name,
+            mobile: u?.ef_mobile_number,
+            exam_name: details[0]?.exam_name,
+            centre: `${centre[0]?.centre_name} (${centre[0]?.city})`,
+            period: `${duty_date_from} to ${duty_date_to || duty_date_from}`,
+            shift,
+            role: assigned_role,
+            total_payable: totalAmt
+        });
 
         res.json({ message: `Assigned for ${daysCount} day(s) successfully!` });
     } catch (err) {
@@ -623,7 +699,34 @@ app.delete('/api/deployments/:id', authenticateToken, async (req, res) => {
     }
 });
 
-// Staff Desk Portal Feed
+// 8. Role Forms Submission & Audit (CCTV, Jammer, Lab, Security)
+app.post('/api/staff/submit-operational-form', authenticateToken, upload.single('photo_proof'), async (req, res) => {
+    try {
+        const { deployment_id, role, duty_date, form_fields } = req.body;
+        const photoPath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        await runExec(
+            `INSERT INTO operational_forms (deployment_id, staff_id, role, duty_date, form_data_json, photo_proof_path)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [deployment_id, req.user.id, role, duty_date, form_fields, photoPath]
+        );
+
+        dispatchGoogleWebhook({
+            event_type: 'OPERATIONAL_FORM',
+            staff_id: req.user.staff_id,
+            role,
+            duty_date,
+            form_data: form_fields,
+            photo_url: photoPath
+        });
+
+        res.json({ message: `${role} Station Report logged successfully!` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 9. Staff Desk Portal
 app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
@@ -635,7 +738,7 @@ app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
                    e.exam_name, e.exam_conducting_agency, e.shift_timings_json,
                    c.centre_name, c.city, c.full_address, c.map_location,
                    a.id as attendance_id, a.punch_in_time, a.punch_in_photo, a.punch_out_time, a.punch_out_photo,
-                   a.working_hours, a.sheet_verification_status, a.sheet_file, a.match_confidence,
+                   a.working_hours, a.sheet_verification_status, a.sheet_file,
                    COALESCE(p.payment_status, 'Pending') as payment_status,
                    p.reference_no,
                    CASE WHEN d.duty_date = ? THEN 1 ELSE 0 END as is_today,
@@ -665,17 +768,27 @@ app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
         const upcomingDuty = rows.find(r => r.is_upcoming === 1);
         const activeDuty = todayDuty || upcomingDuty || (rows.length > 0 ? rows[0] : null);
 
+        let formSubmission = null;
+        if (activeDuty) {
+            const formRows = await runQuery(
+                "SELECT * FROM operational_forms WHERE deployment_id = ? ORDER BY id DESC LIMIT 1",
+                [activeDuty.deployment_id]
+            );
+            formSubmission = formRows[0] || null;
+        }
+
         res.json({
             summary: { totalWorkedDays, totalEarned, totalReceived, totalPending },
             activeDuty,
-            allDuties: rows || []
+            allDuties: rows || [],
+            roleFormSubmitted: !!formSubmission
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Biometric Punching
+// 10. Biometric Punching
 app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
     try {
         const { deployment_id, photo_base64 } = req.body;
@@ -689,8 +802,8 @@ app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
         fs.writeFileSync(filepath, base64Data, 'base64');
 
         await runExec(
-            `INSERT INTO attendance (deployment_id, staff_id, duty_date, punch_in_time, punch_in_photo, match_confidence) 
-             VALUES (?, ?, ?, ?, ?, '97.2% Match')`,
+            `INSERT INTO attendance (deployment_id, staff_id, duty_date, punch_in_time, punch_in_photo) 
+             VALUES (?, ?, ?, ?, ?)`,
             [deployment_id, req.user.id, today, timeStr, `/uploads/${filename}`]
         );
         res.json({ message: 'Punch-in registered', punch_in_time: timeStr });
@@ -748,7 +861,7 @@ app.post('/api/attendance/punch-out', authenticateToken, async (req, res) => {
     }
 });
 
-// Upload Hall Sheet (Stores Accessible Relative URL)
+// Upload Hall Sheet
 app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('attendance_sheet'), async (req, res) => {
     try {
         const { deployment_id, is_late, late_reason } = req.body;
@@ -767,7 +880,7 @@ app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('atten
     }
 });
 
-// Attendance Verification
+// 11. Verification & Payment Routes
 app.get('/api/admin/attendance-sheets', authenticateToken, async (req, res) => {
     try {
         const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name, u.ef_city,
@@ -795,7 +908,6 @@ app.post('/api/admin/verify-sheet', authenticateToken, async (req, res) => {
     }
 });
 
-// Payments
 app.get('/api/admin/payments', authenticateToken, async (req, res) => {
     try {
         const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name, u.ef_city,
@@ -826,7 +938,7 @@ app.post('/api/admin/update-payment', authenticateToken, async (req, res) => {
     }
 });
 
-// Catch-All Wildcard MUST be at the very bottom
+// Single Page Application Fallback
 app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
 });
