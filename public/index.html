@@ -3,14 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EXAM MANPOWER AGENCY | Operations & Deployment Portal</title>
+    <title>EXAM MANPOWER AGENCY | Central Command Desk</title>
     <!-- Chart.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root {
+            --navy: #0b1f3a;
+            --navy-light: #162f55;
+            --blue: #133b68;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --border: #cbd5e1;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --green: #16a34a;
+            --red: #dc2626;
+            --sidebar-w: 260px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); font-size: 13.5px; line-height: 1.5; }
+
+        /* Top Header */
+        .portal-header {
+            background: #ffffff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid var(--navy); box-shadow: 0 2px 4px rgba(0,0,0,0.04); position: sticky; top: 0; z-index: 100;
+        }
+        .portal-title h1 { font-size: 19px; font-weight: 800; color: var(--navy); letter-spacing: 0.5px; }
+        .portal-title p { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+
+        /* Floating Toast Notification */
+        .toast-popup {
+            position: fixed; top: 20px; right: 20px; background: #0f172a; color: #fff; padding: 14px 22px;
+            border-radius: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 99999; display: none;
+            align-items: center; gap: 10px; font-weight: 600; font-size: 13px; border-left: 4px solid #22c55e;
+            animation: slideIn 0.25s ease-out;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        /* Login Page */
+        .auth-wrapper { min-height: 85vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+        .auth-card {
+            background: #ffffff; width: 100%; max-width: 440px; border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 5px solid var(--navy); padding: 30px 26px;
+        }
+        .auth-header { text-align: center; margin-bottom: 20px; }
+        .auth-header h2 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+        .auth-header p { font-size: 12px; color: var(--muted); }
+
+        /* App Layout */
+        .app-container { display: flex; min-height: calc(100vh - 65px); }
+        .sidebar { width: var(--sidebar-w); background: var(--navy); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-user { padding: 18px 20px; background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+        .nav-category { font-size: 10.5px; text-transform: uppercase; color: #94a3b8; padding: 12px 20px 4px; font-weight: 700; letter-spacing: 0.8px; }
+        .nav-link { display: flex; align-items: center; padding: 10px 20px; color: #cbd5e1; text-decoration: none; cursor: pointer; gap: 12px; font-size: 13px; border-left: 3px solid transparent; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.08); color: #fff; border-left-color: #38bdf8; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .content-area { padding: 24px; flex: 1; overflow-y: auto; }
+
+        /* Dashboard & Charts */
+        .charts-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 22px; }
+        .chart-box { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 18px; height: 310px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 22px; }
+        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 16px; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .stat-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .stat-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: flex; justify-content: space-between; }
+        .stat-value { font-size: 24px; font-weight: 800; margin-top: 6px; color: var(--navy); }
+
+        /* Tables & UI Components */
+        .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+        th { background: #f8fafc; font-size: 11.5px; color: #334155; text-transform: uppercase; font-weight: 700; }
+
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 10.5px; font-weight: 700; display: inline-block; }
+        .badge-present, .badge-active, .badge-ready, .badge-paid { background: #dcfce7; color: var(--green); }
+        .badge-absent, .badge-rejected { background: #fee2e2; color: var(--red); }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+
+        .btn { padding: 8px 14px; border-radius: 4px; font-weight: 600; font-size: 12.5px; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; border-radius: 3px; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-danger { background: var(--red); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: #f1f5f9; }
+
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: #334155; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 8px 11px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; background: #fff; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 31, 58, 0.65); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+        .modal-content { background: #fff; border-radius: 6px; max-width: 840px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 14px 20px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+        .shift-timing-box { background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 4px; margin-bottom: 10px; }
+        .role-form-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 4px; padding: 16px; margin-top: 14px; }
+
+        .printable-pass { border: 2px solid var(--navy); padding: 24px; background: #fff; position: relative; }
+        .printable-pass h3 { font-size: 16px; color: var(--navy); text-align: center; border-bottom: 2px solid var(--navy); padding-bottom: 8px; margin-bottom: 14px; }
+        .pass-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12.5px; margin-bottom: 14px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #dutyPassModal, #dutyPassModal * { visibility: visible; }
+            #dutyPassModal { position: absolute; left: 0; top: 0; width: 100%; background: transparent !important; }
+            .modal-content { box-shadow: none; border: none; max-width: 100%; }
+            .modal-footer, .modal-header button { display: none !important; }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- SYSTEM TOAST POPUP -->
+    <!-- NOTIFICATION TOAST -->
     <div id="toastPopup" class="toast-popup">
         <span id="toastIcon">✓</span>
         <span id="toastText">Action Completed</span>
@@ -29,18 +146,18 @@
     <div id="authView" class="auth-wrapper">
         <div class="auth-card">
             <div class="auth-header">
-                <h2 id="authCardTitle">Sign In to Portal</h2>
-                <p id="authCardSub">Agency Examination Staff & Coordinator Access</p>
+                <h2 id="authCardTitle">Staff Portal Sign In</h2>
+                <p id="authCardSub">Examination Personnel Active Session Access</p>
             </div>
             
             <div class="auth-body">
                 <!-- TAB SWITCHER -->
-                <div style="display: flex; gap: 6px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 8px; margin-bottom: 18px;">
                     <button type="button" id="tabStaff" class="btn btn-primary" style="flex: 1;" onclick="setLoginType('STAFF')">Staff Portal</button>
                     <button type="button" id="tabAdmin" class="btn btn-outline" style="flex: 1;" onclick="setLoginType('ADMIN')">Admin Desk</button>
                 </div>
 
-                <div id="loginAlert" style="display:none; color: var(--red); font-size: 12px; margin-bottom: 12px; font-weight: 600;"></div>
+                <div id="loginAlert" style="display:none; color: var(--red); font-size: 12px; margin-bottom: 14px; font-weight: 600; background:#fee2e2; padding:8px 10px; border-radius:4px;"></div>
 
                 <!-- SIGN IN FORM -->
                 <form id="loginForm">
@@ -52,12 +169,12 @@
                         <label id="lblPassword">Password / Date of Birth</label>
                         <input type="password" id="loginPassword" placeholder="DDMMYYYY or YYYY-MM-DD" required>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: 700;">Sign In to Portal</button>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: 700; font-size:13px;">Sign In to Portal</button>
 
-                    <!-- STAFF SIGN UP LINK -->
-                    <div id="staffSignUpPrompt" style="margin-top: 16px; text-align: center; border-top: 1px dashed var(--border); padding-top: 12px;">
+                    <!-- STAFF SIGN UP PROMPT -->
+                    <div id="staffSignUpPrompt" style="margin-top: 18px; text-align: center; border-top: 1px dashed var(--border); padding-top: 14px;">
                         <span style="font-size: 12px; color: var(--muted);">New Examination Staff Member?</span><br>
-                        <button type="button" class="btn btn-outline btn-sm" style="margin-top: 6px; width: 100%;" onclick="openStaffRegistrationModal()">📝 Register / Sign Up (Staff)</button>
+                        <button type="button" class="btn btn-outline btn-sm" style="margin-top: 8px; width: 100%; font-weight:600;" onclick="openStaffRegistrationModal()">📝 Register / Sign Up (Staff Application)</button>
                     </div>
                 </form>
             </div>
@@ -102,7 +219,7 @@
                 <a class="nav-link" onclick="switchRoute('staff-history')">📅 My Work & Salary Ledger</a>
             </div>
 
-            <div style="padding: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+            <div style="padding: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
                 <button onclick="logout()" class="btn btn-outline" style="width: 100%; color: #fff; border-color: rgba(255,255,255,0.3);">Sign Out</button>
             </div>
         </aside>
@@ -110,7 +227,7 @@
         <main class="main-content">
             <section class="content-area">
 
-                <!-- VIEW 1: CLASSIC OPERATIONAL DASHBOARD -->
+                <!-- VIEW 1: OPERATIONAL DASHBOARD WITH ROLE MATRIX -->
                 <div id="view-admin-dashboard" class="page-view">
                     <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 4px;">Command Operations Dashboard</h2>
                     <p style="color: var(--muted); font-size: 12px; margin-bottom: 16px;">Live centre readiness, role distribution, and shortage tracking.</p>
@@ -171,7 +288,7 @@
                     </div>
                 </div>
 
-                <!-- VIEW 3: STAFF DIRECTORY & APPROVAL WORKFLOW -->
+                <!-- VIEW 3: STAFF DIRECTORY & APPROVAL DESK -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
@@ -184,7 +301,7 @@
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>City</th><th>Mobile</th><th>Status</th><th>Review / Approval</th><th>Edit</th><th>Duty Pass</th><th>Dispatch</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>City</th><th>Mobile</th><th>Status</th><th>Approval</th><th>Edit</th><th>Duty Pass</th><th>Dispatch</th></tr>
                                 </thead>
                                 <tbody id="staffTableBody"></tbody>
                             </table>
@@ -224,7 +341,7 @@
                     </div>
                 </div>
 
-                <!-- VIEW 6: DEPLOYMENTS (CUSTOM REMUNERATION) -->
+                <!-- VIEW 6: DEPLOYMENTS -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <h2 style="font-size: 18px; font-weight: 800; color: var(--navy);">Staff Deployment Orders</h2>
@@ -253,7 +370,7 @@
                     </div>
                 </div>
 
-                <!-- VIEW 8: REMUNERATION & DISBURSEMENT LEDGER -->
+                <!-- VIEW 8: REMUNERATION LEDGER -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
                     <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Treasury Remuneration Ledger</h2>
                     <div class="card">
@@ -313,4 +430,1328 @@
                             <canvas id="snapshotCanvas" style="display: none;"></canvas>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-pr
+                            <button class="btn btn-primary" style="flex: 1;" onclick="executePunch('in')">Punch In</button>
+                            <button class="btn btn-outline" style="flex: 1;" onclick="executePunch('out')">Punch Out</button>
+                        </div>
+                        <p id="punchMessage" style="margin-top: 10px; font-size: 12px; text-align: center; font-weight: 700;"></p>
+                    </div>
+                </div>
+
+                <div id="view-staff-sheet" class="page-view" style="display: none;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Upload Signed Hall Roster</h2>
+                    <div class="card" style="max-width: 500px; margin: 0 auto; padding: 24px;">
+                        <form id="sheetUploadForm">
+                            <div style="border: 2px dashed #94a3b8; border-radius: 4px; padding: 24px; text-align: center; cursor: pointer;" onclick="document.getElementById('sheetFileInput').click()">
+                                <p style="font-weight: 700;">Choose Signed Document (PDF / Image)</p>
+                                <input type="file" id="sheetFileInput" name="attendance_sheet" accept=".pdf,image/*" style="display: none;" onchange="showSelectedFileName(this)">
+                            </div>
+                            <p id="selectedFileNotice" style="margin-top: 8px; font-weight: 700; color: var(--accent);"></p>
+                            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 14px;">Submit Document</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="view-staff-history" class="page-view" style="display: none;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">My Complete Work History & Salary Ledger</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-label">Days Worked</div><div class="stat-value" id="ledgerDaysWorked">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Total Fee</div><div class="stat-value" id="ledgerTotalEarned" style="color: var(--accent);">₹0</div></div>
+                        <div class="stat-card"><div class="stat-label">Received</div><div class="stat-value" id="ledgerTotalReceived" style="color: var(--green);">₹0</div></div>
+                        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" id="ledgerTotalPending" style="color: #d97706;">₹0</div></div>
+                    </div>
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Session Date</th><th>Exam & Venue</th><th>Role</th><th>Shift</th><th>Working Hours</th><th>Sanction Amount</th><th>Status</th><th>Treasury Token</th></tr></thead>
+                                <tbody id="staffLedgerTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- 1. SELF-SERVICE STAFF SIGN UP MODAL -->
+    <div id="staffRegistrationModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New Staff Registration / Sign Up</h3>
+                <button class="btn btn-outline" onclick="closeModal('staffRegistrationModal')">✕</button>
+            </div>
+            <form id="staffSignUpForm">
+                <div class="modal-body">
+                    <p style="font-size: 11.5px; color: var(--muted); margin-bottom: 14px;">
+                        Please provide accurate identity and contact details. Once registered, your application will be reviewed by the Exam Administrator for approval.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Desired Role *</label><select name="role" required>
+                            <option value="Invigilator">Invigilator</option>
+                            <option value="Registration Staff">Registration Staff</option>
+                            <option value="Support Staff">Support Staff</option>
+                            <option value="Lab Supervisor">Lab Supervisor</option>
+                            <option value="Security">Security Supervisor</option>
+                            <option value="CCTV Operator">CCTV Operator</option>
+                            <option value="Jammer Operator">Jammer Operator</option>
+                            <option value="Technical Staff">Technical Staff</option>
+                        </select></div>
+                        <div class="form-group"><label>Sponsoring Vendor / Direct</label><input type="text" name="vendor_name" placeholder="Eduquity / TCS / Direct"></div>
+                        <div class="form-group"><label>City / District *</label><select name="ef_city" required>
+                            <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
+                            <option value="Salem">Salem</option><option value="Coimbatore">Coimbatore</option>
+                            <option value="Madurai">Madurai</option><option value="Vellore">Vellore</option>
+                            <option value="Tirunelveli">Tirunelveli</option>
+                        </select></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>First Name *</label><input type="text" name="ef_first_name" required></div>
+                        <div class="form-group"><label>Middle Name</label><input type="text" name="ef_middle_name"></div>
+                        <div class="form-group"><label>Last Name *</label><input type="text" name="ef_last_name" required></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Date of Birth (Password) *</label><input type="date" name="ef_dob" required></div>
+                        <div class="form-group"><label>Gender *</label><select name="ef_gender" required><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                        <div class="form-group"><label>Mobile Contact Number *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile number"></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Email Address *</label><input type="email" name="ef_email_id" required placeholder="you@domain.com"></div>
+                        <div class="form-group"><label>Father's Name *</label><input type="text" name="ef_father_name" required></div>
+                        <div class="form-group"><label>Mother's Name *</label><input type="text" name="ef_mother_name" required></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Aadhaar / National ID Number *</label><input type="text" name="ef_aadhar_number" required placeholder="12-digit number"></div>
+                        <div class="form-group"><label>Highest Educational Qualification *</label><input type="text" name="ef_qualification" required placeholder="e.g. B.E / B.Sc / M.A"></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Present Address *</label><textarea name="ef_present_address" rows="2" required></textarea></div>
+                        <div class="form-group"><label>Permanent Address *</label><textarea name="ef_permanent_address" rows="2" required></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('staffRegistrationModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Application for Approval</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. STAFF REGISTRATION SUCCESS POPUP -->
+    <div id="signUpDoneModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 480px; text-align: center;">
+            <div class="modal-body" style="padding: 28px 20px;">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #dcfce7; color: var(--green); display: flex; align-items: center; justify-content: center; font-size: 24px; margin: 0 auto 12px;">✓</div>
+                <h3 style="color: var(--navy); font-size: 17px; margin-bottom: 6px;">Application Submitted Successfully!</h3>
+                <p style="color: var(--muted); font-size: 12.5px; margin-bottom: 16px;">
+                    Your candidate profile has been registered in the system. Your official credentials are:
+                </p>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 6px; margin-bottom: 16px; text-align: left;">
+                    <div><strong>Candidate Name:</strong> <span id="doneStaffName"></span></div>
+                    <div><strong>Assigned Staff ID:</strong> <code id="doneStaffId" style="color: var(--accent); font-weight: 700; font-size: 14px;"></code></div>
+                    <div><strong>Password (DOB):</strong> <code id="doneStaffDob"></code></div>
+                    <div style="margin-top: 6px; font-size: 11px; color: #b45309;">
+                        ⏳ <strong>Status: Pending Administrator Approval</strong><br>
+                        You will be able to log in to the Staff Portal as soon as the Central Coordinator reviews and approves your account.
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" style="width: 100%;" onclick="closeModal('signUpDoneModal')">Understood, Proceed to Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. DRILLDOWN MODAL -->
+    <div id="drilldownModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="drilldownTitle">Personnel Drilldown</h3>
+                <button class="btn btn-outline" onclick="closeModal('drilldownModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Venue</th><th>Exam</th><th>Shift</th><th>In</th><th>Out</th><th>Status</th></tr></thead>
+                        <tbody id="drilldownTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ATTENDANCE INSPECTION PROOF MODAL -->
+    <div id="attendanceProofModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Attendance Audit & Photo Proof</h3>
+                <button class="btn btn-outline" onclick="closeModal('attendanceProofModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div><label>Punch In Photo</label><div id="proofPunchInPhoto" style="height: 180px; background: #000; border-radius: 4px; overflow: hidden;"></div></div>
+                    <div><label>Punch Out Photo</label><div id="proofPunchOutPhoto" style="height: 180px; background: #000; border-radius: 4px; overflow: hidden;"></div></div>
+                </div>
+                <div style="text-align: center; border: 1px solid var(--border); padding: 12px; border-radius: 4px;">
+                    <label>Countersigned Hall Sheet Document</label>
+                    <div id="proofSheetContainer" style="min-height: 200px; display: flex; align-items: center; justify-content: center;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="actionVerifyCurrent('Rejected')">Reject</button>
+                <button class="btn btn-success" onclick="actionVerifyCurrent('Approved')">Approve Attendance</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. EDIT REMUNERATION MODAL -->
+    <div id="editRemunerationModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3>Update Custom Remuneration</h3>
+                <button class="btn btn-outline" onclick="closeModal('editRemunerationModal')">✕</button>
+            </div>
+            <form id="editRemunerationForm">
+                <input type="hidden" id="editRemDepId">
+                <div class="modal-body">
+                    <div class="form-group"><label>Duty Honorarium (₹) *</label><input type="number" id="editRemDuty" required></div>
+                    <div class="form-group"><label>Travel Allowance (TA) (₹) *</label><input type="number" id="editRemTravel" required></div>
+                    <div class="form-group"><label>Refreshment / Other (₹) *</label><input type="number" id="editRemOther" required></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editRemunerationModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Remuneration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. PRINTABLE DUTY PASS MODAL -->
+    <div id="dutyPassModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Official Duty Order Slip</h3>
+                <button class="btn btn-outline" onclick="closeModal('dutyPassModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="printable-pass" id="printablePassArea">
+                    <h3>EXAM MANPOWER AGENCY • OFFICIAL DEPLOYMENT SLIP</h3>
+                    <div class="pass-grid">
+                        <div>Staff ID: <strong id="passStaffId"></strong></div>
+                        <div>Name: <strong id="passStaffName"></strong></div>
+                        <div>Role: <strong id="passRole"></strong></div>
+                        <div>Phone: <strong id="passMobile"></strong></div>
+                        <div>Exam: <strong id="passExam"></strong></div>
+                        <div>Shift: <strong id="passShift"></strong></div>
+                        <div style="grid-column: span 2;">Venue: <strong id="passVenue"></strong></div>
+                        <div style="grid-column: span 2;">Dates: <strong id="passPeriod"></strong></div>
+                    </div>
+                    <div style="text-align: center; font-family: monospace; letter-spacing: 2px; font-size: 11px;">
+                        |||||||||| |||||||| |||||||||||||||| |||||||||||||<br>
+                        OFFICIAL VERIFICATION CODE
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('dutyPassModal')">Close</button>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Print Slip</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. MANUAL ADD STAFF (ADMIN) -->
+    <div id="addStaffModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Enroll Examination Personnel (Admin)</h3><button class="btn btn-outline" onclick="closeModal('addStaffModal')">✕</button></div>
+            <form id="addStaffForm">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Role *</label><select name="role" required>
+                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
+                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
+                            <option value="Security">Security Supervisor</option><option value="CCTV Operator">CCTV Operator</option>
+                            <option value="Jammer Operator">Jammer Operator</option><option value="Technical Staff">Technical Staff</option>
+                        </select></div>
+                        <div class="form-group"><label>Vendor Agency</label><input type="text" name="vendor_name" placeholder="Eduquity / TCS / Direct"></div>
+                        <div class="form-group"><label>City / District *</label><select name="ef_city" required>
+                            <option value="Chennai">Chennai</option><option value="Trichy">Trichy</option>
+                            <option value="Salem">Salem</option><option value="Coimbatore">Coimbatore</option>
+                            <option value="Madurai">Madurai</option><option value="Vellore">Vellore</option>
+                        </select></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>First Name *</label><input type="text" name="ef_first_name" required></div>
+                        <div class="form-group"><label>Middle Name</label><input type="text" name="ef_middle_name"></div>
+                        <div class="form-group"><label>Last Name</label><input type="text" name="ef_last_name"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>DOB (Password) *</label><input type="date" name="ef_dob" required></div>
+                        <div class="form-group"><label>Gender</label><select name="ef_gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                        <div class="form-group"><label>Mobile Contact *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Email Address *</label><input type="email" name="ef_email_id" required></div>
+                        <div class="form-group"><label>Father's Name</label><input type="text" name="ef_father_name"></div>
+                        <div class="form-group"><label>Mother's Name</label><input type="text" name="ef_mother_name"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>National ID / Aadhaar</label><input type="text" name="ef_aadhar_number"></div>
+                        <div class="form-group"><label>Qualification</label><input type="text" name="ef_qualification" placeholder="Degree / Engineering"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Present Address</label><textarea name="ef_present_address" rows="2"></textarea></div>
+                        <div class="form-group"><label>Permanent Address</label><textarea name="ef_permanent_address" rows="2"></textarea></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')">Cancel</button><button type="submit" class="btn btn-primary">Enroll Staff (Instant Active)</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 8. EDIT STAFF MODAL -->
+    <div id="editStaffModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Edit Staff Details</h3><button class="btn btn-outline" onclick="closeModal('editStaffModal')">✕</button></div>
+            <form id="editStaffForm">
+                <input type="hidden" name="id" id="editStaffId">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Full Name *</label><input type="text" name="name" id="editStaffName" required></div>
+                        <div class="form-group"><label>Mobile Contact *</label><input type="tel" name="ef_mobile_number" id="editStaffMobile" required></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Role</label><select name="role" id="editStaffRole">
+                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
+                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
+                            <option value="Security">Security Supervisor</option><option value="CCTV Operator">CCTV Operator</option>
+                            <option value="Jammer Operator">Jammer Operator</option><option value="Technical Staff">Technical Staff</option>
+                        </select></div>
+                        <div class="form-group"><label>Vendor</label><input type="text" name="vendor_name" id="editStaffVendor"></div>
+                        <div class="form-group"><label>City</label><input type="text" name="ef_city" id="editStaffCity"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Father's Name</label><input type="text" name="ef_father_name" id="editStaffFather"></div>
+                        <div class="form-group"><label>Mother's Name</label><input type="text" name="ef_mother_name" id="editStaffMother"></div>
+                    </div>
+                    <div class="form-group"><label>Qualification</label><input type="text" name="ef_qualification" id="editStaffQual"></div>
+                    <div class="form-group"><label>Present Address</label><textarea name="ef_present_address" id="editStaffPresent" rows="2"></textarea></div>
+                    <div class="form-group"><label>Permanent Address</label><textarea name="ef_permanent_address" id="editStaffPermanent" rows="2"></textarea></div>
+                    <div class="form-group"><label>Account Status</label><select name="status" id="editStaffStatus"><option value="Active">Active</option><option value="Pending Approval">Pending Approval</option><option value="Inactive">Inactive</option></select></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('editStaffModal')">Cancel</button><button type="submit" class="btn btn-primary">Update Profile</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 9. DYNAMIC SHIFT SCHEDULE EXAM MODAL -->
+    <div id="addExamModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Schedule Examination Master</h3><button class="btn btn-outline" onclick="closeModal('addExamModal')">✕</button></div>
+            <form id="addExamForm">
+                <div class="modal-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Examination Title *</label><input type="text" name="exam_name" required placeholder="e.g. TNPSC Group IV 2026"></div>
+                        <div class="form-group"><label>Conducting Agency *</label><input type="text" name="exam_conducting_agency" required placeholder="e.g. TNPSC"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Date From *</label><input type="date" name="date_from" required></div>
+                        <div class="form-group"><label>Date To *</label><input type="date" name="date_to" required></div>
+                        <div class="form-group">
+                            <label>Number of Shifts *</label>
+                            <select id="examShiftCountSelect" onchange="generateDynamicShiftInputs(this.value, 'shiftTimingContainer')">
+                                <option value="1">1 Shift</option>
+                                <option value="2">2 Shifts</option>
+                                <option value="3" selected>3 Shifts</option>
+                                <option value="4">4 Shifts</option>
+                                <option value="5">5 Shifts</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="shiftTimingContainer" style="margin-top: 10px;"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button><button type="submit" class="btn btn-primary">Publish Examination</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 10. ADD CENTRE MODAL -->
+    <div id="addCentreModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header"><h3>Register Exam Venue</h3><button class="btn btn-outline" onclick="closeModal('addCentreModal')">✕</button></div>
+            <form id="addCentreForm">
+                <div class="modal-body">
+                    <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" required></div>
+                    <div class="form-group"><label>City / District *</label><select name="city" required><option value="Chennai">Chennai</option><option value="Trichy">Trichy</option><option value="Salem">Salem</option><option value="Coimbatore">Coimbatore</option></select></div>
+                    <div class="form-group"><label>Full Address</label><textarea name="full_address" rows="2"></textarea></div>
+                    <div class="form-group"><label>Google Maps Link</label><input type="text" name="map_location"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addCentreModal')">Cancel</button><button type="submit" class="btn btn-primary">Save Centre</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 11. DEPLOY STAFF MODAL -->
+    <div id="deployStaffModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Deploy Staff Across Shift / Date Range</h3><button class="btn btn-outline" onclick="closeModal('deployStaffModal')">✕</button></div>
+            <form id="deployStaffForm">
+                <div class="modal-body">
+                    <div class="form-group"><label>Examination *</label><select name="exam_id" id="deployExamSelect" required></select></div>
+                    <div class="form-group"><label>Centre Venue *</label><select name="centre_id" id="deployCentreSelect" required></select></div>
+                    <div class="form-group"><label>Staff Member *</label><select name="staff_id" id="deployStaffSelect" required></select></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Role *</label><select name="assigned_role" required>
+                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
+                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
+                            <option value="Security">Security Supervisor</option><option value="CCTV Operator">CCTV Operator</option>
+                            <option value="Jammer Operator">Jammer Operator</option><option value="Technical Staff">Technical Staff</option>
+                        </select></div>
+                        <div class="form-group"><label>Vendor Override</label><input type="text" name="vendor_name" placeholder="Default: Profile Vendor"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div class="form-group"><label>Duty Date From *</label><input type="date" name="duty_date_from" required id="deployDutyDateFrom"></div>
+                        <div class="form-group"><label>Duty Date To *</label><input type="date" name="duty_date_to" required id="deployDutyDateTo"></div>
+                        <div class="form-group"><label>Shift *</label><select name="shift" required>
+                            <option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option>
+                            <option value="Shift 3">Shift 3</option><option value="Shift 4">Shift 4</option>
+                            <option value="Full Day">Full Day</option>
+                        </select></div>
+                    </div>
+                    <div style="border-top:1px dashed var(--border); padding-top:10px; margin-top:10px;">
+                        <strong style="font-size:11.5px; color:var(--navy);">Custom Remuneration Rates (Per Day)</strong>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top:6px;">
+                            <div class="form-group"><label>Duty Fee (₹) *</label><input type="number" name="duty_amount" value="1200" required></div>
+                            <div class="form-group"><label>Travel Allow. (₹) *</label><input type="number" name="travel_allowance" value="500" required></div>
+                            <div class="form-group"><label>Other/Snacks (₹) *</label><input type="number" name="other_allowance" value="200" required></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('deployStaffModal')">Cancel</button><button type="submit" class="btn btn-primary">Deploy Staff</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT CONTROLLER SCRIPT EMBEDDED -->
+    <script>
+        let CURRENT_USER = null;
+        let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
+        let USER_ASSIGNMENT = null;
+        let currentLoginType = 'STAFF';
+        let rawDeployments = [];
+        let videoStream = null;
+        let donutChartInstance = null;
+        let barChartInstance = null;
+        let currentInspectingAttendanceId = null;
+        let cachedSheets = [];
+        let cachedStaff = [];
+        let cachedPayments = [];
+        let fullReportsCache = [];
+
+        const ALL_ROLES = [
+            'Invigilator', 'Registration Staff', 'Support Staff', 'Lab Supervisor',
+            'Security', 'CCTV Operator', 'Jammer Operator', 'Technical Staff',
+            'Centre Head', 'Exam Coordinator'
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('agencyClock').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            generateDynamicShiftInputs(3, 'shiftTimingContainer');
+            if (TOKEN) {
+                try {
+                    CURRENT_USER = JSON.parse(localStorage.getItem('EMMS_USER'));
+                    initSession();
+                } catch (e) { logout(); }
+            } else {
+                document.getElementById('authView').style.display = 'flex';
+                document.getElementById('appShell').style.display = 'none';
+            }
+        });
+
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toastPopup');
+            document.getElementById('toastText').innerText = message;
+            document.getElementById('toastIcon').innerText = isSuccess ? '✓' : '⚠';
+            toast.style.borderLeftColor = isSuccess ? '#22c55e' : '#ef4444';
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 3200);
+        }
+
+        function setLoginType(type) {
+            currentLoginType = type;
+            const tabStaff = document.getElementById('tabStaff');
+            const tabAdmin = document.getElementById('tabAdmin');
+            const lblId = document.getElementById('lblIdentifier');
+            const lblPass = document.getElementById('lblPassword');
+            const inpId = document.getElementById('loginIdentifier');
+            const inpPass = document.getElementById('loginPassword');
+            const signUpPrompt = document.getElementById('staffSignUpPrompt');
+            const cardTitle = document.getElementById('authCardTitle');
+            const cardSub = document.getElementById('authCardSub');
+
+            if (type === 'STAFF') {
+                tabStaff.className = 'btn btn-primary'; tabAdmin.className = 'btn btn-outline';
+                lblId.innerText = 'Staff ID'; inpId.placeholder = 'e.g. CCTRI001';
+                lblPass.innerText = 'Password / Date of Birth'; inpPass.placeholder = 'DDMMYYYY or YYYY-MM-DD';
+                signUpPrompt.style.display = 'block';
+                cardTitle.innerText = 'Staff Portal Sign In';
+                cardSub.innerText = 'Examination Personnel Active Session Access';
+            } else {
+                tabAdmin.className = 'btn btn-primary'; tabStaff.className = 'btn btn-outline';
+                lblId.innerText = 'Admin Email Address'; inpId.placeholder = 'shankaranv161@gmail.com';
+                lblPass.innerText = 'Admin Password'; inpPass.placeholder = '••••••••';
+                signUpPrompt.style.display = 'none';
+                cardTitle.innerText = 'Central Admin Desk';
+                cardSub.innerText = 'Authorized Examination Control & Treasury Access';
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('loginIdentifier').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const alertBox = document.getElementById('loginAlert');
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password, expected_type: currentLoginType })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alertBox.innerText = data.error || 'Authentication failure.';
+                    alertBox.style.display = 'block';
+                    return;
+                }
+                TOKEN = data.token; CURRENT_USER = data.user;
+                localStorage.setItem('EMMS_TOKEN', TOKEN);
+                localStorage.setItem('EMMS_USER', JSON.stringify(CURRENT_USER));
+                initSession();
+            } catch (err) {
+                alertBox.innerText = 'Connection error.'; alertBox.style.display = 'block';
+            }
+        });
+
+        function initSession() {
+            document.getElementById('authView').style.display = 'none';
+            document.getElementById('appShell').style.display = 'flex';
+            document.getElementById('sessionUserDisplay').innerText = CURRENT_USER.name || 'User';
+            document.getElementById('sessionRoleBadge').innerText = (CURRENT_USER.role || 'STAFF').toUpperCase();
+
+            if (CURRENT_USER.user_type === 'ADMIN') {
+                document.getElementById('adminNav').style.display = 'block';
+                document.getElementById('staffNav').style.display = 'none';
+                switchRoute('admin-dashboard');
+            } else {
+                document.getElementById('adminNav').style.display = 'none';
+                document.getElementById('staffNav').style.display = 'block';
+                switchRoute('staff-duty');
+                loadStaffPortalData();
+                startCamera();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('EMMS_TOKEN');
+            localStorage.removeItem('EMMS_USER');
+            TOKEN = null; CURRENT_USER = null;
+            if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); }
+            location.reload();
+        }
+
+        function switchRoute(route) {
+            document.querySelectorAll('.page-view').forEach(v => v.style.display = 'none');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            const target = document.getElementById(`view-${route}`);
+            if (target) target.style.display = 'block';
+
+            if (route === 'admin-dashboard') loadDashboardData();
+            else if (route === 'admin-analytics') renderAnalyticsHub();
+            else if (route === 'admin-staff') loadStaffList();
+            else if (route === 'admin-exams') loadExamsList();
+            else if (route === 'admin-centres') loadCentresList();
+            else if (route === 'admin-deployments') loadDeploymentsList();
+            else if (route === 'admin-attendance') loadAttendanceSheets();
+            else if (route === 'admin-payments') loadPaymentsList();
+            else if (route === 'admin-reports') loadReportsData();
+            else if (route === 'staff-duty' || route === 'staff-history') loadStaffPortalData();
+        }
+
+        async function api(url, options = {}) {
+            options.headers = options.headers || {};
+            options.headers['Authorization'] = `Bearer ${TOKEN}`;
+            const res = await fetch(url, options);
+            if (res.status === 401 || res.status === 403) { logout(); return null; }
+            return await res.json();
+        }
+
+        function generateDynamicShiftInputs(count, containerId) {
+            const container = document.getElementById(containerId);
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                html += `
+                    <div class="shift-timing-box">
+                        <strong style="color:var(--navy); font-size:12px;">Shift ${i} Timing Configuration</strong>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:4px;">
+                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s${i}_reporting" value="${i === 1 ? '07:30' : i === 2 ? '11:30' : '15:00'}"></div>
+                            <div class="form-group"><label>Exam Start</label><input type="time" name="s${i}_start" value="${i === 1 ? '09:00' : i === 2 ? '12:30' : '16:00'}"></div>
+                            <div class="form-group"><label>Exam End</label><input type="time" name="s${i}_end" value="${i === 1 ? '11:00' : i === 2 ? '14:30' : '18:00'}"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function triggerSmsDispatch(mobile, text) {
+            const cleanPhone = (mobile || '').replace(/[^0-9]/g, '');
+            const encoded = encodeURIComponent(text);
+            window.location.href = `sms:${cleanPhone}?body=${encoded}`;
+            showToast(`SMS dispatch opened for ${cleanPhone}!`);
+        }
+
+        function copyRosterToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            showToast('✓ Credentials copied to clipboard!');
+        }
+
+        async function loadDashboardData() {
+            const data = await api('/api/admin/dashboard');
+            if (!data) return;
+            rawDeployments = data.allDeployments || [];
+            document.getElementById('dashTotalStaff').innerText = data.totalStaffCount;
+            document.getElementById('dashPendingApproval').innerText = data.pendingApprovalCount || 0;
+            document.getElementById('dashPaymentPending').innerText = `₹${(data.totalPaymentPending || 0).toLocaleString()}`;
+
+            const total = rawDeployments.length;
+            const present = rawDeployments.filter(d => d.attendance_status === 'Present').length;
+            const absent = rawDeployments.filter(d => d.attendance_status === 'Absent').length;
+            const pendingOut = rawDeployments.filter(d => d.punch_in_time && !d.punch_out_time).length;
+
+            document.getElementById('dashPresent').innerText = present;
+            document.getElementById('dashAbsent').innerText = absent;
+            document.getElementById('dashPunchOutPending').innerText = pendingOut;
+
+            const tbodyRole = document.getElementById('roleMatrixTableBody');
+            tbodyRole.innerHTML = ALL_ROLES.map(role => {
+                const roleList = rawDeployments.filter(d => (d.assigned_role || '').toLowerCase() === role.toLowerCase());
+                const assigned = roleList.length;
+                const pCount = roleList.filter(d => d.attendance_status === 'Present').length;
+                const aCount = assigned - pCount;
+                return `
+                    <tr style="cursor: pointer;" onclick="openDrilldownModal('ROLE', '${role}', '${role}')">
+                        <td><strong>${role}</strong></td>
+                        <td>${assigned}</td>
+                        <td style="color:var(--green); font-weight:700;">${pCount}</td>
+                        <td style="color:var(--red); font-weight:700;">${aCount}</td>
+                        <td style="color:${aCount > 0 ? '#ea580c' : 'var(--green)'}; font-weight:800;">${aCount}</td>
+                        <td><button class="btn btn-outline btn-sm">Inspect Role</button></td>
+                    </tr>
+                `;
+            }).join('');
+
+            const tbodyCentre = document.getElementById('centreStatusTableBody');
+            const uniqueCentres = [...new Set(rawDeployments.map(d => d.centre_name).filter(Boolean))];
+            tbodyCentre.innerHTML = (uniqueCentres.length === 0) ? `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No venues active today.</td></tr>` : uniqueCentres.map(cName => {
+                const cList = rawDeployments.filter(d => d.centre_name === cName);
+                const assigned = cList.length;
+                const pCount = cList.filter(d => d.attendance_status === 'Present').length;
+                const deficit = assigned - pCount;
+                return `<tr><td><strong>${cName}</strong></td><td>${cList[0]?.centre_city || 'N/A'}</td><td>${assigned}</td><td style="color:var(--green); font-weight:700;">${pCount}</td><td style="color:var(--red); font-weight:700;">${deficit}</td><td><span class="badge badge-${deficit > 0 ? 'absent' : 'present'}">${deficit > 0 ? 'Deficit' : 'Ready'}</span></td></tr>`;
+            }).join('');
+        }
+
+        async function renderAnalyticsHub() {
+            const data = await api('/api/admin/dashboard');
+            if (!data) return;
+            const deployments = data.allDeployments || [];
+            const present = deployments.filter(d => d.attendance_status === 'Present').length;
+            const absent = deployments.filter(d => d.attendance_status === 'Absent').length;
+            const pendingOut = deployments.filter(d => d.punch_in_time && !d.punch_out_time).length;
+
+            const ctxDonut = document.getElementById('chartAttendanceDonut').getContext('2d');
+            if (donutChartInstance) donutChartInstance.destroy();
+            donutChartInstance = new Chart(ctxDonut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Present', 'Absent / Deficit', 'On-Duty Active'],
+                    datasets: [{
+                        data: [present || 1, absent || 0, pendingOut || 0],
+                        backgroundColor: ['#16a34a', '#dc2626', '#d97706'],
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const roleCounts = {};
+            deployments.forEach(d => { roleCounts[d.assigned_role] = (roleCounts[d.assigned_role] || 0) + 1; });
+            const ctxBar = document.getElementById('chartRoleBars').getContext('2d');
+            if (barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(roleCounts).length ? Object.keys(roleCounts) : ALL_ROLES.slice(0, 5),
+                    datasets: [{
+                        label: 'Staff Count',
+                        data: Object.values(roleCounts).length ? Object.values(roleCounts) : [0, 0, 0, 0, 0],
+                        backgroundColor: '#2563eb'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function openDrilldownModal(type, title, filterValue) {
+            document.getElementById('drilldownTitle').innerText = `Drilldown: ${title}`;
+            let list = [];
+            if (type === 'ALL') list = rawDeployments;
+            else if (type === 'PRESENT') list = rawDeployments.filter(d => d.attendance_status === 'Present');
+            else if (type === 'ABSENT') list = rawDeployments.filter(d => d.attendance_status === 'Absent');
+            else if (type === 'PUNCHOUT_PENDING') list = rawDeployments.filter(d => d.punch_in_time && !d.punch_out_time);
+            else if (type === 'ROLE') list = rawDeployments.filter(d => (d.assigned_role || '').toLowerCase() === filterValue.toLowerCase());
+
+            const tbody = document.getElementById('drilldownTbody');
+            tbody.innerHTML = (list.length === 0) ? `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No records located.</td></tr>` : list.map(s => `
+                <tr>
+                    <td><strong>${s.staff_id}</strong></td>
+                    <td>${s.staff_name}</td>
+                    <td>${s.assigned_role}</td>
+                    <td>${s.centre_name}</td>
+                    <td>${s.exam_name}</td>
+                    <td>${s.shift}</td>
+                    <td>${s.punch_in_time || '--'}</td>
+                    <td>${s.punch_out_time || '--'}</td>
+                    <td><span class="badge badge-${s.attendance_status.toLowerCase()}">${s.attendance_status}</span></td>
+                </tr>
+            `).join('');
+            openModal('drilldownModal');
+        }
+
+        async function loadStaffList() {
+            cachedStaff = await api('/api/staff') || [];
+            const tbody = document.getElementById('staffTableBody');
+            tbody.innerHTML = (cachedStaff.length === 0) ? `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">No staff records found.</td></tr>` : cachedStaff.map((s, idx) => {
+                const isPending = s.status === 'Pending Approval';
+                const statusBadge = isPending 
+                    ? `<span class="badge badge-pending">Pending Approval</span>`
+                    : `<span class="badge badge-active">${s.status}</span>`;
+
+                const actionButtons = isPending ? `
+                    <button class="btn btn-success btn-sm" onclick="setStaffApproval(${s.id}, 'Active')">✓ Approve</button>
+                    <button class="btn btn-danger btn-sm" onclick="setStaffApproval(${s.id}, 'Rejected')">✕ Reject</button>
+                ` : `<span style="color:var(--green); font-weight:700;">Approved</span>`;
+
+                return `
+                    <tr>
+                        <td><strong>${s.staff_id}</strong></td>
+                        <td>${s.name}</td>
+                        <td>${s.role}</td>
+                        <td>${s.ef_city}</td>
+                        <td>${s.ef_mobile_number || 'N/A'}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionButtons}</td>
+                        <td><button class="btn btn-outline btn-sm" onclick="openEditStaff(${idx})">✏️ Edit</button></td>
+                        <td><button class="btn btn-outline btn-sm" onclick="openDutyPassModal('${s.staff_id}', '${s.name}', '${s.role}', '${s.ef_mobile_number}', 'General Deployment', 'All Shifts', '${s.ef_city} Exam Centre', 'Current Season')">🪪 Pass</button></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="triggerSmsDispatch('${s.ef_mobile_number}', 'EXAM AGENCY: Hello ${s.name}, your Staff ID is ${s.staff_id} and Password (DOB) is ${s.ef_dob}.')">✉️ SMS</button>
+                            <button class="btn btn-outline btn-sm" onclick="copyRosterToClipboard('ID: ${s.staff_id} | Pass: ${s.ef_dob}')">📋 Copy</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function setStaffApproval(dbId, newStatus) {
+            const res = await api('/api/admin/verify-staff-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ staff_db_id: dbId, new_status: newStatus })
+            });
+            if (res) {
+                showToast(`Staff marked as ${newStatus}!`);
+                loadStaffList();
+                loadDashboardData();
+            }
+        }
+
+        function openDutyPassModal(id, name, role, mobile, exam, shift, venue, period) {
+            document.getElementById('passStaffId').innerText = id;
+            document.getElementById('passStaffName').innerText = name;
+            document.getElementById('passRole').innerText = role;
+            document.getElementById('passMobile').innerText = mobile;
+            document.getElementById('passExam').innerText = exam;
+            document.getElementById('passShift').innerText = shift;
+            document.getElementById('passVenue').innerText = venue;
+            document.getElementById('passPeriod').innerText = period;
+            openModal('dutyPassModal');
+        }
+
+        function openEditStaff(idx) {
+            const s = cachedStaff[idx];
+            if (!s) return;
+            document.getElementById('editStaffId').value = s.id;
+            document.getElementById('editStaffName').value = s.name || '';
+            document.getElementById('editStaffMobile').value = s.ef_mobile_number || '';
+            document.getElementById('editStaffRole').value = s.role || 'Invigilator';
+            document.getElementById('editStaffVendor').value = s.vendor_name || 'Direct';
+            document.getElementById('editStaffCity').value = s.ef_city || 'Chennai';
+            document.getElementById('editStaffFather').value = s.ef_father_name || '';
+            document.getElementById('editStaffMother').value = s.ef_mother_name || '';
+            document.getElementById('editStaffQual').value = s.ef_qualification || '';
+            document.getElementById('editStaffPresent').value = s.ef_present_address || '';
+            document.getElementById('editStaffPermanent').value = s.ef_permanent_address || '';
+            document.getElementById('editStaffStatus').value = s.status || 'Active';
+            openModal('editStaffModal');
+        }
+
+        async function loadExamsList() {
+            const exams = await api('/api/exams') || [];
+            const tbody = document.getElementById('examsTableBody');
+            tbody.innerHTML = (exams.length === 0) ? `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>` : exams.map(e => `
+                <tr>
+                    <td><strong>${e.exam_name}</strong></td>
+                    <td>${e.exam_conducting_agency}</td>
+                    <td>${e.date_from} to ${e.date_to}</td>
+                    <td><span class="badge badge-ready">${e.shift_mode}</span></td>
+                    <td><small>Custom Cutoffs Saved</small></td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadCentresList() {
+            const centres = await api('/api/centres') || [];
+            const tbody = document.getElementById('centresTableBody');
+            tbody.innerHTML = (centres.length === 0) ? `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">No centres added.</td></tr>` : centres.map(c => `
+                <tr>
+                    <td><strong>${c.centre_name}</strong></td>
+                    <td>${c.city}</td>
+                    <td>${c.full_address || 'N/A'}</td>
+                    <td>${c.map_location ? `<a href="${c.map_location}" target="_blank" style="color:var(--accent);">View Map</a>` : 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadDeploymentsList() {
+            const deps = await api('/api/deployments') || [];
+            const tbody = document.getElementById('deploymentsTableBody');
+            tbody.innerHTML = (deps.length === 0) ? `<tr><td colspan="9" style="text-align:center; color:#94a3b8;">No deployments.</td></tr>` : deps.map(d => `
+                <tr>
+                    <td><strong>${d.staff_id}</strong></td>
+                    <td>${d.staff_name}</td>
+                    <td>${d.assigned_role}</td>
+                    <td>${d.exam_name}</td>
+                    <td><span class="badge badge-ready">${d.shift}</span></td>
+                    <td>${d.centre_name}</td>
+                    <td>${d.duty_date}</td>
+                    <td><strong>₹${d.total_payable || 1900}</strong></td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openEditRemunerationModal(${d.id}, ${d.duty_amount || 1200}, ${d.travel_allowance || 500}, ${d.other_allowance || 200})">⚙️ Fee</button>
+                        <button class="btn btn-primary btn-sm" onclick="triggerSmsDispatch('${d.ef_mobile_number}', 'DUTY ORDER: Hello ${d.staff_name}, you are deployed for ${d.exam_name} at ${d.centre_name} on ${d.duty_date} (${d.shift}). Fee: Rs.${d.total_payable}')">✉️ SMS</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openEditRemunerationModal(depId, dAmt, tAmt, oAmt) {
+            document.getElementById('editRemDepId').value = depId;
+            document.getElementById('editRemDuty').value = dAmt;
+            document.getElementById('editRemTravel').value = tAmt;
+            document.getElementById('editRemOther').value = oAmt;
+            openModal('editRemunerationModal');
+        }
+
+        async function loadAttendanceSheets() {
+            cachedSheets = await api('/api/admin/attendance-sheets') || [];
+            const tbody = document.getElementById('attendanceVerificationTableBody');
+            tbody.innerHTML = (cachedSheets.length === 0) ? `<tr><td colspan="9" style="text-align:center; color:#94a3b8;">No attendance sheets submitted yet.</td></tr>` : cachedSheets.map((s, idx) => `
+                <tr>
+                    <td><strong>${s.staff_id}</strong></td>
+                    <td>${s.staff_name}</td>
+                    <td>${s.role}</td>
+                    <td>${s.shift || 'Shift 1'}</td>
+                    <td>${s.punch_in_time || '--'}</td>
+                    <td>${s.punch_out_time || '--'}</td>
+                    <td>${s.working_hours || '--'}</td>
+                    <td>${s.sheet_file ? `<a href="${s.sheet_file}" target="_blank" class="btn btn-outline btn-sm">📄 View</a>` : 'None'}</td>
+                    <td><button class="btn btn-primary btn-sm" onclick="inspectAttendanceProof(${idx})">Audit</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function inspectAttendanceProof(idx) {
+            const s = cachedSheets[idx];
+            if (!s) return;
+            currentInspectingAttendanceId = s.id;
+            document.getElementById('proofPunchInPhoto').innerHTML = s.punch_in_photo ? `<img src="${s.punch_in_photo}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#fff;">No Photo</span>';
+            document.getElementById('proofPunchOutPhoto').innerHTML = s.punch_out_photo ? `<img src="${s.punch_out_photo}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#fff;">No Photo</span>';
+            document.getElementById('proofSheetContainer').innerHTML = s.sheet_file ? `<iframe src="${s.sheet_file}" style="width:100%; height:250px; border:none;"></iframe>` : '<span>No Document</span>';
+            openModal('attendanceProofModal');
+        }
+
+        async function actionVerifyCurrent(status) {
+            if (!currentInspectingAttendanceId) return;
+            await api('/api/admin/verify-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance_id: currentInspectingAttendanceId, status }) });
+            closeModal('attendanceProofModal');
+            loadAttendanceSheets();
+            showToast(`✓ Attendance marked as ${status}`);
+        }
+
+        async function loadPaymentsList() {
+            cachedPayments = await api('/api/admin/payments') || [];
+            const tbody = document.getElementById('paymentsTableBody');
+            tbody.innerHTML = (cachedPayments.length === 0) ? `<tr><td colspan="12" style="text-align:center; color:#94a3b8;">No payment records.</td></tr>` : cachedPayments.map((p, idx) => `
+                <tr>
+                    <td><strong>${p.staff_id}</strong></td>
+                    <td>${p.staff_name}</td>
+                    <td>${p.role}</td>
+                    <td>${p.shift || 'Shift 1'}</td>
+                    <td>${p.duty_date}</td>
+                    <td>₹${p.duty_amount}</td>
+                    <td>₹${p.travel_allowance}</td>
+                    <td>₹${p.other_allowance}</td>
+                    <td><strong>₹${(p.total_payable || 0).toLocaleString()}</strong></td>
+                    <td><span class="badge badge-${(p.payment_status || 'pending').toLowerCase()}">${p.payment_status}</span></td>
+                    <td><code>${p.reference_no || 'Pending'}</code></td>
+                    <td>
+                        ${p.payment_status === 'Pending' ? `<button class="btn btn-success btn-sm" onclick="disbursePayment(${p.id})">Disburse</button>` : 'Disbursed'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function disbursePayment(id) {
+            await api('/api/admin/update-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_id: id, status: 'Paid' }) });
+            loadPaymentsList();
+            showToast('✓ Payment disbursed successfully!');
+        }
+
+        async function loadReportsData() {
+            const data = await api('/api/admin/dashboard');
+            fullReportsCache = data?.allDeployments || [];
+            renderReportsList(fullReportsCache);
+        }
+
+        function renderReportsList(list) {
+            const tbody = document.getElementById('reportsTableBody');
+            tbody.innerHTML = (list.length === 0) ? `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">No records matching filter.</td></tr>` : list.map(r => `
+                <tr>
+                    <td><strong>${r.duty_date}</strong></td>
+                    <td><strong>${r.staff_id}</strong></td>
+                    <td>${r.staff_name}</td>
+                    <td>${r.assigned_role}</td>
+                    <td>${r.centre_name}</td>
+                    <td>${r.exam_name}</td>
+                    <td>${r.shift}</td>
+                    <td><small>In: ${r.punch_in_time || '--'} | Out: ${r.punch_out_time || '--'}</small></td>
+                    <td><strong>₹${r.total_payable || 1900}</strong></td>
+                    <td><span class="badge badge-${r.attendance_status === 'Present' ? 'present' : 'absent'}">${r.attendance_status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function filterReportsTable() {
+            const sFilter = document.getElementById('reportStaffFilter').value.toLowerCase().trim();
+            const dFilter = document.getElementById('reportDateFilter').value;
+
+            const filtered = fullReportsCache.filter(r => {
+                const sMatch = !sFilter || (r.staff_id && r.staff_id.toLowerCase().includes(sFilter)) || (r.staff_name && r.staff_name.toLowerCase().includes(sFilter));
+                const dMatch = !dFilter || r.duty_date === dFilter;
+                return sMatch && dMatch;
+            });
+            renderReportsList(filtered);
+        }
+
+        function resetReportFilters() {
+            document.getElementById('reportStaffFilter').value = '';
+            document.getElementById('reportDateFilter').value = '';
+            renderReportsList(fullReportsCache);
+        }
+
+        function exportReportsCSV() {
+            if (fullReportsCache.length === 0) { showToast('No report data to export', false); return; }
+            let csv = "Date,Staff ID,Staff Name,Role,Venue,Exam,Shift,Punch In,Punch Out,Total Remuneration,Status\n";
+            fullReportsCache.forEach(r => {
+                csv += `"${r.duty_date}","${r.staff_id}","${r.staff_name}","${r.assigned_role}","${r.centre_name}","${r.exam_name}","${r.shift}","${r.punch_in_time || ''}","${r.punch_out_time || ''}","${r.total_payable || 1900}","${r.attendance_status}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `EMMS_Report_${Date.now()}.csv`);
+            a.click();
+            showToast('✓ CSV Downloaded!');
+        }
+
+        // STAFF DESK
+        async function loadStaffPortalData() {
+            const data = await api('/api/staff/my-portal-data');
+            if (!data) return;
+
+            document.getElementById('ledgerDaysWorked').innerText = data.summary?.totalWorkedDays || 0;
+            document.getElementById('ledgerTotalEarned').innerText = `₹${(data.summary?.totalEarned || 0).toLocaleString()}`;
+            document.getElementById('ledgerTotalReceived').innerText = `₹${(data.summary?.totalReceived || 0).toLocaleString()}`;
+            document.getElementById('ledgerTotalPending').innerText = `₹${(data.summary?.totalPending || 0).toLocaleString()}`;
+
+            const active = data.activeDuty;
+            USER_ASSIGNMENT = active || null;
+
+            const dutyContainer = document.getElementById('dutyDetailsContainer');
+            const formArea = document.getElementById('roleSpecificFormArea');
+
+            if (!active) {
+                dutyContainer.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination duties assigned to your account. Please check back later.</div>`;
+                formArea.innerHTML = '';
+            } else {
+                dutyContainer.innerHTML = `
+                    <div class="card" style="padding: 20px;">
+                        <span class="badge ${active.is_today === 1 ? 'badge-present' : 'badge-pending'}" style="margin-bottom:8px;">${active.is_today === 1 ? 'ACTIVE SESSION TODAY' : 'UPCOMING ASSIGNMENT ORDER'}</span>
+                        <h3 style="font-size: 16px; color: var(--navy); margin-bottom: 4px;">${active.exam_name}</h3>
+                        <p style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">
+                            Centre: <strong>${active.centre_name} (${active.city})</strong> | Date: <strong>${active.duty_date}</strong> | Shift: <strong>${active.shift}</strong>
+                            ${active.map_location ? ` | <a href="${active.map_location}" target="_blank" style="color:var(--accent);">View Map Directions</a>` : ''}
+                        </p>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:12px;">
+                            <div><label>Designated Role</label><p><strong>${active.assigned_role}</strong></p></div>
+                            <div><label>Sanctioned Fee</label><p><strong>₹${active.total_payable}</strong></p></div>
+                        </div>
+                        <div style="background: #f8fafc; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+                            <span>Punch In: <strong>${active.punch_in_time || '--:--'}</strong></span> | 
+                            <span>Punch Out: <strong>${active.punch_out_time || '--:--'}</strong></span>
+                        </div>
+                    </div>
+                `;
+
+                if (data.roleFormSubmitted) {
+                    formArea.innerHTML = `<div class="card" style="padding: 16px; border-left: 4px solid var(--green);"><strong style="color:var(--green);">✓ ${active.assigned_role} Station Audit Checklist Submitted!</strong></div>`;
+                } else {
+                    renderRoleForm(active.assigned_role, active.deployment_id, active.duty_date, active.centre_name);
+                }
+            }
+
+            const tbody = document.getElementById('staffLedgerTableBody');
+            tbody.innerHTML = (data.allDuties || []).map(r => `
+                <tr>
+                    <td><strong>${r.duty_date}</strong></td>
+                    <td>${r.exam_name}<br><small style="color:#64748b;">${r.centre_name}</small></td>
+                    <td>${r.assigned_role}</td>
+                    <td>${r.shift}</td>
+                    <td>${r.working_hours || '--'}</td>
+                    <td><strong>₹${r.total_payable || 1900}</strong></td>
+                    <td><span class="badge badge-${r.payment_status === 'Paid' ? 'paid' : 'pending'}">${r.payment_status}</span></td>
+                    <td><code>${r.reference_no || 'Pending'}</code></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRoleForm(role, depId, dutyDate, centreName) {
+            const formArea = document.getElementById('roleSpecificFormArea');
+            let formFieldsHtml = '';
+
+            if (role === 'CCTV Operator') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">📹 CCTV Operator Station Audit</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Centre Name</label><input type="text" name="centre_name" value="${centreName}" readonly></div>
+                            <div class="form-group"><label>Total Examination Labs</label><input type="number" name="total_labs" required placeholder="e.g. 6"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:6px;">
+                            <div class="form-group"><label>Lab Cams</label><input type="number" name="cams_lab" required placeholder="12"></div>
+                            <div class="form-group"><label>Corridor Cams</label><input type="number" name="cams_corridor" required placeholder="4"></div>
+                            <div class="form-group"><label>Pathways</label><input type="number" name="cams_pathway" required placeholder="2"></div>
+                            <div class="form-group"><label>Restrooms</label><input type="number" name="cams_restroom" required placeholder="2"></div>
+                            <div class="form-group"><label>Frisking Gate</label><input type="number" name="cams_frisking" required placeholder="2"></div>
+                            <div class="form-group"><label>Server Room</label><input type="number" name="cams_server" required placeholder="1"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>DVR / NVR Specifications</label><input type="text" name="dvr_specs" required placeholder="32-Channel NVR 4TB HDD"></div>
+                            <div class="form-group"><label>DVR Display / Setup Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                        </div>
+                    </div>
+                `;
+            } else if (role === 'Lab Supervisor') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">🖥 Lab Supervisor Systems Form</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Lab Number</label><input type="text" name="lab_no" required placeholder="Lab 02"></div>
+                            <div class="form-group"><label>Candidate Active Nodes</label><input type="number" name="active_nodes" required placeholder="50"></div>
+                            <div class="form-group"><label>Buffer Backup Nodes</label><input type="number" name="buffer_nodes" required placeholder="10"></div>
+                        </div>
+                        <div class="form-group"><label>Network Switch Status</label><select name="switch_state"><option value="Online / Tested">Online / Tested</option><option value="Backup Connected">Backup Connected</option></select></div>
+                        <div class="form-group"><label>Lab Readiness Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            } else if (role === 'Jammer Operator') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">📶 Jammer Operations Checklist</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Total Jammers Installed</label><input type="number" name="total_jammers" required placeholder="12"></div>
+                            <div class="form-group"><label>Buffer Jammers</label><input type="number" name="buffer_jammers" required placeholder="2"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Jammer ON Time (Shift)</label><input type="time" name="jammer_on" required></div>
+                            <div class="form-group"><label>Jammer OFF Time (Shift)</label><input type="time" name="jammer_off" required></div>
+                        </div>
+                        <div class="form-group"><label>Jammer Status Display Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            } else if (role === 'Security') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">🛡️ Security Supervisor Frisking Roster</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Guards Deployed</label><input type="number" name="guards_count" required placeholder="8"></div>
+                            <div class="form-group"><label>DFMD / HHMD Count</label><input type="text" name="detectors_count" required placeholder="2 DFMD, 6 HHMD"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Gate Frisking Start Time</label><input type="time" name="gate_open" required></div>
+                            <div class="form-group"><label>Gate Cutoff Close Time</label><input type="time" name="gate_close" required></div>
+                        </div>
+                        <div class="form-group"><label>Entry Frisking Gate Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            }
+
+            if (formFieldsHtml) {
+                formArea.innerHTML = `
+                    <div class="card" style="padding: 16px;">
+                        <form id="dynamicRoleSubmitForm">
+                            ${formFieldsHtml}
+                            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Submit Official Station Checklist</button>
+                        </form>
+                    </div>
+                `;
+
+                document.getElementById('dynamicRoleSubmitForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formDataObj = {};
+                    for (let el of e.target.elements) {
+                        if (el.name && el.name !== 'photo_proof') formDataObj[el.name] = el.value;
+                    }
+                    const multipart = new FormData();
+                    multipart.append('deployment_id', depId);
+                    multipart.append('role', role);
+                    multipart.append('duty_date', dutyDate);
+                    multipart.append('form_fields', JSON.stringify(formDataObj));
+                    
+                    const fileInput = document.getElementById('rolePhotoInput');
+                    if (fileInput && fileInput.files[0]) multipart.append('photo_proof', fileInput.files[0]);
+
+                    const res = await fetch('/api/staff/submit-operational-form', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${TOKEN}` },
+                        body: multipart
+                    });
+                    const resJson = await res.json();
+                    if (res.ok) {
+                        showToast('✓ Station checklist submitted!');
+                        loadStaffPortalData();
+                    } else showToast(resJson.error || 'Failed to submit form', false);
+                });
+            } else {
+                formArea.innerHTML = '';
+            }
+        }
+
+        async function startCamera() {
+            try {
+                const video = document.getElementById('webcam');
+                if (!video) return;
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
+                video.srcObject = videoStream;
+            } catch (e) { console.warn('Camera inaccessible'); }
+        }
+
+        async function executePunch(type) {
+            if (!USER_ASSIGNMENT) { showToast('No active duty assigned.', false); return; }
+            const video = document.getElementById('webcam');
+            const canvas = document.getElementById('snapshotCanvas');
+            canvas.width = 640; canvas.height = 480;
+            canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
+            const photoBase64 = canvas.toDataURL('image/jpeg');
+
+            const endpoint = type === 'in' ? '/api/attendance/punch-in' : '/api/attendance/punch-out';
+            const res = await api(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deployment_id: USER_ASSIGNMENT.deployment_id, photo_base64: photoBase64 })
+            });
+
+            if (res && !res.error) {
+                showToast(`✓ Punch ${type === 'in' ? 'In' : 'Out'} recorded!`);
+                loadStaffPortalData();
+            } else {
+                showToast(res?.error || 'Punch error.', false);
+            }
+        }
+
+        function showSelectedFileName(input) {
+            const notice = document.getElementById('selectedFileNotice');
+            if (input.files && input.files[0]) notice.innerText = `Selected: ${input.files[0].name}`;
+        }
+
+        document.getElementById('sheetUploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!USER_ASSIGNMENT) { showToast('No active assignment session.', false); return; }
+            const fileInput = document.getElementById('sheetFileInput');
+            if (!fileInput.files[0]) { showToast('Please select file first.', false); return; }
+
+            const formData = new FormData();
+            formData.append('deployment_id', USER_ASSIGNMENT.deployment_id);
+            formData.append('attendance_sheet', fileInput.files[0]);
+            formData.append('is_late', 'false');
+
+            const res = await fetch('/api/attendance/upload-sheet', { method: 'POST', headers: { 'Authorization': `Bearer ${TOKEN}` }, body: formData });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('✓ Sheet submitted for verification!');
+                switchRoute('staff-history');
+                loadStaffPortalData();
+            } else showToast(data.error || 'Upload error', false);
+        });
+
+        // FORM SUBMISSION DISPATCHERS
+        function openStaffRegistrationModal() {
+            openModal('staffRegistrationModal');
+        }
+
+        document.getElementById('staffSignUpForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await fetch('/api/auth/register-staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                closeModal('staffRegistrationModal');
+                e.target.reset();
+                document.getElementById('doneStaffName').innerText = data.name;
+                document.getElementById('doneStaffId').innerText = data.staff_id;
+                document.getElementById('doneStaffDob').innerText = data.dob;
+                openModal('signUpDoneModal');
+            } else {
+                alert(data.error || 'Registration failed.');
+            }
+        });
+
+        async function openDeployModal() {
+            const [exams, centres, staff] = await Promise.all([api('/api/exams'), api('/api/centres'), api('/api/staff')]);
+            document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name}</option>`).join('');
+            document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
+            
+            const activeStaff = (staff || []).filter(s => s.status === 'Active');
+            document.getElementById('deployStaffSelect').innerHTML = activeStaff.map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('deployDutyDateFrom').value = todayStr;
+            document.getElementById('deployDutyDateTo').value = todayStr;
+            openModal('deployStaffModal');
+        }
+
+        document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && res.staff_id) {
+                closeModal('addStaffModal'); e.target.reset(); loadStaffList();
+                showToast(`✓ Staff ${res.name} Enrolled! Staff ID: ${res.staff_id}`);
+            } else if (res && res.error) showToast(res.error, false);
+        });
+
+        document.getElementById('editStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api(`/api/staff/${payload.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && !res.error) {
+                closeModal('editStaffModal'); loadStaffList();
+                showToast('✓ Profile updated successfully!');
+            }
+        });
+
+        document.getElementById('addExamForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formElements = e.target.elements;
+            const shiftCount = parseInt(document.getElementById('examShiftCountSelect').value);
+            const shiftTimings = {};
+            for (let i = 1; i <= shiftCount; i++) {
+                shiftTimings[`shift_${i}`] = {
+                    reporting: formElements[`s${i}_reporting`]?.value || '07:30',
+                    start: formElements[`s${i}_start`]?.value || '09:00',
+                    end: formElements[`s${i}_end`]?.value || '11:00'
+                };
+            }
+
+            const payload = {
+                exam_name: formElements['exam_name'].value,
+                exam_conducting_agency: formElements['exam_conducting_agency'].value,
+                date_from: formElements['date_from'].value,
+                date_to: formElements['date_to'].value,
+                shift_mode: `${shiftCount} Shifts`,
+                shift_timings
+            };
+
+            const res = await api('/api/exams', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && res.id) {
+                closeModal('addExamModal'); e.target.reset(); loadExamsList();
+                showToast('✓ Examination scheduled with shifts!');
+            }
+        });
+
+        document.getElementById('addCentreForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/centres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && res.id) {
+                closeModal('addCentreModal'); e.target.reset(); loadCentresList();
+                showToast('✓ Exam venue saved!');
+            }
+        });
+
+        document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && !res.error) {
+                closeModal('deployStaffModal'); loadDeploymentsList();
+                showToast(res.message || '✓ Staff deployed successfully!');
+            }
+        });
+
+        document.getElementById('editRemunerationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const depId = document.getElementById('editRemDepId').value;
+            const payload = {
+                duty_amount: document.getElementById('editRemDuty').value,
+                travel_allowance: document.getElementById('editRemTravel').value,
+                other_allowance: document.getElementById('editRemOther').value
+            };
+            const res = await api(`/api/deployments/${depId}/remuneration`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (res && !res.error) {
+                closeModal('editRemunerationModal');
+                loadDeploymentsList();
+                loadPaymentsList();
+                showToast('✓ Remuneration updated!');
+            }
+        });
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    </script>
+</body>
+</html>
