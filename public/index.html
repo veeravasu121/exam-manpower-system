@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EXAM MANPOWER AGENCY | Central Command Desk</title>
-    <!-- Chart.js Engine -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>EXAM MANPOWER AGENCY | Operations & Deployment Portal</title>
     <style>
         :root {
             --navy: #0b1f3a;
@@ -96,7 +94,9 @@
         .modal-body { padding: 20px; }
         .modal-footer { padding: 14px 20px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
 
-        /* PRINTABLE DUTY ORDER & SOP SLIP STYLES */
+        .shift-timing-box { background: #f8fafc; border: 1px solid var(--border); padding: 12px; border-radius: 4px; margin-bottom: 10px; }
+        .role-form-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 4px; padding: 16px; margin-top: 14px; }
+
         .printable-duty-order {
             border: 2px solid var(--navy); padding: 24px; background: #fff; position: relative; font-size: 13px;
         }
@@ -190,6 +190,7 @@
                 <div class="nav-category">Audits & Reports</div>
                 <a class="nav-link" onclick="switchRoute('admin-attendance')">🕒 Attendance Verification</a>
                 <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Remuneration Ledger</a>
+                <a class="nav-link" onclick="switchRoute('admin-reports')">📑 Comprehensive Reports</a>
             </div>
 
             <!-- STAFF NAVIGATION -->
@@ -249,7 +250,7 @@
                     </div>
                 </div>
 
-                <!-- 2. REGISTERED STAFF DIRECTORY (NO PHOTO ID CARD PER REQUEST) -->
+                <!-- 2. REGISTERED STAFF DIRECTORY -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
@@ -279,7 +280,7 @@
                     <div class="card">
                         <div class="table-responsive">
                             <table>
-                                <thead><tr><th>Exam Title</th><th>Conducting Agency</th><th>Dates</th><th>Shifts</th><th>Preset Fee (Honorarium / TA)</th><th>Delete</th></tr></thead>
+                                <thead><tr><th>Exam Title</th><th>Conducting Agency</th><th>Dates</th><th>Shifts</th><th>Timing Breakdown</th><th>Fee Baseline</th><th>Delete</th></tr></thead>
                                 <tbody id="examsTableBody"></tbody>
                             </table>
                         </div>
@@ -302,7 +303,7 @@
                     </div>
                 </div>
 
-                <!-- 5. DEPLOYMENTS (PRINT ORDER & DUAL PASSWORD SOP PASS) -->
+                <!-- 5. DEPLOYMENTS -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
@@ -321,7 +322,7 @@
                     </div>
                 </div>
 
-                <!-- 6. ATTENDANCE AUDIT VERIFICATION (FIXED DOCUMENT VIEWING) -->
+                <!-- 6. ATTENDANCE AUDIT VERIFICATION -->
                 <div id="view-admin-attendance" class="page-view" style="display: none;">
                     <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Biometric Punch & Uploaded Document Inspection</h2>
                     <div class="card">
@@ -334,7 +335,7 @@
                     </div>
                 </div>
 
-                <!-- 7. REMUNERATION LEDGER -->
+                <!-- 7. REMUNERATION LEDGER & BULK SETTLEMENT -->
                 <div id="view-admin-payments" class="page-view" style="display: none;">
                     <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Treasury Remuneration Ledger</h2>
                     <div class="card">
@@ -347,10 +348,43 @@
                     </div>
                 </div>
 
+                <!-- 8. COMPREHENSIVE REPORTS (RESTORED WITH CSV EXPORT) -->
+                <div id="view-admin-reports" class="page-view" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <div>
+                            <h2 style="font-size: 18px; font-weight: 800; color: var(--navy);">Operational & Remuneration Reports</h2>
+                            <p style="color: var(--muted); font-size: 12px;">Day-wise consolidated logs and individual staff duty summaries.</p>
+                        </div>
+                        <button type="button" class="btn btn-success" onclick="exportReportsCSV()">📥 Export Filtered Report (CSV)</button>
+                    </div>
+
+                    <div style="background:#fff; border:1px solid var(--border); padding:12px; border-radius:4px; margin-bottom:14px; display:flex; gap:10px; align-items:flex-end;">
+                        <div class="form-group" style="margin:0; flex:1;">
+                            <label>Filter by Individual Staff ID</label>
+                            <input type="text" id="reportStaffFilter" placeholder="e.g. INCHE001 (Leave blank for all)" oninput="filterReportsTable()">
+                        </div>
+                        <div class="form-group" style="margin:0; flex:1;">
+                            <label>Filter by Specific Duty Date</label>
+                            <input type="date" id="reportDateFilter" onchange="filterReportsTable()">
+                        </div>
+                        <button type="button" class="btn btn-outline" onclick="resetReportFilters()" style="height:33px;">Reset</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <table>
+                                <thead><tr><th>Date</th><th>Staff ID</th><th>Name</th><th>Role</th><th>Venue</th><th>Exam</th><th>Shift</th><th>Punch In/Out</th><th>Remuneration</th><th>Payment</th></tr></thead>
+                                <tbody id="reportsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- STAFF VIEWS -->
                 <div id="view-staff-duty" class="page-view" style="display: none;">
-                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">My Assigned Duty Schedule</h2>
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">My Assigned Duty Schedule & Station Forms</h2>
                     <div id="dutyDetailsContainer"></div>
+                    <div id="roleSpecificFormArea"></div>
                 </div>
 
                 <div id="view-staff-punch" class="page-view" style="display: none;">
@@ -437,7 +471,7 @@
                             </div>
                         </div>
                         <small style="color: #64748b; font-size: 10px; margin-top: 4px; display: block;">
-                            * Staff members must log in with their unique DOB. The Admin Key is reserved exclusively for the Center Superintendent during biometric emergencies.
+                            * Staff members must log in with their unique DOB. The Admin Key is reserved exclusively for the Center Superintendent during emergencies.
                         </small>
                     </div>
 
@@ -447,8 +481,8 @@
                         <ol style="padding-left: 18px; margin-top: 6px;">
                             <li><strong>Reporting Cutoff:</strong> Staff must report to the exam venue at least 60 minutes prior to session commencement.</li>
                             <li><strong>Biometric Facial Punch:</strong> Punch-in photo must be captured upon arrival via the staff portal, and punch-out upon session closure.</li>
-                            <li><strong>Prohibited Items:</strong> Personal mobile phones, smartwatches, and recording equipment must be deposited in the secure custody locker.</li>
-                            <li><strong>Roster Submission:</strong> Signed hall attendance rosters must be physically scanned and uploaded through the portal prior to dismissal.</li>
+                            <li><strong>Prohibited Items:</strong> Personal mobile phones, smartwatches, and recording equipment must be deposited in the custody locker.</li>
+                            <li><strong>Roster Submission:</strong> Signed hall attendance rosters must be scanned and uploaded through the portal prior to dismissal.</li>
                         </ol>
                     </div>
 
@@ -553,7 +587,7 @@
                         <div class="form-group"><label>Mobile Contact *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile"></div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                         <div class="form-group"><label>Email Address *</label><input type="email" name="ef_email_id" required></div>
                         <div class="form-group"><label>Father's Name</label><input type="text" name="ef_father_name"></div>
                         <div class="form-group"><label>Mother's Name</label><input type="text" name="ef_mother_name"></div>
@@ -610,7 +644,7 @@
                         <div class="form-group"><label>Mobile Contact *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit mobile"></div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                         <div class="form-group"><label>Email Address *</label><input type="email" name="ef_email_id" required></div>
                         <div class="form-group"><label>Father's Name</label><input type="text" name="ef_father_name"></div>
                         <div class="form-group"><label>Mother's Name</label><input type="text" name="ef_mother_name"></div>
@@ -621,7 +655,7 @@
         </div>
     </div>
 
-    <!-- SCHEDULE EXAM MODAL -->
+    <!-- SCHEDULE EXAM MODAL (DYNAMIC SHIFTS ENGINE) -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header"><h3>Schedule Examination Master</h3><button class="btn btn-outline" onclick="closeModal('addExamModal')">✕</button></div>
@@ -634,8 +668,21 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                         <div class="form-group"><label>Date From *</label><input type="date" name="date_from" required></div>
                         <div class="form-group"><label>Date To *</label><input type="date" name="date_to" required></div>
-                        <div class="form-group"><label>Shift Mode *</label><select name="shift_mode"><option value="Full Day">Full Day</option><option value="Multiple Shifts">Multiple Shifts</option></select></div>
+                        <div class="form-group">
+                            <label>Number of Shifts *</label>
+                            <select id="examShiftCountSelect" onchange="generateDynamicShiftInputs(this.value, 'shiftTimingContainer')">
+                                <option value="1">1 Shift</option>
+                                <option value="2">2 Shifts</option>
+                                <option value="3" selected>3 Shifts</option>
+                                <option value="4">4 Shifts</option>
+                                <option value="5">5 Shifts</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <!-- DYNAMIC TIME AND DATE SHIFT INPUTS CONTAINER -->
+                    <div id="shiftTimingContainer" style="margin-top: 10px;"></div>
+
                     <div style="border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 8px;">
                         <label style="color: var(--navy);">Preset Remuneration Baseline</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 4px;">
@@ -684,7 +731,8 @@
                         </select></div>
                         <div class="form-group"><label>Shift *</label><select name="shift" required>
                             <option value="Shift 1">Shift 1</option><option value="Shift 2">Shift 2</option>
-                            <option value="Shift 3">Shift 3</option><option value="Full Day">Full Day</option>
+                            <option value="Shift 3">Shift 3</option><option value="Shift 4">Shift 4</option>
+                            <option value="Full Day">Full Day</option>
                         </select></div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -705,7 +753,7 @@
         </div>
     </div>
 
-    <!-- CORE LOGIC CONTROLLER -->
+    <!-- CORE SCRIPT LOGIC -->
     <script>
         let CURRENT_USER = null;
         let TOKEN = localStorage.getItem('EMMS_TOKEN') || null;
@@ -718,6 +766,7 @@
         let cachedStaff = [];
         let cachedExams = [];
         let cachedCentres = [];
+        let fullReportsCache = [];
 
         const ALL_ROLES = [
             'Invigilator', 'Registration Staff', 'Support Staff', 'Lab Supervisor',
@@ -727,6 +776,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('agencyClock').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            generateDynamicShiftInputs(3, 'shiftTimingContainer');
             if (TOKEN) {
                 try {
                     CURRENT_USER = JSON.parse(localStorage.getItem('EMMS_USER'));
@@ -776,7 +826,26 @@
             }
         }
 
-        // SUBMIT LISTENER: LOGIN
+        // DYNAMIC SHIFTS TIMING GENERATOR
+        function generateDynamicShiftInputs(count, containerId) {
+            const container = document.getElementById(containerId);
+            let html = '';
+            for (let i = 1; i <= count; i++) {
+                html += `
+                    <div class="shift-timing-box">
+                        <strong style="color:var(--navy); font-size:12px;">Shift ${i} Timing Schedule</strong>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:4px;">
+                            <div class="form-group"><label>Candidate Reporting</label><input type="time" name="s${i}_reporting" value="${i === 1 ? '07:30' : i === 2 ? '11:30' : '15:00'}"></div>
+                            <div class="form-group"><label>Exam Start Time</label><input type="time" name="s${i}_start" value="${i === 1 ? '09:00' : i === 2 ? '12:30' : '16:00'}"></div>
+                            <div class="form-group"><label>Exam End Time</label><input type="time" name="s${i}_end" value="${i === 1 ? '11:00' : i === 2 ? '14:30' : '18:00'}"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // SUBMIT: LOGIN
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const identifier = document.getElementById('loginIdentifier').value.trim();
@@ -844,6 +913,7 @@
             else if (route === 'admin-deployments') loadDeploymentsList();
             else if (route === 'admin-attendance') loadAttendanceSheets();
             else if (route === 'admin-payments') loadPaymentsList();
+            else if (route === 'admin-reports') loadReportsData();
             else if (route === 'staff-duty' || route === 'staff-history') loadStaffPortalData();
         }
 
@@ -872,7 +942,6 @@
             document.getElementById('dashAbsent').innerText = absent;
             document.getElementById('dashPunchOutPending').innerText = pendingOut;
 
-            // Render Role Matrix
             const tbodyRole = document.getElementById('roleMatrixTableBody');
             tbodyRole.innerHTML = ALL_ROLES.map(role => {
                 const roleList = rawDeployments.filter(d => (d.assigned_role || '').toLowerCase() === role.toLowerCase());
@@ -891,7 +960,6 @@
                 `;
             }).join('');
 
-            // Render Centre Matrix
             const tbodyCentre = document.getElementById('centreStatusTableBody');
             const uniqueCentres = [...new Set(rawDeployments.map(d => d.centre_name).filter(Boolean))];
             tbodyCentre.innerHTML = (uniqueCentres.length === 0) ? `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No venues scheduled today.</td></tr>` : uniqueCentres.map(cName => {
@@ -961,16 +1029,24 @@
         async function loadExamsList() {
             cachedExams = await api('/api/exams') || [];
             const tbody = document.getElementById('examsTableBody');
-            tbody.innerHTML = (cachedExams.length === 0) ? `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>` : cachedExams.map(e => `
-                <tr>
-                    <td><strong>${e.exam_name}</strong></td>
-                    <td>${e.exam_conducting_agency}</td>
-                    <td>${e.date_from} to ${e.date_to}</td>
-                    <td><span class="badge badge-ready">${e.shift_mode}</span></td>
-                    <td>₹${e.default_duty_amount || 1200} + ₹${e.default_travel_allowance || 500} TA</td>
-                    <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteEntity('exams', ${e.id})">🗑️ Delete</button></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = (cachedExams.length === 0) ? `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>` : cachedExams.map(e => {
+                let timingSummary = '';
+                try {
+                    const shifts = JSON.parse(e.shift_timings_json);
+                    timingSummary = Object.entries(shifts).map(([k, v]) => `${k.toUpperCase()}: ${v.start}-${v.end}`).join(' | ');
+                } catch(err) {}
+                return `
+                    <tr>
+                        <td><strong>${e.exam_name}</strong></td>
+                        <td>${e.exam_conducting_agency}</td>
+                        <td>${e.date_from} to ${e.date_to}</td>
+                        <td><span class="badge badge-ready">${e.shift_mode}</span></td>
+                        <td><small>${timingSummary || 'Standard 09:00 - 12:00'}</small></td>
+                        <td>₹${e.default_duty_amount || 1200} + ₹${e.default_travel_allowance || 500} TA</td>
+                        <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteEntity('exams', ${e.id})">🗑️️ Delete</button></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function loadCentresList() {
@@ -987,7 +1063,7 @@
             `).join('');
         }
 
-        // ================= DEPLOYMENTS: PRINT ORDER & DUAL-PASSWORD SOP PASS =================
+        // ================= DEPLOYMENTS: PRINT ORDER & SOP PASS =================
         async function loadDeploymentsList() {
             const deps = await api('/api/deployments') || [];
             rawDeployments = deps;
@@ -1052,7 +1128,6 @@
             if (!s) return;
             currentInspectingAttendanceId = s.id;
 
-            // In & Out Photos
             document.getElementById('proofPunchInPhoto').innerHTML = s.punch_in_photo 
                 ? `<img src="${s.punch_in_photo}" style="width:100%; height:100%; object-fit:cover;">` 
                 : '<span style="color:#fff;">No In Photo</span>';
@@ -1061,7 +1136,6 @@
                 ? `<img src="${s.punch_out_photo}" style="width:100%; height:100%; object-fit:cover;">` 
                 : '<span style="color:#fff;">No Out Photo</span>';
 
-            // Document Fix: Renders iframe for PDF or img for photo
             const container = document.getElementById('proofSheetContainer');
             const directLink = document.getElementById('proofDirectLink');
 
@@ -1120,7 +1194,65 @@
             showToast('✓ Payment disbursed!');
         }
 
-        // ================= STAFF DESK =================
+        // ================= COMPREHENSIVE REPORTS (DUAL-FILTER) =================
+        async function loadReportsData() {
+            const data = await api('/api/admin/dashboard');
+            fullReportsCache = data?.allDeployments || [];
+            renderReportsList(fullReportsCache);
+        }
+
+        function renderReportsList(list) {
+            const tbody = document.getElementById('reportsTableBody');
+            tbody.innerHTML = (list.length === 0) ? `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">No records matching filter.</td></tr>` : list.map(r => `
+                <tr>
+                    <td><strong>${r.duty_date}</strong></td>
+                    <td><strong>${r.staff_id}</strong></td>
+                    <td>${r.staff_name}</td>
+                    <td>${r.assigned_role}</td>
+                    <td>${r.centre_name}</td>
+                    <td>${r.exam_name}</td>
+                    <td>${r.shift}</td>
+                    <td><small>In: ${r.punch_in_time || '--'} | Out: ${r.punch_out_time || '--'}</small></td>
+                    <td><strong>₹${r.total_payable || 1900}</strong></td>
+                    <td><span class="badge badge-${r.attendance_status === 'Present' ? 'present' : 'absent'}">${r.attendance_status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function filterReportsTable() {
+            const sFilter = document.getElementById('reportStaffFilter').value.toLowerCase().trim();
+            const dFilter = document.getElementById('reportDateFilter').value;
+
+            const filtered = fullReportsCache.filter(r => {
+                const sMatch = !sFilter || (r.staff_id && r.staff_id.toLowerCase().includes(sFilter)) || (r.staff_name && r.staff_name.toLowerCase().includes(sFilter));
+                const dMatch = !dFilter || r.duty_date === dFilter;
+                return sMatch && dMatch;
+            });
+            renderReportsList(filtered);
+        }
+
+        function resetReportFilters() {
+            document.getElementById('reportStaffFilter').value = '';
+            document.getElementById('reportDateFilter').value = '';
+            renderReportsList(fullReportsCache);
+        }
+
+        function exportReportsCSV() {
+            if (fullReportsCache.length === 0) { showToast('No report data to export', false); return; }
+            let csv = "Date,Staff ID,Staff Name,Role,Venue,Exam,Shift,Punch In,Punch Out,Total Remuneration,Status\n";
+            fullReportsCache.forEach(r => {
+                csv += `"${r.duty_date}","${r.staff_id}","${r.staff_name}","${r.assigned_role}","${r.centre_name}","${r.exam_name}","${r.shift}","${r.punch_in_time || ''}","${r.punch_out_time || ''}","${r.total_payable || 1900}","${r.attendance_status}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `EMMS_Report_${Date.now()}.csv`);
+            a.click();
+            showToast('✓ CSV Downloaded!');
+        }
+
+        // ================= STAFF DESK & ROLE-SPECIFIC FORMS =================
         async function loadStaffPortalData() {
             const data = await api('/api/staff/my-portal-data');
             if (!data) return;
@@ -1129,8 +1261,11 @@
             USER_ASSIGNMENT = active || null;
 
             const dutyContainer = document.getElementById('dutyDetailsContainer');
+            const formArea = document.getElementById('roleSpecificFormArea');
+
             if (!active) {
                 dutyContainer.innerHTML = `<div class="card" style="padding: 24px; text-align:center; color:#94a3b8;">No examination sessions allocated yet. Check back soon.</div>`;
+                formArea.innerHTML = '';
             } else {
                 dutyContainer.innerHTML = `
                     <div class="card" style="padding: 20px;">
@@ -1146,6 +1281,12 @@
                         </div>
                     </div>
                 `;
+
+                if (data.roleFormSubmitted) {
+                    formArea.innerHTML = `<div class="card" style="padding: 16px; border-left: 4px solid var(--green);"><strong style="color:var(--green);">✓ ${active.assigned_role} Station Audit Checklist Submitted!</strong></div>`;
+                } else {
+                    renderRoleForm(active.assigned_role, active.deployment_id, active.duty_date, active.centre_name);
+                }
             }
 
             const tbody = document.getElementById('staffLedgerTableBody');
@@ -1161,6 +1302,118 @@
                     <td><code>${r.reference_no || 'Pending'}</code></td>
                 </tr>
             `).join('');
+        }
+
+        function renderRoleForm(role, depId, dutyDate, centreName) {
+            const formArea = document.getElementById('roleSpecificFormArea');
+            let formFieldsHtml = '';
+
+            if (role === 'CCTV Operator') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">📹 CCTV Operator Station Audit</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Centre Name</label><input type="text" name="centre_name" value="${centreName}" readonly></div>
+                            <div class="form-group"><label>Total Examination Labs</label><input type="number" name="total_labs" required placeholder="e.g. 6"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:6px;">
+                            <div class="form-group"><label>Lab Cams</label><input type="number" name="cams_lab" required placeholder="12"></div>
+                            <div class="form-group"><label>Corridor Cams</label><input type="number" name="cams_corridor" required placeholder="4"></div>
+                            <div class="form-group"><label>Pathways</label><input type="number" name="cams_pathway" required placeholder="2"></div>
+                            <div class="form-group"><label>Restrooms</label><input type="number" name="cams_restroom" required placeholder="2"></div>
+                            <div class="form-group"><label>Frisking Gate</label><input type="number" name="cams_frisking" required placeholder="2"></div>
+                            <div class="form-group"><label>Server Room</label><input type="number" name="cams_server" required placeholder="1"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>DVR / NVR Specifications</label><input type="text" name="dvr_specs" required placeholder="32-Channel NVR 4TB HDD"></div>
+                            <div class="form-group"><label>DVR Display / Setup Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                        </div>
+                    </div>
+                `;
+            } else if (role === 'Lab Supervisor') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">🖥 Lab Supervisor Systems Form</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Lab Number</label><input type="text" name="lab_no" required placeholder="Lab 02"></div>
+                            <div class="form-group"><label>Candidate Active Nodes</label><input type="number" name="active_nodes" required placeholder="50"></div>
+                            <div class="form-group"><label>Buffer Backup Nodes</label><input type="number" name="buffer_nodes" required placeholder="10"></div>
+                        </div>
+                        <div class="form-group"><label>Network Switch Status</label><select name="switch_state"><option value="Online / Tested">Online / Tested</option><option value="Backup Connected">Backup Connected</option></select></div>
+                        <div class="form-group"><label>Lab Readiness Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            } else if (role === 'Jammer Operator') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">📶 Jammer Operations Checklist</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Total Jammers Installed</label><input type="number" name="total_jammers" required placeholder="12"></div>
+                            <div class="form-group"><label>Buffer Jammers</label><input type="number" name="buffer_jammers" required placeholder="2"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Jammer ON Time (Shift)</label><input type="time" name="jammer_on" required></div>
+                            <div class="form-group"><label>Jammer OFF Time (Shift)</label><input type="time" name="jammer_off" required></div>
+                        </div>
+                        <div class="form-group"><label>Jammer Status Display Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            } else if (role === 'Security') {
+                formFieldsHtml = `
+                    <div class="role-form-card">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">🛡️ Security Supervisor Frisking Roster</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Guards Deployed</label><input type="number" name="guards_count" required placeholder="8"></div>
+                            <div class="form-group"><label>DFMD / HHMD Count</label><input type="text" name="detectors_count" required placeholder="2 DFMD, 6 HHMD"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Gate Frisking Start Time</label><input type="time" name="gate_open" required></div>
+                            <div class="form-group"><label>Gate Cutoff Close Time</label><input type="time" name="gate_close" required></div>
+                        </div>
+                        <div class="form-group"><label>Entry Frisking Gate Photo *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            }
+
+            if (formFieldsHtml) {
+                formArea.innerHTML = `
+                    <div class="card" style="padding: 16px;">
+                        <form id="dynamicRoleSubmitForm">
+                            ${formFieldsHtml}
+                            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:8px;">Submit Official Station Checklist</button>
+                        </form>
+                    </div>
+                `;
+
+                document.getElementById('dynamicRoleSubmitForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formDataObj = {};
+                    for (let el of e.target.elements) {
+                        if (el.name && el.name !== 'photo_proof') formDataObj[el.name] = el.value;
+                    }
+                    const multipart = new FormData();
+                    multipart.append('deployment_id', depId);
+                    multipart.append('role', role);
+                    multipart.append('duty_date', dutyDate);
+                    multipart.append('form_fields', JSON.stringify(formDataObj));
+                    
+                    const fileInput = document.getElementById('rolePhotoInput');
+                    if (fileInput && fileInput.files[0]) multipart.append('photo_proof', fileInput.files[0]);
+
+                    const res = await fetch('/api/staff/submit-operational-form', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${TOKEN}` },
+                        body: multipart
+                    });
+                    const resJson = await res.json();
+                    if (res.ok) {
+                        showToast('✓ Station checklist submitted!');
+                        loadStaffPortalData();
+                    } else showToast(resJson.error || 'Failed to submit form', false);
+                });
+            } else {
+                formArea.innerHTML = '';
+            }
         }
 
         async function startCamera() {
@@ -1200,7 +1453,7 @@
             if (input.files && input.files[0]) notice.innerText = `Selected: ${input.files[0].name}`;
         }
 
-        // SUBMIT LISTENER: UPLOAD SHEET
+        // SUBMIT: UPLOAD SHEET
         document.getElementById('sheetUploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!USER_ASSIGNMENT) { showToast('No active session.', false); return; }
@@ -1220,12 +1473,12 @@
             } else showToast(data.error || 'Upload error', false);
         });
 
-        // ================= MODAL FORMS: WORKING SUBMITS =================
+        // ================= MODAL SUBMITS =================
         function openStaffRegistrationModal() {
             openModal('staffRegistrationModal');
         }
 
-        // SUBMIT LISTENER: SIGN UP
+        // SUBMIT: SELF REGISTRATION
         document.getElementById('staffSignUpForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
@@ -1238,7 +1491,7 @@
             if (res.ok) {
                 closeModal('staffRegistrationModal');
                 e.target.reset();
-                alert(`Registration Successful!\n\nStaff ID: ${data.staff_id}\nPassword (DOB): ${data.dob}\n\nYou may now log in.`);
+                alert(`Registration Successful!\n\nStaff ID: ${data.staff_id}\nPassword (DOB): ${data.dob}\n\nYou may now sign in.`);
             } else {
                 alert(data.error || 'Registration failed');
             }
@@ -1257,7 +1510,7 @@
             openModal('deployStaffModal');
         }
 
-        // SUBMIT LISTENER: ADD STAFF
+        // SUBMIT: ADD STAFF
         document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
@@ -1268,29 +1521,51 @@
             } else if (res && res.error) showToast(res.error, false);
         });
 
-        // SUBMIT LISTENER: ADD EXAM
+        // SUBMIT: SCHEDULE EXAM (DYNAMIC SHIFTS)
         document.getElementById('addExamForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const formElements = e.target.elements;
+            const shiftCount = parseInt(document.getElementById('examShiftCountSelect').value);
+            const shiftTimings = {};
+            for (let i = 1; i <= shiftCount; i++) {
+                shiftTimings[`shift_${i}`] = {
+                    reporting: formElements[`s${i}_reporting`]?.value || '07:30',
+                    start: formElements[`s${i}_start`]?.value || '09:00',
+                    end: formElements[`s${i}_end`]?.value || '11:00'
+                };
+            }
+
+            const payload = {
+                exam_name: formElements['exam_name'].value,
+                exam_conducting_agency: formElements['exam_conducting_agency'].value,
+                date_from: formElements['date_from'].value,
+                date_to: formElements['date_to'].value,
+                shift_mode: `${shiftCount} Shifts`,
+                shift_timings,
+                default_duty_amount: formElements['default_duty_amount'].value,
+                default_travel_allowance: formElements['default_travel_allowance'].value,
+                default_other_allowance: formElements['default_other_allowance'].value
+            };
+
             const res = await api('/api/exams', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
                 closeModal('addExamModal'); e.target.reset(); loadExamsList();
-                showToast('✓ Exam scheduled!');
+                showToast('✓ Examination scheduled!');
             }
         });
 
-        // SUBMIT LISTENER: ADD CENTRE
+        // SUBMIT: ADD CENTRE
         document.getElementById('addCentreForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
             const res = await api('/api/centres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.id) {
                 closeModal('addCentreModal'); e.target.reset(); loadCentresList();
-                showToast('✓ Centre saved!');
+                showToast('✓ Centre registered!');
             }
         });
 
-        // SUBMIT LISTENER: DEPLOY STAFF
+        // SUBMIT: DEPLOY STAFF
         document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = Object.fromEntries(new FormData(e.target).entries());
