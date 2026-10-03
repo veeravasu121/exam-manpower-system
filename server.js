@@ -11,9 +11,9 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_SECURE_TOKEN_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_CONFIDENTIAL_TOKEN_2026';
 
-// Database Connection
+// Database Engine Selection (Neon Cloud Postgres or SQLite fallback)
 const usePostgres = !!process.env.DATABASE_URL;
 let pgPool = null;
 let sqliteDb = null;
@@ -67,13 +67,11 @@ function runExec(sql, params = []) {
     });
 }
 
-// Background Automatic WhatsApp Dispatcher
-// Works with GreenAPI, UltraMsg, CallMeBot, or any WhatsApp Gateway
+// Background WhatsApp Gateway
 async function sendBackgroundWhatsApp(phone, message) {
+    if (!phone) return false;
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const fullNumber = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
-
-    // Optional environment variables for automated background gateways
     const instanceId = process.env.WA_INSTANCE_ID;
     const token = process.env.WA_TOKEN;
 
@@ -82,18 +80,13 @@ async function sendBackgroundWhatsApp(phone, message) {
             await fetch(`https://api.green-api.com/waInstance${instanceId}/sendMessage/${token}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chatId: `${fullNumber}@c.us`,
-                    message: message
-                })
+                body: JSON.stringify({ chatId: `${fullNumber}@c.us`, message })
             });
-            console.log(`Automated WhatsApp message delivered to ${fullNumber}`);
             return true;
         } catch (err) {
             console.error('WhatsApp Gateway Error:', err.message);
         }
     }
-    // Returns true so user interface completes the background flow smoothly
     return true;
 }
 
@@ -157,9 +150,7 @@ async function initDatabase() {
         date_from DATE NOT NULL,
         date_to DATE NOT NULL,
         shift_mode TEXT NOT NULL,
-        s1_reporting_time TEXT,
-        s1_start_time TEXT,
-        s1_end_time TEXT,
+        shift_timings_json TEXT,
         status TEXT DEFAULT 'Active'
     )`);
 
@@ -226,7 +217,7 @@ async function initDatabase() {
         submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    // Master Admin Provisioning
+    // Ensure Master Admin Exists
     const adminEmail = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
     const hash = await bcrypt.hash(adminPassword, 10);
@@ -234,7 +225,7 @@ async function initDatabase() {
     await runExec("DELETE FROM users WHERE user_type = 'ADMIN'");
     await runExec(
         `INSERT INTO users (staff_id, name, role, email, password, user_type, ef_city)
-         VALUES ('ADMIN_HQ', 'Agency Chief Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
+         VALUES ('ADMIN_HQ', 'Chief Examination Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
         [adminEmail, hash]
     );
 }
@@ -272,7 +263,7 @@ const authenticateToken = (req, res, next) => {
     if (!token) return res.status(401).json({ error: 'Access token required' });
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Session expired' });
+        if (err) return res.status(403).json({ error: 'Session invalid or expired' });
         req.user = user;
         next();
     });
@@ -280,12 +271,11 @@ const authenticateToken = (req, res, next) => {
 
 // ======================== API ROUTES ========================
 
-// Auto Background WhatsApp Dispatch API
+// Auto Background WhatsApp Dispatch
 app.post('/api/admin/dispatch-whatsapp-auto', authenticateToken, async (req, res) => {
     try {
         const { mobile, message } = req.body;
         if (!mobile) return res.status(400).json({ error: 'Mobile number missing' });
-
         await sendBackgroundWhatsApp(mobile, message);
         res.json({ success: true, message: 'Dispatched via WhatsApp automatically!' });
     } catch (err) {
@@ -293,7 +283,7 @@ app.post('/api/admin/dispatch-whatsapp-auto', authenticateToken, async (req, res
     }
 });
 
-// Auth Route
+// Dual Login
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
@@ -301,7 +291,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         const rows = await runQuery("SELECT * FROM users WHERE staff_id = ? OR LOWER(email) = LOWER(?)", [cleanId, cleanId]);
         const user = rows[0];
-        if (!user) return res.status(401).json({ error: 'Invalid Staff ID or Password' });
+        if (!user) return res.status(401).json({ error: 'Invalid ID or Password' });
 
         if (user.user_type === 'STAFF') {
             const cleanInputDob = (password || '').replace(/[-/]/g, '').trim();
@@ -333,7 +323,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// Admin Dashboard Live Data
+// Admin Dashboard Live Data Feed
 app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
@@ -376,7 +366,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     }
 });
 
-// Staff Registry
+// Staff Management
 app.get('/api/staff', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC");
@@ -411,19 +401,20 @@ app.post('/api/staff', authenticateToken, async (req, res) => {
 
         const params = [
             assignedStaffId, fullName, role, assignedVendor, officialEmail, hash,
-            venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
+            venue_region || 'South Zone', venue_state || 'Tamil Nadu', ef_city,
+            ef_first_name, ef_middle_name, ef_last_name,
             ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
             officialEmail, ef_qualification, ef_present_address, ef_permanent_address
         ];
 
         const result = await runExec(sql, params);
 
-        // Auto-send WhatsApp message in background
-        const message = `*EXAM MANPOWER AGENCY*\n\nHello *${fullName}*,\nYou have been enrolled into the Examination Portal.\n\n👤 *Staff ID:* ${assignedStaffId}\n🔑 *Password (DOB):* ${ef_dob}\n\nLogin to view duty venues.`;
+        // Background WhatsApp Dispatch
+        const message = `*EXAM MANPOWER AGENCY*\n\nHello *${fullName}*,\nYour enrollment is successful.\n\n👤 *Staff ID:* ${assignedStaffId}\n🔑 *Password (DOB):* ${ef_dob}\n🌐 *Portal:* ${req.headers.origin || ''}\n\nLogin to view duty assignments.`;
         sendBackgroundWhatsApp(ef_mobile_number, message);
 
         res.json({
-            message: 'Staff registered successfully',
+            message: 'Staff enrolled successfully',
             staff_id: assignedStaffId,
             dob: ef_dob,
             name: fullName,
@@ -432,13 +423,36 @@ app.post('/api/staff', authenticateToken, async (req, res) => {
         });
     } catch (err) {
         if (err.message && err.message.includes('UNIQUE')) {
-            return res.status(400).json({ error: 'Mobile number or Email ID already registered.' });
+            return res.status(400).json({ error: 'Mobile number or Email already registered.' });
         }
         res.status(500).json({ error: err.message });
     }
 });
 
-// Exams Management
+app.put('/api/staff/:id', authenticateToken, async (req, res) => {
+    try {
+        const {
+            name, role, vendor_name, ef_city, ef_mobile_number,
+            ef_qualification, ef_father_name, ef_mother_name,
+            ef_present_address, ef_permanent_address, status
+        } = req.body;
+
+        const sql = `UPDATE users SET name = ?, role = ?, vendor_name = ?, ef_city = ?, ef_mobile_number = ?,
+                     ef_qualification = ?, ef_father_name = ?, ef_mother_name = ?,
+                     ef_present_address = ?, ef_permanent_address = ?, status = ?
+                     WHERE id = ? AND user_type = 'STAFF'`;
+        await runExec(sql, [
+            name, role, vendor_name || 'Direct', ef_city, ef_mobile_number,
+            ef_qualification, ef_father_name, ef_mother_name,
+            ef_present_address, ef_permanent_address, status, req.params.id
+        ]);
+        res.json({ message: 'Staff profile updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Examinations (Dynamic Shifts)
 app.get('/api/exams', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM exams ORDER BY id DESC");
@@ -450,19 +464,12 @@ app.get('/api/exams', authenticateToken, async (req, res) => {
 
 app.post('/api/exams', authenticateToken, async (req, res) => {
     try {
-        const {
-            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-            s1_reporting_time, s1_start_time, s1_end_time
-        } = req.body;
-
-        const sql = `INSERT INTO exams (
-            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-            s1_reporting_time, s1_start_time, s1_end_time
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-
+        const { exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode, shift_timings } = req.body;
+        const sql = `INSERT INTO exams (exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode, shift_timings_json)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)`;
         const result = await runExec(sql, [
-            exam_name, exam_conducting_agency, vendor_name || 'Agency Board', date_from, date_to, shift_mode,
-            s1_reporting_time || '07:30', s1_start_time || '09:00', s1_end_time || '12:00'
+            exam_name, exam_conducting_agency, vendor_name || 'Agency Board',
+            date_from, date_to, shift_mode, JSON.stringify(shift_timings || {})
         ]);
         res.json({ message: 'Exam scheduled successfully', id: result.lastID });
     } catch (err) {
@@ -470,7 +477,22 @@ app.post('/api/exams', authenticateToken, async (req, res) => {
     }
 });
 
-// Centres Management
+app.put('/api/exams/:id', authenticateToken, async (req, res) => {
+    try {
+        const { exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode, shift_timings } = req.body;
+        const sql = `UPDATE exams SET exam_name = ?, exam_conducting_agency = ?, vendor_name = ?, date_from = ?, date_to = ?, shift_mode = ?, shift_timings_json = ?
+                     WHERE id = ?`;
+        await runExec(sql, [
+            exam_name, exam_conducting_agency, vendor_name,
+            date_from, date_to, shift_mode, JSON.stringify(shift_timings || {}), req.params.id
+        ]);
+        res.json({ message: 'Examination details updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Centres
 app.get('/api/centres', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM centres ORDER BY id DESC");
@@ -491,7 +513,18 @@ app.post('/api/centres', authenticateToken, async (req, res) => {
     }
 });
 
-// Deployments Engine
+app.put('/api/centres/:id', authenticateToken, async (req, res) => {
+    try {
+        const { centre_name, city, full_address, map_location } = req.body;
+        const sql = `UPDATE centres SET centre_name = ?, city = ?, full_address = ?, map_location = ? WHERE id = ?`;
+        await runExec(sql, [centre_name, city, full_address || '', map_location || '', req.params.id]);
+        res.json({ message: 'Centre updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Deployments (Shift-Wise & Multi-Day Date Ranges)
 app.get('/api/deployments', authenticateToken, async (req, res) => {
     try {
         const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.ef_mobile_number,
@@ -535,12 +568,12 @@ app.post('/api/deployments', authenticateToken, async (req, res) => {
         const details = await runQuery("SELECT exam_name FROM exams WHERE id = ?", [exam_id]);
         const centre = await runQuery("SELECT centre_name, city FROM centres WHERE id = ?", [centre_id]);
 
-        // Auto background WhatsApp dispatch
-        const message = `*EXAM MANPOWER AGENCY - DUTY ORDER*\n\nDear *${u?.name}*,\nYou are deployed to exam duty:\n\n📝 *Exam:* ${details[0]?.exam_name}\n🏫 *Venue:* ${centre[0]?.centre_name} (${centre[0]?.city})\n📅 *Period:* ${duty_date_from} to ${duty_date_to || duty_date_from}\n⏱️ *Shift:* ${shift}`;
+        // WhatsApp Order Dispatch
+        const message = `*EXAM MANPOWER AGENCY - DUTY ORDER*\n\nDear *${u?.name}* (${u?.staff_id}),\nYou are assigned to exam duty:\n\n📝 *Exam:* ${details[0]?.exam_name}\n🏫 *Venue:* ${centre[0]?.centre_name} (${centre[0]?.city})\n📅 *Period:* ${duty_date_from} to ${duty_date_to || duty_date_from}\n⏱️ *Shift:* ${shift}`;
         sendBackgroundWhatsApp(u?.ef_mobile_number, message);
 
         res.json({
-            message: `Deployed for ${daysCount} day(s)! WhatsApp order sent automatically.`,
+            message: `Deployed successfully for ${daysCount} day(s)!`,
             staff_name: u?.name,
             staff_id: u?.staff_id,
             mobile: u?.ef_mobile_number
@@ -550,15 +583,25 @@ app.post('/api/deployments', authenticateToken, async (req, res) => {
     }
 });
 
-// Staff Desk
+app.put('/api/deployments/:id', authenticateToken, async (req, res) => {
+    try {
+        const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift } = req.body;
+        const sql = `UPDATE deployments SET exam_id = ?, centre_id = ?, staff_id = ?, assigned_role = ?, vendor_name = ?, duty_date = ?, shift = ? WHERE id = ?`;
+        await runExec(sql, [exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift, req.params.id]);
+        res.json({ message: 'Deployment updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Staff Desk Data
 app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
         const sqlDuties = `
             SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role,
                    (d.duty_amount + d.travel_allowance + d.other_allowance) as total_payable,
-                   e.exam_name, e.exam_conducting_agency,
-                   e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
+                   e.exam_name, e.exam_conducting_agency, e.shift_timings_json,
                    c.centre_name, c.city, c.full_address, c.map_location,
                    a.id as attendance_id, a.punch_in_time, a.punch_out_time,
                    a.working_hours, a.sheet_verification_status, a.sheet_file,
@@ -585,45 +628,16 @@ app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
             else totalPending += amount;
         });
 
-        const todayDep = rows.find(r => r.is_today === 1);
-        let formSubmission = null;
-        if (todayDep) {
-            const formRows = await runQuery(
-                "SELECT * FROM operational_forms WHERE deployment_id = ? ORDER BY id DESC LIMIT 1",
-                [todayDep.deployment_id]
-            );
-            formSubmission = formRows[0] || null;
-        }
-
         res.json({
             summary: { totalWorkedDays, totalEarned, totalReceived, totalPending },
-            history: rows || [],
-            roleFormSubmitted: !!formSubmission
+            history: rows || []
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Role Forms Submission
-app.post('/api/staff/submit-operational-form', authenticateToken, upload.single('photo_proof'), async (req, res) => {
-    try {
-        const { deployment_id, role, duty_date, form_fields } = req.body;
-        const photoPath = req.file ? `/uploads/${req.file.filename}` : null;
-
-        await runExec(
-            `INSERT INTO operational_forms (deployment_id, staff_id, role, duty_date, form_data_json, photo_proof_path)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [deployment_id, req.user.id, role, duty_date, form_fields, photoPath]
-        );
-
-        res.json({ message: `${role} Operational Form successfully logged!` });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Attendance & Photo Punch
+// Attendance Punch & Verification
 app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
     try {
         const { deployment_id, photo_base64 } = req.body;
@@ -659,7 +673,7 @@ app.post('/api/attendance/punch-out', authenticateToken, async (req, res) => {
 
         const records = await runQuery("SELECT * FROM attendance WHERE deployment_id = ?", [deployment_id]);
         const record = records[0];
-        if (!record) return res.status(400).json({ error: 'No punch-in found' });
+        if (!record) return res.status(400).json({ error: 'No punch-in recorded' });
 
         const [h1, m1] = record.punch_in_time.split(':').map(Number);
         const [h2, m2] = timeStr.split(':').map(Number);
@@ -709,10 +723,66 @@ app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('atten
     }
 });
 
+app.get('/api/admin/attendance-sheets', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name, c.centre_name, e.exam_name
+                     FROM attendance a
+                     JOIN users u ON a.staff_id = u.id
+                     JOIN deployments d ON a.deployment_id = d.id
+                     JOIN exams e ON d.exam_id = e.id
+                     JOIN centres c ON d.centre_id = c.id
+                     ORDER BY a.id DESC`;
+        const rows = await runQuery(sql);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/admin/verify-sheet', authenticateToken, async (req, res) => {
+    try {
+        const { attendance_id, status } = req.body;
+        await runExec("UPDATE attendance SET sheet_verification_status = ? WHERE id = ?", [status, attendance_id]);
+        res.json({ message: `Attendance marked as ${status}` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/admin/payments', authenticateToken, async (req, res) => {
+    try {
+        const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name,
+                            a.duty_date, a.punch_in_time, a.punch_out_time, a.sheet_verification_status,
+                            c.centre_name, e.exam_name, e.exam_conducting_agency
+                     FROM payments p
+                     JOIN users u ON p.staff_id = u.id
+                     JOIN attendance a ON p.attendance_id = a.id
+                     JOIN deployments d ON a.deployment_id = d.id
+                     JOIN exams e ON d.exam_id = e.id
+                     JOIN centres c ON d.centre_id = c.id
+                     ORDER BY p.id DESC`;
+        const rows = await runQuery(sql);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/admin/update-payment', authenticateToken, async (req, res) => {
+    try {
+        const { payment_id, status } = req.body;
+        const ref = status === 'Paid' ? 'TXN-DISB-' + Math.floor(10000000 + Math.random() * 90000000) : null;
+        await runExec(`UPDATE payments SET payment_status = ?, reference_no = COALESCE(?, reference_no) WHERE id = ?`, [status, ref, payment_id]);
+        res.json({ message: `Payment marked as ${status}` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`EMMS Running on port ${PORT}`);
+    console.log(`EMMS Engine running on port ${PORT}`);
 });
