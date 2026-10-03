@@ -3,190 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EMMS | Government Examination Manpower & Deployment Portal</title>
+    <title>EXAM MANPOWER AGENCY</title>
     <style>
         :root {
-            --gov-navy: #0b1f3a;
-            --gov-blue: #133b68;
-            --gov-accent: #1e5ba3;
-            --gov-saffron: #f59e0b;
-            --gov-green: #15803d;
-            --gov-border: #cbd5e1;
-            --gov-bg: #f1f5f9;
-            --gov-text: #0f172a;
-            --gov-muted: #64748b;
-            --gov-danger: #dc2626;
-            --sidebar-width: 260px;
+            --navy: #0b1f3a;
+            --blue: #133b68;
+            --accent: #1e5ba3;
+            --border: #cbd5e1;
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --muted: #64748b;
+            --green: #15803d;
+            --red: #dc2626;
+            --sidebar-w: 250px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-        body { background-color: var(--gov-bg); color: var(--gov-text); font-size: 13px; line-height: 1.5; }
+        body { background-color: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; }
 
-        .nic-top-bar {
-            background: #0f172a; color: #94a3b8; font-size: 11px; padding: 4px 20px;
-            display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--gov-saffron);
-        }
+        /* Clean Header */
         .portal-header {
-            background: #ffffff; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;
-            border-bottom: 1px solid var(--gov-border);
+            background: #ffffff; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid var(--navy); box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        .emblem-title-group { display: flex; align-items: center; gap: 12px; }
-        .emblem-badge {
-            width: 40px; height: 40px; border-radius: 50%; background: #f8fafc; border: 2px solid #0f2a59;
-            display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #0f2a59;
-        }
-        .portal-title-text h1 { font-size: 16px; font-weight: 800; color: #0f2a59; }
-        .portal-title-text p { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .portal-title h1 { font-size: 18px; font-weight: 800; color: var(--navy); letter-spacing: 0.5px; }
+        .portal-title p { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
 
-        .auth-wrapper { min-height: 85vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .auth-card { background: #fff; width: 100%; max-width: 420px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--gov-navy); overflow: hidden; }
-        .auth-header { background: var(--gov-navy); color: #fff; padding: 18px; text-align: center; }
-        .auth-header h2 { font-size: 17px; font-weight: 700; }
-        .auth-header p { font-size: 11px; color: #93c5fd; margin-top: 4px; }
-        .auth-body { padding: 24px; }
-
-        .app-container { display: flex; min-height: calc(100vh - 85px); }
-        .sidebar { width: var(--sidebar-width); background: var(--gov-navy); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-user { padding: 14px 18px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.08); }
+        /* App Layout */
+        .app-container { display: flex; min-height: calc(100vh - 65px); }
+        .sidebar { width: var(--sidebar-w); background: var(--navy); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-user { padding: 16px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.08); }
         .sidebar-nav { flex: 1; overflow-y: auto; padding: 10px 0; }
-        .nav-category { font-size: 10px; text-transform: uppercase; color: #94a3b8; padding: 10px 18px 4px; font-weight: 700; letter-spacing: 0.8px; }
+        .nav-category { font-size: 10px; text-transform: uppercase; color: #94a3b8; padding: 12px 18px 4px; font-weight: 700; letter-spacing: 0.6px; }
         .nav-link { display: flex; align-items: center; padding: 9px 18px; color: #cbd5e1; text-decoration: none; cursor: pointer; gap: 10px; font-size: 12.5px; border-left: 3px solid transparent; }
-        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.08); color: #fff; border-left-color: var(--gov-saffron); }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.08); color: #fff; border-left-color: #38bdf8; }
 
         .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
         .content-area { padding: 20px; flex: 1; overflow-y: auto; }
 
+        /* Cards & Grids */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
-        .stat-card { background: #fff; border: 1px solid var(--gov-border); border-radius: 4px; padding: 12px; cursor: pointer; }
-        .stat-card:hover { border-color: var(--gov-accent); }
-        .stat-label { font-size: 11px; font-weight: 700; color: var(--gov-muted); text-transform: uppercase; display: flex; justify-content: space-between; }
-        .stat-value { font-size: 20px; font-weight: 800; margin-top: 4px; color: #0f2a59; }
+        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 12px; cursor: pointer; }
+        .stat-card:hover { border-color: var(--accent); }
+        .stat-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; display: flex; justify-content: space-between; }
+        .stat-value { font-size: 21px; font-weight: 800; margin-top: 4px; color: var(--navy); }
 
-        .filter-bar { background: #fff; border: 1px solid var(--gov-border); border-radius: 4px; padding: 12px; margin-bottom: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) 80px; gap: 8px; align-items: end; }
-
-        .card { background: #fff; border: 1px solid var(--gov-border); border-radius: 4px; margin-bottom: 20px; }
-        .card-header { padding: 10px 16px; border-bottom: 1px solid var(--gov-border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+        .card { background: #fff; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 20px; }
+        .card-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 8px 12px; border-bottom: 1px solid var(--gov-border); text-align: left; }
+        th, td { padding: 9px 12px; border-bottom: 1px solid var(--border); text-align: left; }
         th { background: #f8fafc; font-size: 11px; color: #334155; text-transform: uppercase; font-weight: 700; }
 
-        .badge { padding: 2px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; display: inline-block; }
-        .badge-present, .badge-active, .badge-ready, .badge-approved, .badge-paid { background: #dcfce7; color: #15803d; }
-        .badge-absent, .badge-rejected { background: #fee2e2; color: #b91c1c; }
+        .badge { padding: 2px 7px; border-radius: 3px; font-size: 10.5px; font-weight: 700; display: inline-block; }
+        .badge-present, .badge-active, .badge-ready, .badge-approved, .badge-paid { background: #dcfce7; color: var(--green); }
+        .badge-absent, .badge-rejected { background: #fee2e2; color: var(--red); }
         .badge-pending, .badge-hold { background: #fef3c7; color: #b45309; }
-        .badge-shortage { background: #ffedd5; color: #c2410c; }
 
-        .btn { padding: 6px 12px; border-radius: 3px; font-weight: 600; font-size: 12px; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
-        .btn-sm { padding: 3px 6px; font-size: 10.5px; }
-        .btn-primary { background: var(--gov-accent); color: #fff; }
-        .btn-primary:hover { background: var(--gov-blue); }
-        .btn-success { background: var(--gov-green); color: #fff; }
-        .btn-danger { background: var(--gov-danger); color: #fff; }
-        .btn-outline { background: transparent; border: 1px solid var(--gov-border); color: var(--gov-text); }
+        .btn { padding: 7px 12px; border-radius: 3px; font-weight: 600; font-size: 12px; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-sm { padding: 3px 7px; font-size: 10.5px; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-success { background: var(--green); color: #fff; }
+        .btn-danger { background: var(--red); color: #fff; }
+        .btn-whatsapp { background: #25d366; color: #fff; font-weight: 700; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 
-        .form-group { margin-bottom: 10px; }
-        label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 3px; color: #334155; text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 6px 9px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 12px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 4px; color: #334155; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 12.5px; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 31, 58, 0.6); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; }
-        .modal-content { background: #fff; border-radius: 4px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; border-top: 3px solid var(--gov-saffron); }
-        .modal-header { padding: 12px 16px; border-bottom: 1px solid var(--gov-border); display: flex; justify-content: space-between; align-items: center; }
-        .modal-body { padding: 16px; }
-        .modal-footer { padding: 10px 16px; background: #f8fafc; border-top: 1px solid var(--gov-border); display: flex; justify-content: flex-end; gap: 6px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11, 31, 58, 0.65); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; }
+        .modal-content { background: #fff; border-radius: 4px; max-width: 820px; width: 100%; max-height: 90vh; overflow-y: auto; }
+        .modal-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 18px; }
+        .modal-footer { padding: 12px 18px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
 
-        .voucher-container { border: 2px solid #0f2a59; padding: 20px; background: #fff; position: relative; }
-        .stamp-seal { width: 90px; height: 90px; border: 3px double #15803d; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #15803d; font-weight: 800; font-size: 10px; text-transform: uppercase; transform: rotate(-10deg); margin: 0 auto; }
-
-        @media print {
-            body * { visibility: hidden; }
-            #paymentProofModal, #paymentProofModal * { visibility: visible; }
-            #paymentProofModal { position: absolute; left: 0; top: 0; width: 100%; background: transparent !important; }
-            .modal-content { box-shadow: none; border: none; max-width: 100%; }
-            .modal-footer, .modal-header button { display: none !important; }
-        }
+        .role-form-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 4px; padding: 16px; margin-top: 14px; }
     </style>
 </head>
 <body>
 
-    <div class="nic-top-bar">
-        <span>GOVERNMENT EXAMINATION MANPOWER & DEPLOYMENT SYSTEM</span>
-        <span id="liveClock">2026</span>
-    </div>
-
+    <!-- CLEAN AGENCY HEADER -->
     <header class="portal-header">
-        <div class="emblem-title-group">
-            <div class="emblem-badge">TN</div>
-            <div class="portal-title-text">
-                <h1>EXAM MANPOWER MANAGEMENT PORTAL (EMMS)</h1>
-                <p>Confidential Examination Operations Registry</p>
-            </div>
+        <div class="portal-title">
+            <h1>EXAM MANPOWER AGENCY</h1>
+            <p>Operations & Examination Staff Management Portal</p>
         </div>
-        <div>
-            <span class="badge badge-active" style="padding: 4px 8px;">SSL 256-Bit Secure</span>
-        </div>
+        <div style="font-size: 12px; font-weight: 600; color: var(--navy);" id="agencyClock"></div>
     </header>
 
-    <!-- AUTHENTICATION VIEW -->
-    <div id="authView" class="auth-wrapper">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h2>Secure Portal Sign In</h2>
-                <p>Authorized Manpower & Examination Control Access</p>
+    <!-- SIGN IN -->
+    <div id="authView" style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #fff; width: 100%; max-width: 400px; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 4px solid var(--navy); padding: 24px;">
+            <h2 style="font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 4px;">Sign In to Portal</h2>
+            <p style="font-size: 11px; color: var(--muted); margin-bottom: 16px;">Agency Examination Staff & Coordinator Access</p>
+            
+            <div style="display: flex; gap: 6px; margin-bottom: 16px;">
+                <button type="button" id="tabStaff" class="btn btn-primary" style="flex: 1;" onclick="setLoginType('STAFF')">Staff Login</button>
+                <button type="button" id="tabAdmin" class="btn btn-outline" style="flex: 1;" onclick="setLoginType('ADMIN')">Admin Login</button>
             </div>
-            <div class="auth-body">
-                <div style="display: flex; gap: 6px; margin-bottom: 14px;">
-                    <button type="button" id="tabStaff" class="btn btn-primary" style="flex: 1;" onclick="setLoginType('STAFF')">Staff Login</button>
-                    <button type="button" id="tabAdmin" class="btn btn-outline" style="flex: 1;" onclick="setLoginType('ADMIN')">Admin Login</button>
+            
+            <div id="loginAlert" style="display:none; color: var(--red); font-size: 12px; margin-bottom: 10px; font-weight: 600;"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label id="lblIdentifier">Staff ID</label>
+                    <input type="text" id="loginIdentifier" placeholder="e.g. CCTRI001" required>
                 </div>
-                <div id="loginAlert" style="display:none; color: #dc2626; font-size: 12px; margin-bottom: 10px; font-weight: 600;"></div>
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label id="lblIdentifier">Staff Identification Number</label>
-                        <input type="text" id="loginIdentifier" placeholder="e.g. LSTRI001" required>
-                    </div>
-                    <div class="form-group">
-                        <label id="lblPassword">Date of Birth / Password</label>
-                        <input type="password" id="loginPassword" placeholder="DDMMYYYY or YYYY-MM-DD" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Sign In</button>
-                </form>
-            </div>
+                <div class="form-group">
+                    <label id="lblPassword">Password / Date of Birth</label>
+                    <input type="password" id="loginPassword" placeholder="DDMMYYYY or YYYY-MM-DD" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 8px;">Login to Desk</button>
+            </form>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
+    <!-- MAIN PORTAL SHELL -->
     <div id="appShell" class="app-container" style="display: none;">
         <aside class="sidebar">
             <div class="sidebar-user">
                 <div style="font-weight: 700; font-size: 13px;" id="sessionUserDisplay">Administrator</div>
-                <div style="font-size: 11px; color: #93c5fd;" id="sessionRoleBadge">CO-ORDINATOR</div>
+                <div style="font-size: 11px; color: #93c5fd;" id="sessionRoleBadge">COORDINATOR</div>
             </div>
 
+            <!-- ADMIN NAV -->
             <div id="adminNav" class="sidebar-nav">
-                <div class="nav-category">Control Desk</div>
-                <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Operational Matrix</a>
-
+                <div class="nav-category">Main</div>
+                <a class="nav-link active" onclick="switchRoute('admin-dashboard')">📊 Dashboard & Shortages</a>
+                
                 <div class="nav-category">Staff Directory</div>
                 <a class="nav-link" onclick="switchRoute('admin-staff')">👥 Registered Staff</a>
-                <a class="nav-link" onclick="openModal('addStaffModal')">➕ Register Staff</a>
+                <a class="nav-link" onclick="openModal('addStaffModal')">➕ Register New Staff</a>
 
                 <div class="nav-category">Examinations & Venues</div>
                 <a class="nav-link" onclick="switchRoute('admin-exams')">📝 Examinations Master</a>
                 <a class="nav-link" onclick="switchRoute('admin-centres')">🏫 Exam Centres List</a>
-                <a class="nav-link" onclick="switchRoute('admin-deployments')">📌 Staff Deployments</a>
+                <a class="nav-link" onclick="switchRoute('admin-deployments')">📌 Staff Deployment</a>
 
-                <div class="nav-category">Verification & Treasury</div>
-                <a class="nav-link" onclick="switchRoute('admin-attendance')">🕒 Attendance Audit Logs</a>
-                <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Treasury Disbursements</a>
+                <div class="nav-category">Audits & Reports</div>
+                <a class="nav-link" onclick="switchRoute('admin-attendance')">🕒 Attendance Verification</a>
+                <a class="nav-link" onclick="switchRoute('admin-payments')">💳 Payment Ledger</a>
+                <a class="nav-link" onclick="switchRoute('admin-forms-audit')">📋 Operational Forms Audit</a>
+                <a class="nav-link" onclick="switchRoute('admin-reports')">📑 Consolidated Reports</a>
             </div>
 
+            <!-- STAFF NAV -->
             <div id="staffNav" class="sidebar-nav" style="display: none;">
-                <div class="nav-category">Assigned Duties</div>
-                <a class="nav-link active" onclick="switchRoute('staff-duty')">📋 Today's Duty Order</a>
-                <a class="nav-link" onclick="switchRoute('staff-punch')">📸 Biometric Photo Punch</a>
-                <a class="nav-link" onclick="switchRoute('staff-sheet')">📤 Submit Signed Sheet</a>
-                <a class="nav-link" onclick="switchRoute('staff-history')">📅 Work History & Salary</a>
+                <div class="nav-category">My Station</div>
+                <a class="nav-link active" onclick="switchRoute('staff-duty')">📋 Today's Duty & Forms</a>
+                <a class="nav-link" onclick="switchRoute('staff-punch')">📸 Photo Attendance</a>
+                <a class="nav-link" onclick="switchRoute('staff-sheet')">📤 Upload Hall Sheet</a>
+                <a class="nav-link" onclick="switchRoute('staff-history')">📅 My Work & Salary</a>
             </div>
 
             <div style="padding: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
@@ -197,96 +164,44 @@
         <main class="main-content">
             <section class="content-area">
 
-                <!-- 1. DASHBOARD -->
+                <!-- 1. ADMIN DASHBOARD -->
                 <div id="view-admin-dashboard" class="page-view">
-                    <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59; margin-bottom: 2px;">Confidential Examination Command Center</h2>
-                    <p style="color: #64748b; font-size: 11.5px; margin-bottom: 14px;">Live attendance monitoring, shortages, and multi-filter registry.</p>
-
-                    <div class="filter-bar">
-                        <div class="form-group" style="margin: 0;">
-                            <label>Personnel Search</label>
-                            <input type="text" id="filterStaffSearch" placeholder="Name or Staff ID..." oninput="applyDashboardFilters()">
-                        </div>
-                        <div class="form-group" style="margin: 0;">
-                            <label>Exam Centre Venue</label>
-                            <select id="filterCentre" onchange="applyDashboardFilters()"><option value="">All Centres</option></select>
-                        </div>
-                        <div class="form-group" style="margin: 0;">
-                            <label>Designated Role</label>
-                            <select id="filterRole" onchange="applyDashboardFilters()"><option value="">All Roles</option></select>
-                        </div>
-                        <div class="form-group" style="margin: 0;">
-                            <label>Active Examination</label>
-                            <select id="filterExam" onchange="applyDashboardFilters()"><option value="">All Exams</option></select>
-                        </div>
-                        <div class="form-group" style="margin: 0;">
-                            <label>Contract Vendor</label>
-                            <select id="filterVendor" onchange="applyDashboardFilters()"><option value="">All Vendors</option></select>
-                        </div>
-                        <button class="btn btn-outline" onclick="resetDashboardFilters()" style="height: 31px;">Reset</button>
-                    </div>
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 4px;">Command Operations Dashboard</h2>
+                    <p style="color: var(--muted); font-size: 12px; margin-bottom: 16px;">Live centre readiness, role distribution, and shortage tracking.</p>
 
                     <div class="stats-grid">
-                        <div class="stat-card" onclick="openDrilldownModal('ALL', 'All Assigned Personnel')">
-                            <div class="stat-label">Total Assigned <span>🔍 Audit</span></div>
-                            <div class="stat-value" id="dashTotalStaff">0</div>
-                        </div>
-                        <div class="stat-card" onclick="openDrilldownModal('PRESENT', 'Present On-Duty Personnel')">
-                            <div class="stat-label">Present On-Duty <span>🟢</span></div>
-                            <div class="stat-value" style="color: #15803d;" id="dashPresent">0</div>
-                        </div>
-                        <div class="stat-card" onclick="openDrilldownModal('ABSENT', 'Absent Personnel')">
-                            <div class="stat-label">Shortage / Absent <span>🔴</span></div>
-                            <div class="stat-value" style="color: #dc2626;" id="dashAbsent">0</div>
-                        </div>
-                        <div class="stat-card" onclick="openDrilldownModal('PUNCHOUT_PENDING', 'Punch-Out Pending')">
-                            <div class="stat-label">Active on Venue <span>⏱️</span></div>
-                            <div class="stat-value" style="color: #d97706;" id="dashPunchOutPending">0</div>
-                        </div>
-                        <div class="stat-card" onclick="switchRoute('admin-payments')">
-                            <div class="stat-label">Remuneration Ledger</div>
-                            <div class="stat-value" style="color: #1e40af;" id="dashPaymentPending">₹0</div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <strong>Manpower Requirement & Attendance Status by Role</strong>
-                        </div>
-                        <div class="table-responsive">
-                            <table>
-                                <thead>
-                                    <tr><th>Staff Role Code</th><th>Sanctioned Quota</th><th>Present</th><th>Absent</th><th>Net Shortage</th><th>Action</th></tr>
-                                </thead>
-                                <tbody id="roleMatrixTableBody"></tbody>
-                            </table>
-                        </div>
+                        <div class="stat-card" onclick="switchRoute('admin-staff')"><div class="stat-label">Total Staff</div><div class="stat-value" id="dashTotalStaff">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Present Today</div><div class="stat-value" style="color: var(--green);" id="dashPresent">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Absent / Deficit</div><div class="stat-value" style="color: var(--red);" id="dashAbsent">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Punch-Out Pending</div><div class="stat-value" style="color: #d97706;" id="dashPunchOutPending">0</div></div>
+                        <div class="stat-card" onclick="switchRoute('admin-payments')"><div class="stat-label">Payment Pending</div><div class="stat-value" style="color: var(--accent);" id="dashPaymentPending">₹0</div></div>
                     </div>
 
                     <div class="card">
                         <div class="card-header"><strong>Centre-Wise Deployment Compliance Matrix</strong></div>
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Venue Name</th><th>District</th><th>Required</th><th>Present</th><th>Deficit</th><th>Status</th><th>Inspect</th></tr>
-                                </thead>
+                                <thead><tr><th>Centre Venue</th><th>City</th><th>Assigned</th><th>Present</th><th>Deficit</th><th>Status</th></tr></thead>
                                 <tbody id="centreStatusTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. REGISTERED STAFF -->
+                <!-- 2. REGISTERED STAFF SECTION -->
                 <div id="view-admin-staff" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                        <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59;">Personnel Directory</h2>
-                        <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Register Staff</button>
+                        <div>
+                            <h2 style="font-size: 18px; font-weight: 800; color: var(--navy);">Registered Staff Directory</h2>
+                            <p style="color: var(--muted); font-size: 12px;">Active database of registered personnel with credentials dispatch tools.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('addStaffModal')">+ Register New Staff</button>
                     </div>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
                                 <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>City</th><th>Mobile</th><th>Status</th><th>Action</th></tr>
+                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>City</th><th>Mobile</th><th>Status</th><th>Dispatch Credentials (Free)</th></tr>
                                 </thead>
                                 <tbody id="staffTableBody"></tbody>
                             </table>
@@ -294,152 +209,149 @@
                     </div>
                 </div>
 
-                <!-- 3. EXAMINATIONS -->
+                <!-- 3. EXAMS SECTION -->
                 <div id="view-admin-exams" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                        <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59;">Examinations Master</h2>
+                        <div>
+                            <h2 style="font-size: 18px; font-weight: 800; color: var(--navy);">Examinations Master Details</h2>
+                            <p style="color: var(--muted); font-size: 12px;">Scheduled examination dates, conducting bodies, and shift timings.</p>
+                        </div>
                         <button class="btn btn-primary" onclick="openModal('addExamModal')">+ Schedule Exam</button>
                     </div>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Title</th><th>Conducting Agency</th><th>Vendor</th><th>Dates</th><th>Shift Mode</th><th>Timings</th><th>Action</th></tr>
-                                </thead>
+                                <thead><tr><th>Exam Name</th><th>Conducting Agency</th><th>Dates</th><th>Shift Mode</th><th>Shift Timings</th></tr></thead>
                                 <tbody id="examsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- 4. CENTRES -->
+                <!-- 4. CENTRES SECTION -->
                 <div id="view-admin-centres" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                        <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59;">Examination Centres</h2>
-                        <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Register Centre</button>
+                        <h2 style="font-size: 18px; font-weight: 800; color: var(--navy);">Examination Venues Directory</h2>
+                        <button class="btn btn-primary" onclick="openModal('addCentreModal')">+ Register Venue</button>
                     </div>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Centre Name</th><th>District</th><th>Address</th><th>Map</th><th>Status</th><th>Action</th></tr>
-                                </thead>
+                                <thead><tr><th>Centre Name</th><th>City</th><th>Physical Address</th><th>Location</th></tr></thead>
                                 <tbody id="centresTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- 5. DEPLOYMENTS -->
+                <!-- 5. DEPLOYMENTS SECTION -->
                 <div id="view-admin-deployments" class="page-view" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                        <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59;">Manpower Deployments</h2>
+                        <h2 style="font-size: 18px; font-weight: 800; color: var(--navy);">Staff Deployment Orders</h2>
                         <button class="btn btn-primary" onclick="openDeployModal()">+ Deploy Staff (Date Range)</button>
                     </div>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Exam</th><th>Shift</th><th>Venue</th><th>Date</th><th>Action</th></tr>
-                                </thead>
+                                <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Exam</th><th>Shift</th><th>Centre</th><th>Duty Date</th><th>WhatsApp Order</th></tr></thead>
                                 <tbody id="deploymentsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- 6. ATTENDANCE AUDIT -->
-                <div id="view-admin-attendance" class="page-view" style="display: none;">
-                    <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59; margin-bottom: 12px;">Biometric Facial Attendance Logs</h2>
+                <!-- 6. OPERATIONAL FORMS AUDIT SECTION (FOR CCTV, JAMMER, LAB, SECURITY) -->
+                <div id="view-admin-forms-audit" class="page-view" style="display: none;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 4px;">Operational Station Forms Audit</h2>
+                    <p style="color: var(--muted); font-size: 12px; margin-bottom: 14px;">Audited station checklists submitted by CCTV Operators, Lab Supervisors, Jammer Operators, and Security Officers.</p>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Proof</th><th>Status</th><th>Action</th></tr>
-                                </thead>
-                                <tbody id="attendanceVerificationTableBody"></tbody>
+                                <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Centre</th><th>Duty Date</th><th>Form Details Filled</th><th>Evidence Photo</th></tr></thead>
+                                <tbody id="operationalFormsAuditTbody"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- 7. TREASURY PAYMENTS -->
-                <div id="view-admin-payments" class="page-view" style="display: none;">
-                    <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59; margin-bottom: 12px;">Treasury Remuneration Disbursements</h2>
+                <!-- 7. CONSOLIDATED REPORTS SECTION -->
+                <div id="view-admin-reports" class="page-view" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                        <div>
+                            <h2 style="font-size: 18px; font-weight: 800; color: var(--navy);">Consolidated Operational Reports</h2>
+                            <p style="color: var(--muted); font-size: 12px;">Complete attendance, salary, and deployment logs with CSV export.</p>
+                        </div>
+                        <button class="btn btn-success" onclick="exportReportsCSV()">📥 Export All to CSV</button>
+                    </div>
                     <div class="card">
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Date</th><th>Payable</th><th>Status</th><th>Token</th><th>Action</th></tr>
-                                </thead>
-                                <tbody id="paymentsTableBody"></tbody>
+                                <thead><tr><th>Date</th><th>Staff ID</th><th>Name</th><th>Role</th><th>Venue</th><th>Exam</th><th>Hours</th><th>Punch In/Out</th><th>Remuneration</th><th>Status</th></tr></thead>
+                                <tbody id="reportsTableBody"></tbody>
                             </table>
                         </div>
                     </div>
+                </div>
+
+                <!-- 8. ATTENDANCE & PAYMENTS -->
+                <div id="view-admin-attendance" class="page-view" style="display: none;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Attendance Verification Desk</h2>
+                    <div class="card"><div class="table-responsive"><table><thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Punch In</th><th>Punch Out</th><th>Hours</th><th>Sheet</th><th>Action</th></tr></thead><tbody id="attendanceVerificationTableBody"></tbody></table></div></div>
+                </div>
+
+                <div id="view-admin-payments" class="page-view" style="display: none;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Disbursement & Salary Ledger</h2>
+                    <div class="card"><div class="table-responsive"><table><thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Date</th><th>Payable</th><th>Status</th><th>Txn Ref</th><th>Action</th></tr></thead><tbody id="paymentsTableBody"></tbody></table></div></div>
                 </div>
 
                 <!-- STAFF VIEWS -->
                 <div id="view-staff-duty" class="page-view" style="display: none;">
-                    <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59; margin-bottom: 12px;">Today's Active Assignment</h2>
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Today's Duty Order & Station Audit</h2>
                     <div id="dutyDetailsContainer"></div>
+                    <div id="roleSpecificFormArea"></div>
                 </div>
 
                 <div id="view-staff-punch" class="page-view" style="display: none;">
-                    <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59; margin-bottom: 12px;">Photo Attendance Recording</h2>
-                    <div class="card" style="max-width: 500px; margin: 0 auto; padding: 18px;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Live Photo Attendance</h2>
+                    <div class="card" style="max-width: 500px; margin: 0 auto; padding: 20px;">
                         <div style="width: 100%; height: 260px; background: #000; border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
                             <video id="webcam" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
                             <canvas id="snapshotCanvas" style="display: none;"></canvas>
                         </div>
                         <div style="display: flex; gap: 8px;">
-                            <button class="btn btn-primary" style="flex: 1;" onclick="executePunch('in')">Record Punch In</button>
-                            <button class="btn btn-outline" style="flex: 1;" onclick="executePunch('out')">Record Punch Out</button>
+                            <button class="btn btn-primary" style="flex: 1;" onclick="executePunch('in')">Punch In</button>
+                            <button class="btn btn-outline" style="flex: 1;" onclick="executePunch('out')">Punch Out</button>
                         </div>
-                        <p id="punchMessage" style="margin-top: 10px; font-size: 12px; text-align: center; font-weight: 600;"></p>
+                        <p id="punchMessage" style="margin-top: 10px; font-size: 12px; text-align: center; font-weight: 700;"></p>
                     </div>
                 </div>
 
                 <div id="view-staff-sheet" class="page-view" style="display: none;">
-                    <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59; margin-bottom: 12px;">Upload Countersigned Hall Attendance Sheet</h2>
-                    <div class="card" style="max-width: 540px; margin: 0 auto; padding: 20px;">
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">Upload Signed Attendance Sheet</h2>
+                    <div class="card" style="max-width: 520px; margin: 0 auto; padding: 24px;">
                         <form id="sheetUploadForm">
-                            <div style="border: 2px dashed #94a3b8; border-radius: 4px; padding: 24px; text-align: center; cursor: pointer; background: #f8fafc;" onclick="document.getElementById('sheetFileInput').click()">
-                                <p style="font-weight: 700; color: #0f2a59;">Click to Browse or Drag Signed Sheet (PDF / JPEG)</p>
+                            <div style="border: 2px dashed #94a3b8; border-radius: 4px; padding: 24px; text-align: center; cursor: pointer;" onclick="document.getElementById('sheetFileInput').click()">
+                                <p style="font-weight: 700;">Choose Scanned Sheet (PDF / Image)</p>
                                 <input type="file" id="sheetFileInput" name="attendance_sheet" accept=".pdf,image/*" style="display: none;" onchange="showSelectedFileName(this)">
                             </div>
-                            <p id="selectedFileNotice" style="margin-top: 8px; font-weight: 700; color: #2563eb;"></p>
+                            <p id="selectedFileNotice" style="margin-top: 8px; font-weight: 700; color: var(--accent);"></p>
                             <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 14px;">Submit Document</button>
                         </form>
                     </div>
                 </div>
 
                 <div id="view-staff-history" class="page-view" style="display: none;">
-                    <h2 style="font-size: 17px; font-weight: 800; color: #0f2a59; margin-bottom: 12px;">Official Duty Ledger & Remuneration Audit</h2>
+                    <h2 style="font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 14px;">My Work History & Remuneration</h2>
                     <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Days Worked</div>
-                            <div class="stat-value" id="ledgerDaysWorked">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Total Sanctioned</div>
-                            <div class="stat-value" id="ledgerTotalEarned" style="color: #1e40af;">₹0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Disbursed</div>
-                            <div class="stat-value" id="ledgerTotalReceived" style="color: #15803d;">₹0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Pending</div>
-                            <div class="stat-value" id="ledgerTotalPending" style="color: #b45309;">₹0</div>
-                        </div>
+                        <div class="stat-card"><div class="stat-label">Days Worked</div><div class="stat-value" id="ledgerDaysWorked">0</div></div>
+                        <div class="stat-card"><div class="stat-label">Total Fee</div><div class="stat-value" id="ledgerTotalEarned" style="color: var(--accent);">₹0</div></div>
+                        <div class="stat-card"><div class="stat-label">Received</div><div class="stat-value" id="ledgerTotalReceived" style="color: var(--green);">₹0</div></div>
+                        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" id="ledgerTotalPending" style="color: #d97706;">₹0</div></div>
                     </div>
                     <div class="card">
-                        <div class="card-header"><strong>Itemized Day-Wise Ledger</strong></div>
                         <div class="table-responsive">
                             <table>
-                                <thead>
-                                    <tr><th>Session Date</th><th>Exam & Venue</th><th>Role</th><th>Shift</th><th>Hours</th><th>Amount</th><th>Status</th><th>Token</th></tr>
-                                </thead>
+                                <thead><tr><th>Date</th><th>Exam & Venue</th><th>Role</th><th>Shift</th><th>Hours</th><th>Amount</th><th>Status</th><th>Txn Ref</th></tr></thead>
                                 <tbody id="staffLedgerTableBody"></tbody>
                             </table>
                         </div>
@@ -450,139 +362,26 @@
         </main>
     </div>
 
-    <!-- MODAL 1: DRILLDOWN -->
-    <div id="drilldownModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="drilldownTitle" style="font-size: 14px;">Audit Drilldown</h3>
-                <button class="btn btn-outline" onclick="closeModal('drilldownModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Vendor</th><th>Venue</th><th>Exam</th><th>In</th><th>Out</th><th>Status</th></tr></thead>
-                        <tbody id="drilldownTbody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 2: ATTENDANCE PROOF -->
-    <div id="attendanceProofModal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header" style="background: #0f2a59; color: #fff;">
-                <h3 style="font-size: 14px;">Attendance & Signed Sheet Inspection</h3>
-                <button class="btn btn-outline" style="color: #fff;" onclick="closeModal('attendanceProofModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; color: #fff;">
-                        <span style="font-size: 10px; color: #94a3b8;">📷 PUNCH IN</span>
-                        <div id="proofPunchInPhoto" style="height: 180px; background: #1e293b; display: flex; align-items: center; justify-content: center; margin-top: 4px;"></div>
-                    </div>
-                    <div style="background: #0f172a; padding: 8px; border-radius: 4px; color: #fff;">
-                        <span style="font-size: 10px; color: #94a3b8;">📷 PUNCH OUT</span>
-                        <div id="proofPunchOutPhoto" style="height: 180px; background: #1e293b; display: flex; align-items: center; justify-content: center; margin-top: 4px;"></div>
-                    </div>
-                </div>
-                <div id="lateReasonAlertBox" style="display:none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 8px; border-radius: 4px; margin-bottom: 12px;">
-                    <strong>Late Submission:</strong> <span id="lateReasonText"></span>
-                </div>
-                <div style="border: 1px solid var(--gov-border); padding: 12px; border-radius: 4px; text-align: center; background: #f8fafc;">
-                    <div style="font-weight: 700; margin-bottom: 6px;">Signed Attendance Sheet</div>
-                    <div id="proofSheetContainer" style="min-height: 200px; display: flex; align-items: center; justify-content: center;"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('attendanceProofModal')">Close</button>
-                <button class="btn btn-danger" onclick="actionVerifyCurrent('Rejected')">Reject</button>
-                <button class="btn btn-success" onclick="actionVerifyCurrent('Approved')">Approve Attendance</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 3: VOUCHER -->
-    <div id="paymentProofModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 650px;">
-            <div class="modal-header">
-                <h3>Form TR-42 Treasury Remuneration Voucher</h3>
-                <button class="btn btn-outline" onclick="closeModal('paymentProofModal')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="voucher-container" id="voucherPrintArea">
-                    <div style="text-align: center; border-bottom: 2px solid #0f2a59; padding-bottom: 10px; margin-bottom: 12px;">
-                        <strong style="font-size: 14px; color: #0f2a59;">GOVERNMENT EXAMINATION REMUNERATION VOUCHER</strong>
-                        <div style="font-size: 11px; color: #475569;" id="vConductingAgency">Exam Authority</div>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 10px;">
-                        <span><strong>TOKEN:</strong> <code id="vRefNo"></code></span>
-                        <span><strong>DATE:</strong> <span id="vDutyDate"></span></span>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 12px; margin-bottom: 12px;">
-                        <div>Staff ID: <strong id="vStaffId"></strong></div>
-                        <div>Name: <strong id="vStaffName"></strong></div>
-                        <div>Role: <strong id="vRole"></strong></div>
-                        <div>Vendor: <strong id="vVendor"></strong></div>
-                        <div style="grid-column: span 2;">Venue: <strong id="vCentre"></strong></div>
-                    </div>
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
-                        <thead>
-                            <tr style="background: #0f2a59; color: #fff;">
-                                <th style="padding: 6px 8px;">Description</th>
-                                <th style="padding: 6px 8px; text-align: right;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr><td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0;">Duty Honorarium</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0;" id="vDutyAmt"></td></tr>
-                            <tr><td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0;">Travel Allowance</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0;" id="vTravelAmt"></td></tr>
-                            <tr><td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0;">Refreshment Allowance</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid #e2e8f0;" id="vOtherAmt"></td></tr>
-                            <tr style="font-weight: 800; background: #f8fafc; border-top: 2px solid #0f2a59;">
-                                <td style="padding: 8px;">TOTAL DISBURSED</td>
-                                <td style="padding: 8px; text-align: right; color: #0f2a59;" id="vTotalAmt"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                        <span id="vStatusBadge" class="badge badge-paid">PAID</span>
-                        <div class="stamp-seal">
-                            <span>TREASURY</span>
-                            <span style="font-size: 9px;">PASSED</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('paymentProofModal')">Close</button>
-                <button class="btn btn-primary" onclick="window.print()">Print Voucher</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 4: ADD STAFF -->
+    <!-- MODALS: ADD STAFF, EXAM, CENTRE, DEPLOY -->
     <div id="addStaffModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Register Examination Personnel</h3>
-                <button class="btn btn-outline" onclick="closeModal('addStaffModal')">✕</button>
-            </div>
+            <div class="modal-header"><h3>Register Examination Personnel</h3><button class="btn btn-outline" onclick="closeModal('addStaffModal')">✕</button></div>
             <form id="addStaffForm">
                 <div class="modal-body">
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                        <div class="form-group">
-                            <label>Role *</label>
-                            <select name="role" required>
-                                <option value="Invigilator">Invigilator</option>
-                                <option value="Registration Staff">Registration Staff</option>
-                                <option value="Support Staff">Support Staff</option>
-                                <option value="Lab Supervisor">Lab Supervisor</option>
-                                <option value="Security">Security</option>
-                                <option value="Technical Staff">Technical Staff</option>
-                                <option value="Centre Head">Centre Head</option>
-                            </select>
-                        </div>
-                        <div class="form-group"><label>Vendor *</label><input type="text" name="vendor_name" placeholder="Eduquity / TCS" required></div>
-                        <div class="form-group"><label>District *</label><select name="ef_city" required><option value="Chennai">Chennai</option><option value="Trichy">Trichy</option><option value="Salem">Salem</option><option value="Coimbatore">Coimbatore</option></select></div>
+                        <div class="form-group"><label>Role *</label><select name="role" required>
+                            <option value="CCTV Operator">CCTV Operator (CC)</option>
+                            <option value="Lab Supervisor">Lab Supervisor (LS)</option>
+                            <option value="Jammer Operator">Jammer Operator (JA)</option>
+                            <option value="Security">Security Supervisor (SE)</option>
+                            <option value="Invigilator">Invigilator (IN)</option>
+                            <option value="Registration Staff">Registration Staff (RE)</option>
+                            <option value="Support Staff">Support Staff (SU)</option>
+                            <option value="Technical Staff">Technical Staff (TE)</option>
+                            <option value="Centre Head">Centre Head (CH)</option>
+                        </select></div>
+                        <div class="form-group"><label>Vendor</label><input type="text" name="vendor_name" placeholder="Eduquity / TCS / Direct"></div>
+                        <div class="form-group"><label>City *</label><select name="ef_city" required><option value="Chennai">Chennai</option><option value="Trichy">Trichy</option><option value="Salem">Salem</option><option value="Coimbatore">Coimbatore</option></select></div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                         <div class="form-group"><label>First Name *</label><input type="text" name="ef_first_name" required></div>
@@ -592,39 +391,28 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                         <div class="form-group"><label>DOB (Password) *</label><input type="date" name="ef_dob" required></div>
                         <div class="form-group"><label>Gender</label><select name="ef_gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
-                        <div class="form-group"><label>Mobile Contact *</label><input type="tel" name="ef_mobile_number" required></div>
+                        <div class="form-group"><label>Mobile Contact *</label><input type="tel" name="ef_mobile_number" required placeholder="10-digit number"></div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div class="form-group"><label>Email Address *</label><input type="email" name="ef_email_id" required></div>
-                        <div class="form-group"><label>National ID Ref</label><input type="text" name="ef_aadhar_number"></div>
-                    </div>
+                    <div class="form-group"><label>Email ID *</label><input type="email" name="ef_email_id" required></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Enroll Staff</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addStaffModal')">Cancel</button><button type="submit" class="btn btn-primary">Enroll Staff</button></div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 5: ADD EXAM -->
     <div id="addExamModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Schedule Examination</h3>
-                <button class="btn btn-outline" onclick="closeModal('addExamModal')">✕</button>
-            </div>
+            <div class="modal-header"><h3>Schedule Examination</h3><button class="btn btn-outline" onclick="closeModal('addExamModal')">✕</button></div>
             <form id="addExamForm">
                 <div class="modal-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <div class="form-group"><label>Exam Name *</label><input type="text" name="exam_name" required></div>
                         <div class="form-group"><label>Conducting Agency *</label><input type="text" name="exam_conducting_agency" required></div>
-                        <div class="form-group"><label>Vendor</label><input type="text" name="vendor_name" placeholder="Eduquity / TCS"></div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                         <div class="form-group"><label>Date From *</label><input type="date" name="date_from" required></div>
                         <div class="form-group"><label>Date To *</label><input type="date" name="date_to" required></div>
-                        <div class="form-group"><label>Shift Mode *</label><select name="shift_mode"><option value="Shift 1">Shift 1</option><option value="Full Day">Full Day</option></select></div>
+                        <div class="form-group"><label>Shift Mode *</label><select name="shift_mode"><option value="Shift 1">Shift 1</option><option value="Full Day">Full Day</option><option value="Multiple">Multiple</option></select></div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                         <div class="form-group"><label>Reporting Time</label><input type="time" name="s1_reporting_time" value="07:30"></div>
@@ -632,67 +420,49 @@
                         <div class="form-group"><label>End Time</label><input type="time" name="s1_end_time" value="12:00"></div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Publish Exam</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addExamModal')">Cancel</button><button type="submit" class="btn btn-primary">Save Exam</button></div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 6: ADD CENTRE -->
     <div id="addCentreModal" class="modal-overlay">
         <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>Add Examination Centre</h3>
-                <button class="btn btn-outline" onclick="closeModal('addCentreModal')">✕</button>
-            </div>
+            <div class="modal-header"><h3>Register Exam Centre</h3><button class="btn btn-outline" onclick="closeModal('addCentreModal')">✕</button></div>
             <form id="addCentreForm">
                 <div class="modal-body">
                     <div class="form-group"><label>Centre Name *</label><input type="text" name="centre_name" required></div>
-                    <div class="form-group"><label>District *</label><select name="city" required><option value="Chennai">Chennai</option><option value="Trichy">Trichy</option><option value="Salem">Salem</option><option value="Coimbatore">Coimbatore</option></select></div>
+                    <div class="form-group"><label>City *</label><select name="city" required><option value="Chennai">Chennai</option><option value="Trichy">Trichy</option><option value="Salem">Salem</option><option value="Coimbatore">Coimbatore</option></select></div>
                     <div class="form-group"><label>Address</label><textarea name="full_address" rows="2"></textarea></div>
                     <div class="form-group"><label>Google Maps Link</label><input type="text" name="map_location"></div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('addCentreModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Centre</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('addCentreModal')">Cancel</button><button type="submit" class="btn btn-primary">Save Centre</button></div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 7: DEPLOY STAFF -->
     <div id="deployStaffModal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3>Deploy Staff Across Date Range</h3>
-                <button class="btn btn-outline" onclick="closeModal('deployStaffModal')">✕</button>
-            </div>
+            <div class="modal-header"><h3>Deploy Staff Across Date Range</h3><button class="btn btn-outline" onclick="closeModal('deployStaffModal')">✕</button></div>
             <form id="deployStaffForm">
                 <div class="modal-body">
                     <div class="form-group"><label>Examination *</label><select name="exam_id" id="deployExamSelect" required></select></div>
                     <div class="form-group"><label>Centre Venue *</label><select name="centre_id" id="deployCentreSelect" required></select></div>
                     <div class="form-group"><label>Staff Member *</label><select name="staff_id" id="deployStaffSelect" required></select></div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div class="form-group"><label>Role *</label><select name="assigned_role" required>
-                            <option value="Invigilator">Invigilator</option><option value="Registration Staff">Registration Staff</option>
-                            <option value="Support Staff">Support Staff</option><option value="Lab Supervisor">Lab Supervisor</option>
-                            <option value="Security">Security</option><option value="Technical Staff">Technical Staff</option>
-                            <option value="Centre Head">Centre Head</option>
-                        </select></div>
-                        <div class="form-group"><label>Vendor Override</label><input type="text" name="vendor_name" placeholder="Leave blank for default"></div>
-                    </div>
+                    <div class="form-group"><label>Role *</label><select name="assigned_role" required>
+                        <option value="CCTV Operator">CCTV Operator</option>
+                        <option value="Lab Supervisor">Lab Supervisor</option>
+                        <option value="Jammer Operator">Jammer Operator</option>
+                        <option value="Security">Security Supervisor</option>
+                        <option value="Invigilator">Invigilator</option>
+                        <option value="Registration Staff">Registration Staff</option>
+                    </select></div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                         <div class="form-group"><label>Duty Date From *</label><input type="date" name="duty_date_from" required id="deployDutyDateFrom"></div>
                         <div class="form-group"><label>Duty Date To *</label><input type="date" name="duty_date_to" required id="deployDutyDateTo"></div>
                         <div class="form-group"><label>Shift *</label><select name="shift" required><option value="Shift 1">Shift 1</option><option value="Full Day">Full Day</option></select></div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline" onclick="closeModal('deployStaffModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Deploy Staff</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('deployStaffModal')">Cancel</button><button type="submit" class="btn btn-primary">Confirm Deployment</button></div>
             </form>
         </div>
     </div>
@@ -704,27 +474,15 @@
         let USER_ASSIGNMENT = null;
         let currentLoginType = 'STAFF';
         let rawDeployments = [];
-        let filteredDeployments = [];
-        let cachedSheets = [];
-        let cachedPayments = [];
-        let currentInspectingAttendanceId = null;
         let videoStream = null;
 
-        const ALL_ROLES = [
-            'Invigilator', 'Registration Staff', 'Support Staff', 'Lab Supervisor',
-            'Security', 'CCTV Operator', 'Jammer Operator', 'Technical Staff',
-            'Centre Head', 'Exam Coordinator'
-        ];
-
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('liveClock').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            document.getElementById('agencyClock').innerText = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
             if (TOKEN) {
                 try {
                     CURRENT_USER = JSON.parse(localStorage.getItem('EMMS_USER'));
                     initSession();
-                } catch (e) {
-                    logout();
-                }
+                } catch (e) { logout(); }
             } else {
                 document.getElementById('authView').style.display = 'flex';
                 document.getElementById('appShell').style.display = 'none';
@@ -742,12 +500,12 @@
 
             if (type === 'STAFF') {
                 tabStaff.className = 'btn btn-primary'; tabAdmin.className = 'btn btn-outline';
-                lblId.innerText = 'Staff Identification Number'; inpId.placeholder = 'e.g. LSTRI001';
-                lblPass.innerText = 'Date of Birth (Password)'; inpPass.placeholder = 'DDMMYYYY or YYYY-MM-DD';
+                lblId.innerText = 'Staff ID'; inpId.placeholder = 'e.g. CCTRI001';
+                lblPass.innerText = 'Password / Date of Birth'; inpPass.placeholder = 'DDMMYYYY or YYYY-MM-DD';
             } else {
                 tabAdmin.className = 'btn btn-primary'; tabStaff.className = 'btn btn-outline';
-                lblId.innerText = 'Administrator Government Email'; inpId.placeholder = 'admin@examgov.in';
-                lblPass.innerText = 'Portal Access Security Password'; inpPass.placeholder = '••••••••';
+                lblId.innerText = 'Admin Email Address'; inpId.placeholder = 'admin@gmail.com';
+                lblPass.innerText = 'Admin Password'; inpPass.placeholder = '••••••••';
             }
         }
 
@@ -765,18 +523,16 @@
                 });
                 const data = await res.json();
                 if (!res.ok) {
-                    alertBox.innerText = data.error || 'Authentication failure. Check credentials.';
+                    alertBox.innerText = data.error || 'Authentication failure.';
                     alertBox.style.display = 'block';
                     return;
                 }
-                TOKEN = data.token;
-                CURRENT_USER = data.user;
+                TOKEN = data.token; CURRENT_USER = data.user;
                 localStorage.setItem('EMMS_TOKEN', TOKEN);
                 localStorage.setItem('EMMS_USER', JSON.stringify(CURRENT_USER));
                 initSession();
             } catch (err) {
-                alertBox.innerText = 'Server connection failed.';
-                alertBox.style.display = 'block';
+                alertBox.innerText = 'Connection error.'; alertBox.style.display = 'block';
             }
         });
 
@@ -802,27 +558,24 @@
         function logout() {
             localStorage.removeItem('EMMS_TOKEN');
             localStorage.removeItem('EMMS_USER');
-            TOKEN = null;
-            CURRENT_USER = null;
-            if (videoStream) {
-                videoStream.getTracks().forEach(t => t.stop());
-            }
+            TOKEN = null; CURRENT_USER = null;
+            if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); }
             location.reload();
         }
 
         function switchRoute(route) {
             document.querySelectorAll('.page-view').forEach(v => v.style.display = 'none');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-
             const target = document.getElementById(`view-${route}`);
             if (target) target.style.display = 'block';
 
-            // Safe route executor
             if (route === 'admin-dashboard') loadDashboardData();
             else if (route === 'admin-staff') loadStaffList();
             else if (route === 'admin-exams') loadExamsList();
             else if (route === 'admin-centres') loadCentresList();
             else if (route === 'admin-deployments') loadDeploymentsList();
+            else if (route === 'admin-forms-audit') loadOperationalFormsAudit();
+            else if (route === 'admin-reports') loadReportsData();
             else if (route === 'admin-attendance') loadAttendanceSheets();
             else if (route === 'admin-payments') loadPaymentsList();
             else if (route === 'staff-duty' || route === 'staff-history') loadStaffPortalData();
@@ -831,311 +584,80 @@
         async function api(url, options = {}) {
             options.headers = options.headers || {};
             options.headers['Authorization'] = `Bearer ${TOKEN}`;
-            try {
-                const res = await fetch(url, options);
-                if (res.status === 401 || res.status === 403) {
-                    logout();
-                    return null;
-                }
-                return await res.json();
-            } catch (err) {
-                console.error("API Error on " + url, err);
-                return null;
-            }
+            const res = await fetch(url, options);
+            if (res.status === 401 || res.status === 403) { logout(); return null; }
+            return await res.json();
         }
 
-        // Dashboard & Analytics
+        // ================= FREE WHATSAPP / CLIPBOARD DISPATCH HELPERS =================
+        function shareStaffCredentialsWhatsApp(staffId, staffName, dob, mobile) {
+            const cleanMobile = (mobile || '').replace(/[^0-9]/g, '');
+            const msg = `*EXAM MANPOWER AGENCY - LOGIN CREDENTIALS*\n\nHello *${staffName}*,\nYou have been enrolled into the Examination Portal.\n\n👤 *Staff ID (Username):* ${staffId}\n🔑 *Password (DOB):* ${dob}\n🌐 *Portal URL:* ${window.location.origin}\n\nPlease login, check your assigned venue, and complete attendance.`;
+            const encoded = encodeURI(msg);
+            const waUrl = cleanMobile.length >= 10 
+                ? `https://api.whatsapp.com/send?phone=91${cleanMobile.slice(-10)}&text=${encoded}`
+                : `https://api.whatsapp.com/send?text=${encoded}`;
+            window.open(waUrl, '_blank');
+        }
+
+        function shareDeploymentOrderWhatsApp(staffName, staffId, exam, centre, period, shift, mobile) {
+            const cleanMobile = (mobile || '').replace(/[^0-9]/g, '');
+            const msg = `*EXAM MANPOWER AGENCY - DUTY DEPLOYMENT ORDER*\n\nDear *${staffName}* (${staffId}),\nYou are assigned to examination duty:\n\n📝 *Exam:* ${exam}\n🏫 *Venue:* ${centre}\n📅 *Duty Period:* ${period}\n⏱️ *Shift:* ${shift}\n\nReport strictly on time and submit your station checklist.`;
+            const encoded = encodeURI(msg);
+            const waUrl = cleanMobile.length >= 10 
+                ? `https://api.whatsapp.com/send?phone=91${cleanMobile.slice(-10)}&text=${encoded}`
+                : `https://api.whatsapp.com/send?text=${encoded}`;
+            window.open(waUrl, '_blank');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert("Copied to clipboard:\n" + text);
+        }
+
+        // ================= ADMIN DASHBOARD & LISTS =================
         async function loadDashboardData() {
             const data = await api('/api/admin/dashboard');
             if (!data) return;
-
             rawDeployments = data.allDeployments || [];
+            document.getElementById('dashTotalStaff').innerText = data.totalStaffCount;
             document.getElementById('dashPaymentPending').innerText = `₹${(data.totalPaymentPending || 0).toLocaleString()}`;
 
-            populateDashboardFilterOptions();
-            applyDashboardFilters();
-        }
+            const total = rawDeployments.length;
+            const present = rawDeployments.filter(d => d.attendance_status === 'Present').length;
+            const absent = rawDeployments.filter(d => d.attendance_status === 'Absent').length;
+            const pendingOut = rawDeployments.filter(d => d.punch_in_time && !d.punch_out_time).length;
 
-        function populateDashboardFilterOptions() {
-            const curCentre = document.getElementById('filterCentre').value;
-            const curRole = document.getElementById('filterRole').value;
-            const curExam = document.getElementById('filterExam').value;
-            const curVendor = document.getElementById('filterVendor').value;
-
-            const centres = [...new Set(rawDeployments.map(d => d.centre_name).filter(Boolean))];
-            const roles = [...new Set(rawDeployments.map(d => d.assigned_role).filter(Boolean))];
-            const exams = [...new Set(rawDeployments.map(d => d.exam_name).filter(Boolean))];
-            const vendors = [...new Set(rawDeployments.map(d => d.vendor_name).filter(Boolean))];
-
-            document.getElementById('filterCentre').innerHTML = '<option value="">All Centres</option>' + centres.map(c => `<option value="${c}" ${c === curCentre ? 'selected' : ''}>${c}</option>`).join('');
-            document.getElementById('filterRole').innerHTML = '<option value="">All Roles</option>' + roles.map(r => `<option value="${r}" ${r === curRole ? 'selected' : ''}>${r}</option>`).join('');
-            document.getElementById('filterExam').innerHTML = '<option value="">All Exams</option>' + exams.map(e => `<option value="${e}" ${e === curExam ? 'selected' : ''}>${e}</option>`).join('');
-            document.getElementById('filterVendor').innerHTML = '<option value="">All Vendors</option>' + vendors.map(v => `<option value="${v}" ${v === curVendor ? 'selected' : ''}>${v}</option>`).join('');
-        }
-
-        function resetDashboardFilters() {
-            document.getElementById('filterStaffSearch').value = '';
-            document.getElementById('filterCentre').value = '';
-            document.getElementById('filterRole').value = '';
-            document.getElementById('filterExam').value = '';
-            document.getElementById('filterVendor').value = '';
-            applyDashboardFilters();
-        }
-
-        function applyDashboardFilters() {
-            const search = (document.getElementById('filterStaffSearch').value || '').toLowerCase().trim();
-            const centre = document.getElementById('filterCentre').value;
-            const role = document.getElementById('filterRole').value;
-            const exam = document.getElementById('filterExam').value;
-            const vendor = document.getElementById('filterVendor').value;
-
-            filteredDeployments = rawDeployments.filter(d => {
-                const sName = (d.staff_name || '').toLowerCase();
-                const sId = (d.staff_id || '').toLowerCase();
-                const matchSearch = !search || sName.includes(search) || sId.includes(search);
-                const matchCentre = !centre || d.centre_name === centre;
-                const matchRole = !role || d.assigned_role === role;
-                const matchExam = !exam || d.exam_name === exam;
-                const matchVendor = !vendor || d.vendor_name === vendor;
-                return matchSearch && matchCentre && matchRole && matchExam && matchVendor;
-            });
-
-            renderDashboardMetrics();
-            renderRoleMatrix();
-            renderVenueMatrix();
-        }
-
-        function renderDashboardMetrics() {
-            const total = filteredDeployments.length;
-            const present = filteredDeployments.filter(d => d.attendance_status === 'Present').length;
-            const absent = filteredDeployments.filter(d => d.attendance_status === 'Absent').length;
-            const punchOutPending = filteredDeployments.filter(d => d.punch_in_time && !d.punch_out_time).length;
-
-            document.getElementById('dashTotalStaff').innerText = total;
             document.getElementById('dashPresent').innerText = present;
             document.getElementById('dashAbsent').innerText = absent;
-            document.getElementById('dashPunchOutPending').innerText = punchOutPending;
-        }
+            document.getElementById('dashPunchOutPending').innerText = pendingOut;
 
-        function renderRoleMatrix() {
-            const tbody = document.getElementById('roleMatrixTableBody');
-            tbody.innerHTML = ALL_ROLES.map(role => {
-                const roleList = filteredDeployments.filter(d => (d.assigned_role || '').toLowerCase() === role.toLowerCase());
-                const assigned = roleList.length;
-                const present = roleList.filter(d => d.attendance_status === 'Present').length;
-                const absent = assigned - present;
-                const shortage = absent;
-
-                return `
-                    <tr style="cursor: pointer;" onclick="openDrilldownModal('ROLE', '${role}', '${role}')">
-                        <td><strong>${role}</strong></td>
-                        <td>${assigned}</td>
-                        <td style="color: #15803d; font-weight: 700;">${present}</td>
-                        <td style="color: #dc2626; font-weight: 700;">${absent}</td>
-                        <td style="color: ${shortage > 0 ? '#ea580c' : '#15803d'}; font-weight: 800;">${shortage}</td>
-                        <td><button class="btn btn-outline btn-sm">Audit 🔍</button></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderVenueMatrix() {
             const tbody = document.getElementById('centreStatusTableBody');
-            const uniqueCentres = [...new Set(filteredDeployments.map(d => d.centre_name).filter(Boolean))];
-
-            if (uniqueCentres.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #94a3b8;">No matching venue deployment found.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = uniqueCentres.map(cName => {
-                const cList = filteredDeployments.filter(d => d.centre_name === cName);
-                const city = cList[0]?.centre_city || 'N/A';
+            const uniqueCentres = [...new Set(rawDeployments.map(d => d.centre_name).filter(Boolean))];
+            tbody.innerHTML = (uniqueCentres.length === 0) ? `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">No venues scheduled today.</td></tr>` : uniqueCentres.map(cName => {
+                const cList = rawDeployments.filter(d => d.centre_name === cName);
                 const assigned = cList.length;
-                const present = cList.filter(d => d.attendance_status === 'Present').length;
-                const absent = assigned - present;
-                const statusBadge = absent > 0 ? `<span class="badge badge-shortage">Deficit (${absent})</span>` : `<span class="badge badge-present">Full Quota</span>`;
-
-                return `
-                    <tr>
-                        <td><strong>${cName}</strong></td>
-                        <td>${city}</td>
-                        <td>${assigned}</td>
-                        <td style="color: #15803d; font-weight: 700;">${present}</td>
-                        <td style="color: #ea580c; font-weight: 700;">${absent}</td>
-                        <td>${statusBadge}</td>
-                        <td><button class="btn btn-outline btn-sm" onclick="openDrilldownModal('CENTRE', '${cName}', '${cName}')">View Venue</button></td>
-                    </tr>
-                `;
+                const pCount = cList.filter(d => d.attendance_status === 'Present').length;
+                const deficit = assigned - pCount;
+                return `<tr><td><strong>${cName}</strong></td><td>${cList[0]?.centre_city || 'N/A'}</td><td>${assigned}</td><td style="color:var(--green); font-weight:700;">${pCount}</td><td style="color:var(--red); font-weight:700;">${deficit}</td><td><span class="badge badge-${deficit > 0 ? 'absent' : 'present'}">${deficit > 0 ? 'Deficit' : 'Ready'}</span></td></tr>`;
             }).join('');
         }
 
-        function openDrilldownModal(type, title, filterValue) {
-            document.getElementById('drilldownTitle').innerText = `Drilldown: ${title}`;
-            let list = [];
-
-            if (type === 'ALL') list = filteredDeployments;
-            else if (type === 'PRESENT') list = filteredDeployments.filter(d => d.attendance_status === 'Present');
-            else if (type === 'ABSENT') list = filteredDeployments.filter(d => d.attendance_status === 'Absent');
-            else if (type === 'PUNCHOUT_PENDING') list = filteredDeployments.filter(d => d.punch_in_time && !d.punch_out_time);
-            else if (type === 'ROLE') list = filteredDeployments.filter(d => (d.assigned_role || '').toLowerCase() === filterValue.toLowerCase());
-            else if (type === 'CENTRE') list = filteredDeployments.filter(d => d.centre_name === filterValue);
-
-            const tbody = document.getElementById('drilldownTbody');
-            tbody.innerHTML = (list.length === 0) ? `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No records located.</td></tr>` : list.map(s => `
-                <tr>
-                    <td><strong>${s.staff_id}</strong></td>
-                    <td>${s.staff_name}</td>
-                    <td>${s.assigned_role}</td>
-                    <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
-                    <td>${s.centre_name}</td>
-                    <td>${s.exam_name}</td>
-                    <td>${s.punch_in_time || '--'}</td>
-                    <td>${s.punch_out_time || '--'}</td>
-                    <td><span class="badge badge-${s.attendance_status.toLowerCase()}">${s.attendance_status}</span></td>
-                </tr>
-            `).join('');
-
-            openModal('drilldownModal');
-        }
-
-        // Attendance Verification
-        async function loadAttendanceSheets() {
-            const sheets = await api('/api/admin/attendance-sheets') || [];
-            cachedSheets = sheets;
-            const tbody = document.getElementById('attendanceVerificationTableBody');
-            tbody.innerHTML = (sheets.length === 0) ? `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">No attendance sheets submitted yet.</td></tr>` : sheets.map((s, idx) => `
-                <tr>
-                    <td><strong>${s.staff_id}</strong></td>
-                    <td>${s.staff_name}</td>
-                    <td>${s.role}</td>
-                    <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
-                    <td>${s.punch_in_time || '--'}</td>
-                    <td>${s.punch_out_time || '--'}</td>
-                    <td>${s.working_hours || '--'}</td>
-                    <td><button class="btn btn-outline btn-sm" onclick="inspectAttendanceProof(${idx})">📷 Proofs</button></td>
-                    <td><span class="badge badge-${(s.sheet_verification_status || 'pending').toLowerCase()}">${s.sheet_verification_status}</span></td>
-                    <td>
-                        ${s.sheet_verification_status === 'Submitted' ? `
-                            <button class="btn btn-success btn-sm" onclick="verifySheet(${s.id}, 'Approved')">Approve</button>
-                            <button class="btn btn-danger btn-sm" onclick="verifySheet(${s.id}, 'Rejected')">Reject</button>
-                        ` : 'Audited'}
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function inspectAttendanceProof(idx) {
-            const s = cachedSheets[idx];
-            if (!s) return;
-
-            currentInspectingAttendanceId = s.id;
-            document.getElementById('proofPunchInPhoto').innerHTML = s.punch_in_photo && s.punch_in_photo !== 'null' 
-                ? `<img src="${s.punch_in_photo}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#64748b;">No Snapshot</span>';
-            document.getElementById('proofPunchOutPhoto').innerHTML = s.punch_out_photo && s.punch_out_photo !== 'null' 
-                ? `<img src="${s.punch_out_photo}" style="width:100%; height:100%; object-fit:cover;">` : '<span style="color:#64748b;">No Snapshot</span>';
-
-            const lateBox = document.getElementById('lateReasonAlertBox');
-            if (s.is_late_submission === 1 || s.is_late_submission === '1') {
-                lateBox.style.display = 'block';
-                document.getElementById('lateReasonText').innerText = s.late_reason || 'No reason specified.';
-            } else {
-                lateBox.style.display = 'none';
-            }
-
-            if (s.sheet_file && s.sheet_file !== 'null') {
-                if (s.sheet_file.toLowerCase().endsWith('.pdf')) {
-                    document.getElementById('proofSheetContainer').innerHTML = `<iframe src="${s.sheet_file}" style="width:100%; height:260px; border:none;"></iframe>`;
-                } else {
-                    document.getElementById('proofSheetContainer').innerHTML = `<a href="${s.sheet_file}" target="_blank"><img src="${s.sheet_file}" style="max-height:240px; max-width:100%; object-fit:contain;"></a>`;
-                }
-            } else {
-                document.getElementById('proofSheetContainer').innerHTML = '<span style="color:#94a3b8;">No sheet attached</span>';
-            }
-
-            openModal('attendanceProofModal');
-        }
-
-        async function actionVerifyCurrent(status) {
-            if (!currentInspectingAttendanceId) return;
-            await api('/api/admin/verify-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance_id: currentInspectingAttendanceId, status }) });
-            closeModal('attendanceProofModal');
-            loadAttendanceSheets();
-            loadDashboardData();
-        }
-
-        async function verifySheet(id, status) {
-            await api('/api/admin/verify-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance_id: id, status }) });
-            loadAttendanceSheets();
-            loadDashboardData();
-        }
-
-        // Payments
-        async function loadPaymentsList() {
-            const payments = await api('/api/admin/payments') || [];
-            cachedPayments = payments;
-            const tbody = document.getElementById('paymentsTableBody');
-            tbody.innerHTML = (payments.length === 0) ? `<tr><td colspan="9" style="text-align:center; color:#94a3b8;">No payment claims found.</td></tr>` : payments.map((p, idx) => `
-                <tr>
-                    <td><strong>${p.staff_id}</strong></td>
-                    <td>${p.staff_name}</td>
-                    <td>${p.role}</td>
-                    <td><span class="badge badge-ready">${p.vendor_name || 'Direct'}</span></td>
-                    <td>${p.duty_date}</td>
-                    <td><strong>₹${(p.total_payable || 0).toLocaleString()}</strong></td>
-                    <td><span class="badge badge-${(p.payment_status || 'pending').toLowerCase()}">${p.payment_status}</span></td>
-                    <td><code>${p.reference_no || 'Pending'}</code></td>
-                    <td>
-                        <button class="btn btn-outline btn-sm" onclick="showPaymentVoucher(${idx})">🧾 Voucher</button>
-                        ${p.payment_status === 'Pending' ? `
-                            <button class="btn btn-success btn-sm" onclick="updatePaymentStatus(${p.id}, 'Approved')">Approve</button>
-                        ` : p.payment_status === 'Approved' ? `
-                            <button class="btn btn-primary btn-sm" onclick="updatePaymentStatus(${p.id}, 'Paid')">Disburse</button>
-                        ` : ''}
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        function showPaymentVoucher(idx) {
-            const p = cachedPayments[idx];
-            if (!p) return;
-            document.getElementById('vConductingAgency').innerText = `Agency: ${p.exam_conducting_agency || 'Government Examination Authority'}`;
-            document.getElementById('vStatusBadge').className = `badge badge-${(p.payment_status || 'pending').toLowerCase()}`;
-            document.getElementById('vStatusBadge').innerText = (p.payment_status || 'Pending').toUpperCase();
-            document.getElementById('vStaffId').innerText = p.staff_id;
-            document.getElementById('vStaffName').innerText = p.staff_name;
-            document.getElementById('vRole').innerText = p.role;
-            document.getElementById('vVendor').innerText = p.vendor_name || 'Direct';
-            document.getElementById('vDutyDate').innerText = p.duty_date;
-            document.getElementById('vCentre').innerText = p.centre_name;
-            document.getElementById('vDutyAmt').innerText = `₹${(p.duty_amount || 0).toLocaleString()}.00`;
-            document.getElementById('vTravelAmt').innerText = `₹${(p.travel_allowance || 0).toLocaleString()}.00`;
-            document.getElementById('vOtherAmt').innerText = `₹${(p.other_allowance || 0).toLocaleString()}.00`;
-            document.getElementById('vTotalAmt').innerText = `₹${(p.total_payable || 0).toLocaleString()}.00`;
-            document.getElementById('vRefNo').innerText = p.reference_no || ('TXN-EMMS-' + Math.floor(100000 + Math.random() * 900000));
-            openModal('paymentProofModal');
-        }
-
-        async function updatePaymentStatus(payment_id, status) {
-            await api('/api/admin/update-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_id, status }) });
-            loadPaymentsList();
-        }
-
-        // Basic lists
         async function loadStaffList() {
             const staff = await api('/api/staff') || [];
             const tbody = document.getElementById('staffTableBody');
-            tbody.innerHTML = staff.map(s => `
+            tbody.innerHTML = (staff.length === 0) ? `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No staff registered yet.</td></tr>` : staff.map(s => `
                 <tr>
                     <td><strong>${s.staff_id}</strong></td>
                     <td>${s.name}</td>
                     <td>${s.role}</td>
-                    <td><span class="badge badge-ready">${s.vendor_name || 'Direct'}</span></td>
                     <td>${s.ef_city}</td>
                     <td>${s.ef_mobile_number || 'N/A'}</td>
                     <td><span class="badge badge-active">${s.status}</span></td>
-                    <td><button class="btn btn-outline btn-sm">Verified</button></td>
+                    <td>
+                        <button class="btn btn-whatsapp btn-sm" onclick="shareStaffCredentialsWhatsApp('${s.staff_id}', '${s.name}', '${s.ef_dob}', '${s.ef_mobile_number}')">📲 WhatsApp ID</button>
+                        <button class="btn btn-outline btn-sm" onclick="copyToClipboard('Staff ID: ${s.staff_id} | Pass: ${s.ef_dob}')">📋 Copy</button>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -1143,15 +665,13 @@
         async function loadExamsList() {
             const exams = await api('/api/exams') || [];
             const tbody = document.getElementById('examsTableBody');
-            tbody.innerHTML = exams.map(e => `
+            tbody.innerHTML = (exams.length === 0) ? `<tr><td colspan="5" style="text-align:center; color:#94a3b8;">No exams scheduled.</td></tr>` : exams.map(e => `
                 <tr>
                     <td><strong>${e.exam_name}</strong></td>
                     <td>${e.exam_conducting_agency}</td>
-                    <td><span class="badge badge-ready">${e.vendor_name || 'Direct'}</span></td>
                     <td>${e.date_from} to ${e.date_to}</td>
-                    <td>${e.shift_mode}</td>
-                    <td><small>09:00 - 12:00 PM</small></td>
-                    <td><button class="btn btn-outline btn-sm">Active</button></td>
+                    <td><span class="badge badge-ready">${e.shift_mode}</span></td>
+                    <td><small>Rep: ${e.s1_reporting_time || '07:30'} | ${e.s1_start_time || '09:00'} - ${e.s1_end_time || '12:00'}</small></td>
                 </tr>
             `).join('');
         }
@@ -1159,14 +679,12 @@
         async function loadCentresList() {
             const centres = await api('/api/centres') || [];
             const tbody = document.getElementById('centresTableBody');
-            tbody.innerHTML = centres.map(c => `
+            tbody.innerHTML = (centres.length === 0) ? `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">No centres added.</td></tr>` : centres.map(c => `
                 <tr>
                     <td><strong>${c.centre_name}</strong></td>
                     <td>${c.city}</td>
-                    <td>${c.full_address || 'Not specified'}</td>
-                    <td>${c.map_location ? `<a href="${c.map_location}" target="_blank" style="color:#2563eb;">View Maps</a>` : 'N/A'}</td>
-                    <td><span class="badge badge-ready">${c.status}</span></td>
-                    <td><button class="btn btn-outline btn-sm">Inspect</button></td>
+                    <td>${c.full_address || 'N/A'}</td>
+                    <td>${c.map_location ? `<a href="${c.map_location}" target="_blank" style="color:var(--accent);">View Map</a>` : 'N/A'}</td>
                 </tr>
             `).join('');
         }
@@ -1174,77 +692,82 @@
         async function loadDeploymentsList() {
             const deps = await api('/api/deployments') || [];
             const tbody = document.getElementById('deploymentsTableBody');
-            tbody.innerHTML = deps.map(d => `
+            tbody.innerHTML = (deps.length === 0) ? `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No deployment records.</td></tr>` : deps.map(d => `
                 <tr>
                     <td><strong>${d.staff_id}</strong></td>
                     <td>${d.staff_name}</td>
                     <td>${d.assigned_role}</td>
-                    <td><span class="badge badge-ready">${d.vendor_name || 'Direct'}</span></td>
                     <td>${d.exam_name}</td>
-                    <td>${d.shift}</td>
+                    <td><span class="badge badge-ready">${d.shift}</span></td>
                     <td>${d.centre_name} (${d.city})</td>
                     <td>${d.duty_date}</td>
-                    <td><button class="btn btn-outline btn-sm">Active</button></td>
+                    <td>
+                        <button class="btn btn-whatsapp btn-sm" onclick="shareDeploymentOrderWhatsApp('${d.staff_name}', '${d.staff_id}', '${d.exam_name}', '${d.centre_name}', '${d.duty_date}', '${d.shift}', '${d.ef_mobile_number}')">📲 Send Order</button>
+                    </td>
                 </tr>
             `).join('');
         }
 
-        async function openDeployModal() {
-            const [exams, centres, staff] = await Promise.all([
-                api('/api/exams'), api('/api/centres'), api('/api/staff')
-            ]);
-            document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name}</option>`).join('');
-            document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
-            document.getElementById('deployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
-
-            const todayStr = new Date().toISOString().split('T')[0];
-            document.getElementById('deployDutyDateFrom').value = todayStr;
-            document.getElementById('deployDutyDateTo').value = todayStr;
-            openModal('deployStaffModal');
+        // ================= CONSOLIDATED REPORTS (WITH CSV EXPORT) =================
+        async function loadReportsData() {
+            const data = await api('/api/admin/dashboard');
+            const list = data?.allDeployments || [];
+            const tbody = document.getElementById('reportsTableBody');
+            tbody.innerHTML = (list.length === 0) ? `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">No records to display.</td></tr>` : list.map(r => `
+                <tr>
+                    <td>${r.duty_date}</td>
+                    <td><strong>${r.staff_id}</strong></td>
+                    <td>${r.staff_name}</td>
+                    <td>${r.assigned_role}</td>
+                    <td>${r.centre_name}</td>
+                    <td>${r.exam_name}</td>
+                    <td>${r.working_hours || '--'}</td>
+                    <td><small>In: ${r.punch_in_time || '--'} | Out: ${r.punch_out_time || '--'}</small></td>
+                    <td><strong>₹${r.total_payable || 1900}</strong></td>
+                    <td><span class="badge badge-${r.attendance_status === 'Present' ? 'present' : 'absent'}">${r.attendance_status}</span></td>
+                </tr>
+            `).join('');
+            window._cachedReportList = list;
         }
 
-        // Form Submissions
-        document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && res.staff_id) {
-                alert(`Staff Enrolled! ID: ${res.staff_id}`);
-                closeModal('addStaffModal'); e.target.reset(); loadStaffList();
-            } else if (res && res.error) alert(res.error);
-        });
+        function exportReportsCSV() {
+            const list = window._cachedReportList || [];
+            if (list.length === 0) { alert('No report data to export.'); return; }
+            let csv = "Date,Staff ID,Staff Name,Role,Venue,Exam,Shift,Punch In,Punch Out,Working Hours,Amount,Status\n";
+            list.forEach(r => {
+                csv += `"${r.duty_date}","${r.staff_id}","${r.staff_name}","${r.assigned_role}","${r.centre_name}","${r.exam_name}","${r.shift}","${r.punch_in_time || ''}","${r.punch_out_time || ''}","${r.working_hours || ''}","${r.total_payable || 1900}","${r.attendance_status}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `EMMS_Consolidated_Report_${Date.now()}.csv`);
+            a.click();
+        }
 
-        document.getElementById('addExamForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/exams', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && res.id) {
-                alert('Exam scheduled successfully.');
-                closeModal('addExamModal'); e.target.reset(); loadExamsList();
-            }
-        });
+        // ================= OPERATIONAL FORMS REVIEW (ADMIN DESK) =================
+        async function loadOperationalFormsAudit() {
+            const forms = await api('/api/admin/operational-forms') || [];
+            const tbody = document.getElementById('operationalFormsAuditTbody');
+            tbody.innerHTML = (forms.length === 0) ? `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">No operational forms filed today.</td></tr>` : forms.map(f => {
+                let parsed = {};
+                try { parsed = JSON.parse(f.form_data_json); } catch (e) {}
+                let detailText = Object.entries(parsed).map(([k, v]) => `<strong>${k.replace(/_/g, ' ')}:</strong> ${v}`).join('<br>');
+                return `
+                    <tr>
+                        <td><strong>${f.staff_id}</strong></td>
+                        <td>${f.staff_name}</td>
+                        <td><span class="badge badge-ready">${f.role}</span></td>
+                        <td>${f.centre_name}</td>
+                        <td>${f.duty_date}</td>
+                        <td style="font-size:11.5px; line-height:1.4;">${detailText}</td>
+                        <td>${f.photo_proof_path ? `<a href="${f.photo_proof_path}" target="_blank" class="btn btn-outline btn-sm">📷 View Photo</a>` : 'None'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
 
-        document.getElementById('addCentreForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/centres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && res.id) {
-                alert('Centre venue saved.');
-                closeModal('addCentreModal'); e.target.reset(); loadCentresList();
-            }
-        });
-
-        document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const payload = Object.fromEntries(new FormData(e.target).entries());
-            const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            if (res && !res.error) {
-                alert(res.message || 'Deployment orders dispatched.');
-                closeModal('deployStaffModal'); loadDeploymentsList();
-            }
-        });
-
-        // Staff portal data
+        // ================= STAFF DESK & DYNAMIC ROLE FORMS =================
         async function loadStaffPortalData() {
             const data = await api('/api/staff/my-portal-data');
             if (!data) return;
@@ -1254,65 +777,183 @@
             document.getElementById('ledgerTotalReceived').innerText = `₹${(data.summary?.totalReceived || 0).toLocaleString()}`;
             document.getElementById('ledgerTotalPending').innerText = `₹${(data.summary?.totalPending || 0).toLocaleString()}`;
 
-            const todayAssignment = (data.history || []).find(h => h.is_today === 1);
-            USER_ASSIGNMENT = todayAssignment || null;
+            const today = (data.history || []).find(h => h.is_today === 1);
+            USER_ASSIGNMENT = today || null;
 
             const dutyContainer = document.getElementById('dutyDetailsContainer');
-            if (!todayAssignment) {
-                dutyContainer.innerHTML = `<div class="card" style="padding: 20px; text-align:center; color:#94a3b8;">No duty assignment scheduled for today. Check your complete History below.</div>`;
+            const formArea = document.getElementById('roleSpecificFormArea');
+
+            if (!today) {
+                dutyContainer.innerHTML = `<div class="card" style="padding: 20px; text-align:center; color:#94a3b8;">No active exam duty assigned to you today.</div>`;
+                formArea.innerHTML = '';
             } else {
                 dutyContainer.innerHTML = `
                     <div class="card" style="padding: 20px;">
-                        <h2 style="font-size: 16px; color: #0f2a59; margin-bottom: 6px;">${todayAssignment.exam_name}</h2>
-                        <p style="color: #64748b; font-size: 12px; margin-bottom: 12px;">
-                            Agency: <strong>${todayAssignment.exam_conducting_agency}</strong> | Venue: <strong>${todayAssignment.centre_name} (${todayAssignment.city})</strong> | Shift: <strong>${todayAssignment.shift}</strong>
-                        </p>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 12px;">
-                            <div><label>Designated Role</label><p><strong>${todayAssignment.assigned_role}</strong></p></div>
-                            <div><label>Reporting Time</label><p><strong>${todayAssignment.s1_reporting_time || '07:30 AM'}</strong></p></div>
-                            <div><label>Sanctioned Honorarium</label><p><strong>₹${(todayAssignment.total_payable || 1900).toLocaleString()}</strong></p></div>
+                        <h3 style="font-size: 16px; color: var(--navy); margin-bottom: 6px;">${today.exam_name}</h3>
+                        <p style="color: var(--muted); font-size: 12px; margin-bottom: 12px;">Venue: <strong>${today.centre_name} (${today.city})</strong> | Role: <strong>${today.assigned_role}</strong> | Shift: <strong>${today.shift}</strong></p>
+                        <div style="background: #f8fafc; padding: 10px; border: 1px solid var(--border); border-radius: 4px;">
+                            <span>Punch In: <strong>${today.punch_in_time || '--:--'}</strong></span> | 
+                            <span>Punch Out: <strong>${today.punch_out_time || '--:--'}</strong></span>
                         </div>
-                        <div style="background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
-                            <span>Punch In: <strong>${todayAssignment.punch_in_time || '--:--'}</strong></span> | 
-                            <span>Punch Out: <strong>${todayAssignment.punch_out_time || '--:--'}</strong></span>
+                    </div>
+                `;
+
+                // Render Role-Specific Forms
+                if (data.roleFormSubmitted) {
+                    formArea.innerHTML = `<div class="card" style="padding: 16px; border-left: 4px solid var(--green);"><strong style="color:var(--green);">✓ ${today.assigned_role} Operational Checklist Submitted for Today!</strong></div>`;
+                } else {
+                    renderRoleForm(today.assigned_role, today.deployment_id, today.duty_date, today.centre_name);
+                }
+            }
+
+            const tbody = document.getElementById('staffLedgerTableBody');
+            tbody.innerHTML = (data.history || []).map(r => `
+                <tr>
+                    <td><strong>${r.duty_date}</strong></td>
+                    <td>${r.exam_name}<br><small style="color:#64748b;">${r.centre_name}</small></td>
+                    <td>${r.assigned_role}</td>
+                    <td>${r.shift}</td>
+                    <td>${r.working_hours || '--'}</td>
+                    <td><strong>₹${r.total_payable || 1900}</strong></td>
+                    <td><span class="badge badge-${r.payment_status === 'Paid' ? 'paid' : 'pending'}">${r.payment_status}</span></td>
+                    <td><code>${r.reference_no || 'Pending'}</code></td>
+                </tr>
+            `).join('');
+        }
+
+        // Dynamic Role Form Generator
+        function renderRoleForm(role, depId, dutyDate, centreName) {
+            const formArea = document.getElementById('roleSpecificFormArea');
+            let formFieldsHtml = '';
+
+            if (role === 'CCTV Operator') {
+                formFieldsHtml = `
+                    <div class="role-form-box">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">📹 CCTV Operator Station Checklist</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Centre Name</label><input type="text" name="centre_name" value="${centreName}" readonly></div>
+                            <div class="form-group"><label>Total Examination Labs</label><input type="number" name="total_labs" required placeholder="e.g. 8"></div>
                         </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:8px;">
+                            <div class="form-group"><label>Lab Cameras</label><input type="number" name="cams_lab" required placeholder="e.g. 16"></div>
+                            <div class="form-group"><label>Corridor Cams</label><input type="number" name="cams_corridor" required placeholder="e.g. 6"></div>
+                            <div class="form-group"><label>Pathway Cams</label><input type="number" name="cams_pathway" required placeholder="e.g. 4"></div>
+                            <div class="form-group"><label>Restroom Area</label><input type="number" name="cams_bathroom" required placeholder="e.g. 2"></div>
+                            <div class="form-group"><label>Frisking Gate</label><input type="number" name="cams_frisking" required placeholder="e.g. 2"></div>
+                            <div class="form-group"><label>Server Room</label><input type="number" name="cams_server_room" required placeholder="e.g. 1"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>DVR / NVR Model & Specs</label><input type="text" name="dvr_details" required placeholder="e.g. 32-Channel NVR 4TB HDD"></div>
+                            <div class="form-group"><label>Upload Pic of Live DVR / Display Monitor *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                        </div>
+                    </div>
+                `;
+            } else if (role === 'Lab Supervisor') {
+                formFieldsHtml = `
+                    <div class="role-form-box">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">🖥️ Lab Supervisor System Audit Form</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Lab Number / Identifier</label><input type="text" name="lab_identifier" required placeholder="e.g. Lab 03 - Ground Floor"></div>
+                            <div class="form-group"><label>Total Node Systems</label><input type="number" name="total_nodes" required placeholder="e.g. 60"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Active Candidate Nodes</label><input type="number" name="active_nodes" required placeholder="e.g. 50"></div>
+                            <div class="form-group"><label>Backup Buffer Nodes</label><input type="number" name="buffer_nodes" required placeholder="e.g. 10"></div>
+                            <div class="form-group"><label>Network Switch Status</label><select name="switch_status"><option value="Online / Tested">Online / Tested</option><option value="Backup Connected">Backup Connected</option></select></div>
+                        </div>
+                        <div class="form-group"><label>Upload Pic of Lab Ready State *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            } else if (role === 'Jammer Operator') {
+                formFieldsHtml = `
+                    <div class="role-form-box">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">📶 Jammer Operator Operations Form</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Total Jammers Installed</label><input type="number" name="total_jammers" required placeholder="e.g. 12"></div>
+                            <div class="form-group"><label>Reserve Buffer Jammers</label><input type="number" name="buffer_jammers" required placeholder="e.g. 2"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Jammer ON Time (Shift)</label><input type="time" name="jammer_on_time" required></div>
+                            <div class="form-group"><label>Jammer OFF Time (Shift)</label><input type="time" name="jammer_off_time" required></div>
+                            <div class="form-group"><label>Coverage Signal Check</label><select name="coverage_status"><option value="100% Mobile Jammed">100% Mobile Jammed</option><option value="Normal">Normal</option></select></div>
+                        </div>
+                        <div class="form-group"><label>Upload Pic of Jammer Status Display *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
+                    </div>
+                `;
+            } else if (role === 'Security') {
+                formFieldsHtml = `
+                    <div class="role-form-box">
+                        <h4 style="color:var(--navy); margin-bottom: 8px;">🛡️ Security Supervisor Gate & Frisking Form</h4>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Total Guards Deployed</label><input type="number" name="guards_count" required placeholder="e.g. 8 (4 Male, 4 Female)"></div>
+                            <div class="form-group"><label>DFMD / HHMD Count</label><input type="text" name="metal_detectors" required placeholder="e.g. 2 DFMD, 6 HHMD"></div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div class="form-group"><label>Main Gate Frisking Start Time</label><input type="time" name="frisking_start_time" required></div>
+                            <div class="form-group"><label>Candidate Gate Close Time</label><input type="time" name="gate_close_time" required></div>
+                        </div>
+                        <div class="form-group"><label>Upload Pic of Entry Frisking Station *</label><input type="file" id="rolePhotoInput" name="photo_proof" accept="image/*" required></div>
                     </div>
                 `;
             }
 
-            const tbody = document.getElementById('staffLedgerTableBody');
-            tbody.innerHTML = (!data.history || data.history.length === 0) ? `<tr><td colspan="8" style="text-align: center; color: #94a3b8;">No records logged.</td></tr>` : data.history.map(row => {
-                const isPaid = row.payment_status === 'Paid';
-                const statusBadge = isPaid ? `<span class="badge badge-paid">PAID</span>` : `<span class="badge badge-pending">PENDING</span>`;
-
-                return `
-                    <tr>
-                        <td><strong>${row.duty_date}</strong></td>
-                        <td>${row.exam_name}<br><small style="color:#64748b;">${row.centre_name}</small></td>
-                        <td>${row.assigned_role}</td>
-                        <td><span class="badge badge-ready">${row.shift}</span></td>
-                        <td><small>In: ${row.punch_in_time || '--'} | Out: ${row.punch_out_time || '--'}</small></td>
-                        <td><strong>₹${(row.total_payable || 1900).toLocaleString()}</strong></td>
-                        <td>${statusBadge}</td>
-                        <td><code>${row.reference_no || 'Pending'}</code></td>
-                    </tr>
+            if (formFieldsHtml) {
+                formArea.innerHTML = `
+                    <div class="card" style="padding: 16px;">
+                        <form id="dynamicRoleSubmitForm">
+                            ${formFieldsHtml}
+                            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px; padding:9px;">Submit Official Station Form</button>
+                        </form>
+                    </div>
                 `;
-            }).join('');
+
+                document.getElementById('dynamicRoleSubmitForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formDataObj = {};
+                    const elements = e.target.elements;
+                    for (let el of elements) {
+                        if (el.name && el.name !== 'photo_proof') formDataObj[el.name] = el.value;
+                    }
+
+                    const multipart = new FormData();
+                    multipart.append('deployment_id', depId);
+                    multipart.append('role', role);
+                    multipart.append('duty_date', dutyDate);
+                    multipart.append('form_fields', JSON.stringify(formDataObj));
+                    
+                    const fileInput = document.getElementById('rolePhotoInput');
+                    if (fileInput && fileInput.files[0]) {
+                        multipart.append('photo_proof', fileInput.files[0]);
+                    }
+
+                    const res = await fetch('/api/staff/submit-operational-form', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${TOKEN}` },
+                        body: multipart
+                    });
+                    const resJson = await res.json();
+                    if (res.ok) {
+                        alert(resJson.message);
+                        loadStaffPortalData();
+                    } else alert(resJson.error || 'Failed to submit form.');
+                });
+            } else {
+                formArea.innerHTML = '';
+            }
         }
 
+        // ================= BIOMETRIC PUNCH & ATTENDANCE =================
         async function startCamera() {
             try {
                 const video = document.getElementById('webcam');
                 if (!video) return;
                 videoStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
                 video.srcObject = videoStream;
-            } catch (e) {
-                console.warn('Camera inaccessible');
-            }
+            } catch (e) { console.warn('Camera inaccessible'); }
         }
 
         async function executePunch(type) {
-            if (!USER_ASSIGNMENT) { alert('No active assignment scheduled for today.'); return; }
+            if (!USER_ASSIGNMENT) { alert('No active duty assigned today.'); return; }
             const video = document.getElementById('webcam');
             const canvas = document.getElementById('snapshotCanvas');
             canvas.width = 640; canvas.height = 480;
@@ -1328,23 +969,23 @@
 
             const msg = document.getElementById('punchMessage');
             if (res && !res.error) {
-                msg.style.color = '#15803d'; msg.innerText = `Biometric ${type === 'in' ? 'Punch In' : 'Punch Out'} recorded!`;
+                msg.style.color = 'var(--green)'; msg.innerText = `Punch ${type === 'in' ? 'In' : 'Out'} recorded!`;
                 loadStaffPortalData();
             } else {
-                msg.style.color = '#dc2626'; msg.innerText = (res && res.error) ? res.error : 'Recording error.';
+                msg.style.color = 'var(--red)'; msg.innerText = (res && res.error) ? res.error : 'Error recording punch.';
             }
         }
 
         function showSelectedFileName(input) {
             const notice = document.getElementById('selectedFileNotice');
-            if (input.files && input.files[0]) { notice.innerText = `Selected: ${input.files[0].name}`; }
+            if (input.files && input.files[0]) notice.innerText = `Selected: ${input.files[0].name}`;
         }
 
         document.getElementById('sheetUploadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!USER_ASSIGNMENT) { alert('No active session logged today.'); return; }
+            if (!USER_ASSIGNMENT) { alert('No assignment found.'); return; }
             const fileInput = document.getElementById('sheetFileInput');
-            if (!fileInput.files[0]) { alert('Attach the scanned sheet first.'); return; }
+            if (!fileInput.files[0]) { alert('Select the scanned sheet first.'); return; }
 
             const formData = new FormData();
             formData.append('deployment_id', USER_ASSIGNMENT.deployment_id);
@@ -1354,11 +995,112 @@
             const res = await fetch('/api/attendance/upload-sheet', { method: 'POST', headers: { 'Authorization': `Bearer ${TOKEN}` }, body: formData });
             const data = await res.json();
             if (res.ok) {
-                alert('Document successfully submitted.');
+                alert('Sheet successfully submitted for approval!');
                 switchRoute('staff-history');
                 loadStaffPortalData();
-            } else { alert(data.error || 'Upload error'); }
+            } else alert(data.error || 'Upload error');
         });
+
+        // ================= ADMIN FORMS & SUBMISSIONS =================
+        async function openDeployModal() {
+            const [exams, centres, staff] = await Promise.all([api('/api/exams'), api('/api/centres'), api('/api/staff')]);
+            document.getElementById('deployExamSelect').innerHTML = (exams || []).map(e => `<option value="${e.id}">${e.exam_name}</option>`).join('');
+            document.getElementById('deployCentreSelect').innerHTML = (centres || []).map(c => `<option value="${c.id}">${c.centre_name} (${c.city})</option>`).join('');
+            document.getElementById('deployStaffSelect').innerHTML = (staff || []).map(s => `<option value="${s.id}">${s.staff_id} - ${s.name} (${s.role})</option>`).join('');
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('deployDutyDateFrom').value = todayStr;
+            document.getElementById('deployDutyDateTo').value = todayStr;
+            openModal('deployStaffModal');
+        }
+
+        document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && res.staff_id) {
+                closeModal('addStaffModal'); e.target.reset(); loadStaffList();
+                if (confirm(`Staff Enrolled Successfully!\n\nStaff ID: ${res.staff_id}\nPassword (DOB): ${res.dob}\n\nWould you like to send their credentials immediately via WhatsApp?`)) {
+                    shareStaffCredentialsWhatsApp(res.staff_id, res.name, res.dob, res.mobile);
+                }
+            } else if (res && res.error) alert(res.error);
+        });
+
+        document.getElementById('addExamForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/exams', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && res.id) {
+                alert('Exam scheduled successfully.'); closeModal('addExamModal'); e.target.reset(); loadExamsList();
+            }
+        });
+
+        document.getElementById('addCentreForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/centres', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && res.id) {
+                alert('Centre saved successfully.'); closeModal('addCentreModal'); e.target.reset(); loadCentresList();
+            }
+        });
+
+        document.getElementById('deployStaffForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = Object.fromEntries(new FormData(e.target).entries());
+            const res = await api('/api/deployments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (res && !res.error) {
+                closeModal('deployStaffModal'); loadDeploymentsList();
+                if (confirm(`Duty Assigned Successfully!\n\nWould you like to send this Deployment Order to the staff via WhatsApp?`)) {
+                    shareDeploymentOrderWhatsApp(res.staff_name, res.staff_id, res.exam_name, res.centre_name, res.period, res.shift, res.mobile);
+                }
+            }
+        });
+
+        async function loadAttendanceSheets() {
+            const sheets = await api('/api/admin/attendance-sheets') || [];
+            const tbody = document.getElementById('attendanceVerificationTableBody');
+            tbody.innerHTML = (sheets.length === 0) ? `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No sheets submitted.</td></tr>` : sheets.map(s => `
+                <tr>
+                    <td><strong>${s.staff_id}</strong></td>
+                    <td>${s.staff_name}</td>
+                    <td>${s.role}</td>
+                    <td>${s.punch_in_time || '--'}</td>
+                    <td>${s.punch_out_time || '--'}</td>
+                    <td>${s.working_hours || '--'}</td>
+                    <td>${s.sheet_file ? `<a href="${s.sheet_file}" target="_blank" class="btn btn-outline btn-sm">📄 View Sheet</a>` : 'None'}</td>
+                    <td><button class="btn btn-success btn-sm" onclick="verifySheet(${s.id}, 'Approved')">Approve</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function verifySheet(id, status) {
+            await api('/api/admin/verify-sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attendance_id: id, status }) });
+            loadAttendanceSheets();
+        }
+
+        async function loadPaymentsList() {
+            const payments = await api('/api/admin/payments') || [];
+            const tbody = document.getElementById('paymentsTableBody');
+            tbody.innerHTML = (payments.length === 0) ? `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No records found.</td></tr>` : payments.map(p => `
+                <tr>
+                    <td><strong>${p.staff_id}</strong></td>
+                    <td>${p.staff_name}</td>
+                    <td>${p.role}</td>
+                    <td>${p.duty_date}</td>
+                    <td><strong>₹${(p.total_payable || 0).toLocaleString()}</strong></td>
+                    <td><span class="badge badge-${(p.payment_status || 'pending').toLowerCase()}">${p.payment_status}</span></td>
+                    <td><code>${p.reference_no || 'Pending'}</code></td>
+                    <td>
+                        ${p.payment_status === 'Pending' ? `<button class="btn btn-primary btn-sm" onclick="updatePaymentStatus(${p.id}, 'Paid')">Mark Paid</button>` : 'Disbursed'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function updatePaymentStatus(payment_id, status) {
+            await api('/api/admin/update-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_id, status }) });
+            loadPaymentsList();
+        }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
