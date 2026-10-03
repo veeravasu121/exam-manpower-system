@@ -11,10 +11,10 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_GOVT_SECURE_TOKEN_2026';
+const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_SECURE_TOKEN_2026';
 const GOOGLE_SHEET_WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
 
-// 1. Database Connection Engine (Cloud Postgres if DATABASE_URL exists, otherwise SQLite)
+// Database Engine Selection (Neon Postgres or Local SQLite)
 const usePostgres = !!process.env.DATABASE_URL;
 let pgPool = null;
 let sqliteDb = null;
@@ -24,7 +24,7 @@ if (usePostgres) {
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false }
     });
-    console.log('Connected to Permanent Cloud PostgreSQL Database.');
+    console.log('Connected to Permanent Cloud PostgreSQL Database (Neon).');
 } else {
     sqliteDb = new sqlite3.Database('./database.sqlite', (err) => {
         if (err) console.error('SQLite Error:', err);
@@ -32,7 +32,6 @@ if (usePostgres) {
     });
 }
 
-// Unified Query Runner
 function runQuery(sql, params = []) {
     return new Promise((resolve, reject) => {
         if (usePostgres) {
@@ -69,26 +68,9 @@ function runExec(sql, params = []) {
     });
 }
 
-// Webhook Dispatcher
-async function dispatchGoogleWebhook(payload) {
-    if (!GOOGLE_SHEET_WEBHOOK_URL) return;
-    try {
-        const response = await fetch(GOOGLE_SHEET_WEBHOOK_URL, {
-            method: 'POST',
-            redirect: 'follow',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.text();
-        console.log('Webhook dispatched:', result);
-    } catch (err) {
-        console.error('Webhook error:', err.message);
-    }
-}
-
 app.use(cors());
-app.use(express.json({ limit: '20mb' }));
-app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -106,7 +88,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Initialize Permanent Schema
+// Database Table Setup
 async function initDatabase() {
     const autoId = usePostgres ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
 
@@ -143,7 +125,7 @@ async function initDatabase() {
         id ${autoId},
         exam_name TEXT NOT NULL,
         exam_conducting_agency TEXT NOT NULL,
-        vendor_name TEXT DEFAULT 'Govt Examination Board',
+        vendor_name TEXT DEFAULT 'Agency Board',
         date_from DATE NOT NULL,
         date_to DATE NOT NULL,
         shift_mode TEXT NOT NULL,
@@ -211,7 +193,19 @@ async function initDatabase() {
         reference_no TEXT
     )`);
 
-    // Master Admin Setup
+    // Operational Role Checklist & Equipment Table
+    await runExec(`CREATE TABLE IF NOT EXISTS operational_forms (
+        id ${autoId},
+        deployment_id INTEGER,
+        staff_id INTEGER NOT NULL,
+        role TEXT NOT NULL,
+        duty_date DATE NOT NULL,
+        form_data_json TEXT NOT NULL,
+        photo_proof_path TEXT,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // Admin Account Auto-Provision
     const adminEmail = (process.env.ADMIN_EMAIL || 'admin@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@12345';
     const hash = await bcrypt.hash(adminPassword, 10);
@@ -219,10 +213,9 @@ async function initDatabase() {
     await runExec("DELETE FROM users WHERE user_type = 'ADMIN'");
     await runExec(
         `INSERT INTO users (staff_id, name, role, email, password, user_type, ef_city)
-         VALUES ('ADMIN_HQ', 'Chief Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
+         VALUES ('ADMIN_HQ', 'Agency Chief Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai')`,
         [adminEmail, hash]
     );
-    console.log(`Admin configured -> Email: ${adminEmail}`);
 }
 
 initDatabase().catch(console.error);
@@ -258,7 +251,7 @@ const authenticateToken = (req, res, next) => {
     if (!token) return res.status(401).json({ error: 'Access token required' });
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Token expired or invalid' });
+        if (err) return res.status(403).json({ error: 'Session invalid or expired' });
         req.user = user;
         next();
     });
@@ -266,19 +259,15 @@ const authenticateToken = (req, res, next) => {
 
 // ======================== API ROUTES ========================
 
-// 1. Dual Login
+// 1. Dual Sign In
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
         const cleanId = (identifier || '').trim();
 
-        const rows = await runQuery(
-            "SELECT * FROM users WHERE staff_id = ? OR LOWER(email) = LOWER(?)",
-            [cleanId, cleanId]
-        );
+        const rows = await runQuery("SELECT * FROM users WHERE staff_id = ? OR LOWER(email) = LOWER(?)", [cleanId, cleanId]);
         const user = rows[0];
-
-        if (!user) return res.status(401).json({ error: 'Invalid Credentials' });
+        if (!user) return res.status(401).json({ error: 'Invalid Staff ID or Password' });
 
         if (user.user_type === 'STAFF') {
             const cleanInputDob = (password || '').replace(/[-/]/g, '').trim();
@@ -297,7 +286,7 @@ app.post('/api/auth/login', async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(401).json({ error: 'Invalid Admin Email or Password' });
+        if (!isMatch) return res.status(401).json({ error: 'Invalid Admin Credentials' });
 
         const token = jwt.sign(
             { id: user.id, staff_id: user.staff_id, role: user.role, user_type: user.user_type, name: user.name },
@@ -310,11 +299,10 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
-// 2. Admin Dashboard Feed
+// 2. Admin Dashboard Live Stats
 app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
-
         const sqlDeployments = `
             SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role, 
                    COALESCE(d.vendor_name, u.vendor_name, 'Direct') as vendor_name,
@@ -323,9 +311,8 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
                    c.id as centre_id, c.centre_name, c.city as centre_city,
                    a.id as attendance_id, a.punch_in_time, a.punch_in_photo,
                    a.punch_out_time, a.punch_out_photo, a.working_hours,
-                   a.sheet_file, a.sheet_verification_status, a.is_late_submission, a.late_reason,
-                   p.id as payment_id, p.duty_amount, p.travel_allowance, p.other_allowance,
-                   p.total_payable, p.payment_status, p.reference_no,
+                   a.sheet_file, a.sheet_verification_status,
+                   p.id as payment_id, p.total_payable, p.payment_status, p.reference_no,
                    CASE WHEN a.punch_in_time IS NOT NULL THEN 'Present' ELSE 'Absent' END as attendance_status
             FROM deployments d
             JOIN users u ON d.staff_id = u.id
@@ -396,33 +383,18 @@ app.post('/api/staff', authenticateToken, async (req, res) => {
         ];
 
         const result = await runExec(sql, params);
-
-        dispatchGoogleWebhook({
-            action: 'REGISTER_STAFF',
-            staff_id: assignedStaffId, role, vendor_name: assignedVendor, email: officialEmail,
-            venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
-            ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number: ef_aadhar_number ? '[Aadhaar Redacted]' : '', ef_father_name, ef_mother_name,
-            ef_email_id: officialEmail, ef_qualification, ef_present_address, ef_permanent_address
+        res.json({
+            message: 'Staff registered successfully',
+            staff_id: assignedStaffId,
+            dob: ef_dob,
+            name: fullName,
+            mobile: ef_mobile_number,
+            id: result.lastID
         });
-
-        res.json({ message: 'Staff registered successfully', staff_id: assignedStaffId, id: result.lastID });
     } catch (err) {
         if (err.message && err.message.includes('UNIQUE')) {
-            return res.status(400).json({ error: 'Mobile number or Email already exists.' });
+            return res.status(400).json({ error: 'Mobile number or Email ID already registered.' });
         }
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.put('/api/staff/:id', authenticateToken, async (req, res) => {
-    try {
-        const { name, role, vendor_name, ef_city, ef_mobile_number, ef_qualification, ef_present_address, ef_permanent_address, status } = req.body;
-        const sql = `UPDATE users SET name = ?, role = ?, vendor_name = ?, ef_city = ?, ef_mobile_number = ?,
-                     ef_qualification = ?, ef_present_address = ?, ef_permanent_address = ?, status = ?
-                     WHERE id = ? AND user_type = 'STAFF'`;
-        await runExec(sql, [name, role, vendor_name || 'Direct', ef_city, ef_mobile_number, ef_qualification, ef_present_address, ef_permanent_address, status, req.params.id]);
-        res.json({ message: 'Staff details updated successfully' });
-    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
@@ -454,41 +426,12 @@ app.post('/api/exams', authenticateToken, async (req, res) => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
         const result = await runExec(sql, [
-            exam_name, exam_conducting_agency, vendor_name || 'Direct Agency', date_from, date_to, shift_mode,
+            exam_name, exam_conducting_agency, vendor_name || 'Agency Board', date_from, date_to, shift_mode,
             s1_reporting_time || null, s1_start_time || null, s1_end_time || null,
             s2_reporting_time || null, s2_start_time || null, s2_end_time || null,
             s3_reporting_time || null, s3_start_time || null, s3_end_time || null
         ]);
-        res.json({ message: 'Exam created successfully', id: result.lastID });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.put('/api/exams/:id', authenticateToken, async (req, res) => {
-    try {
-        const {
-            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-            s1_reporting_time, s1_start_time, s1_end_time,
-            s2_reporting_time, s2_start_time, s2_end_time,
-            s3_reporting_time, s3_start_time, s3_end_time
-        } = req.body;
-
-        const sql = `UPDATE exams SET
-            exam_name = ?, exam_conducting_agency = ?, vendor_name = ?, date_from = ?, date_to = ?, shift_mode = ?,
-            s1_reporting_time = ?, s1_start_time = ?, s1_end_time = ?,
-            s2_reporting_time = ?, s2_start_time = ?, s2_end_time = ?,
-            s3_reporting_time = ?, s3_start_time = ?, s3_end_time = ?
-            WHERE id = ?`;
-
-        await runExec(sql, [
-            exam_name, exam_conducting_agency, vendor_name, date_from, date_to, shift_mode,
-            s1_reporting_time, s1_start_time, s1_end_time,
-            s2_reporting_time, s2_start_time, s2_end_time,
-            s3_reporting_time, s3_start_time, s3_end_time,
-            req.params.id
-        ]);
-        res.json({ message: 'Examination updated successfully' });
+        res.json({ message: 'Exam scheduled successfully', id: result.lastID });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -509,27 +452,16 @@ app.post('/api/centres', authenticateToken, async (req, res) => {
         const { centre_name, city, full_address, map_location } = req.body;
         const sql = `INSERT INTO centres (centre_name, city, full_address, map_location) VALUES (?, ?, ?, ?)`;
         const result = await runExec(sql, [centre_name, city, full_address || '', map_location || '']);
-        res.json({ message: 'Centre created successfully', id: result.lastID });
+        res.json({ message: 'Centre saved successfully', id: result.lastID });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-app.put('/api/centres/:id', authenticateToken, async (req, res) => {
-    try {
-        const { centre_name, city, full_address, map_location } = req.body;
-        const sql = `UPDATE centres SET centre_name = ?, city = ?, full_address = ?, map_location = ? WHERE id = ?`;
-        await runExec(sql, [centre_name, city, full_address || '', map_location || '', req.params.id]);
-        res.json({ message: 'Centre updated successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 6. Deployments: Multi-Day Date Range Engine
+// 6. Deployments: Date Range Engine
 app.get('/api/deployments', authenticateToken, async (req, res) => {
     try {
-        const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.email as staff_email,
+        const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.ef_mobile_number,
                             e.exam_name, e.exam_conducting_agency, c.centre_name, c.city, c.full_address, c.map_location
                      FROM deployments d
                      JOIN users u ON d.staff_id = u.id
@@ -546,11 +478,10 @@ app.get('/api/deployments', authenticateToken, async (req, res) => {
 app.post('/api/deployments', authenticateToken, async (req, res) => {
     try {
         const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date_from, duty_date_to, shift } = req.body;
-
         const startDate = new Date(duty_date_from);
         const endDate = new Date(duty_date_to || duty_date_from);
 
-        const users = await runQuery("SELECT vendor_name, email, name FROM users WHERE id = ?", [staff_id]);
+        const users = await runQuery("SELECT vendor_name, ef_mobile_number, name, staff_id FROM users WHERE id = ?", [staff_id]);
         const u = users[0];
         const resolvedVendor = vendor_name || (u ? u.vendor_name : 'Direct');
 
@@ -568,61 +499,33 @@ app.post('/api/deployments', authenticateToken, async (req, res) => {
             daysCount++;
         }
 
-        const details = await runQuery(
-            `SELECT e.exam_name, c.centre_name, c.city, c.full_address, c.map_location FROM exams e, centres c WHERE e.id = ? AND c.id = ?`,
-            [exam_id, centre_id]
-        );
-        const row = details[0];
+        const details = await runQuery("SELECT exam_name FROM exams WHERE id = ?", [exam_id]);
+        const centre = await runQuery("SELECT centre_name, city FROM centres WHERE id = ?", [centre_id]);
 
-        if (row && u && u.email) {
-            dispatchGoogleWebhook({
-                action: 'SEND_ASSIGNMENT_EMAIL',
-                to_email: u.email,
-                staff_name: u.name,
-                exam_name: row.exam_name,
-                assigned_role,
-                duty_date_from,
-                duty_date_to: duty_date_to || duty_date_from,
-                total_days: daysCount,
-                shift,
-                centre_name: row.centre_name,
-                city: row.city,
-                full_address: row.full_address,
-                map_location: row.map_location
-            });
-        }
-
-        res.json({ message: `Successfully assigned ${daysCount} day(s) of examination duty!` });
+        res.json({
+            message: `Deployed for ${daysCount} day(s)!`,
+            staff_name: u?.name,
+            staff_id: u?.staff_id,
+            mobile: u?.ef_mobile_number,
+            exam_name: details[0]?.exam_name,
+            centre_name: `${centre[0]?.centre_name} (${centre[0]?.city})`,
+            period: `${duty_date_from} to ${duty_date_to || duty_date_from}`,
+            shift
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-app.put('/api/deployments/:id', authenticateToken, async (req, res) => {
-    try {
-        const { exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift } = req.body;
-        const sql = `UPDATE deployments SET exam_id = ?, centre_id = ?, staff_id = ?, assigned_role = ?, vendor_name = ?, duty_date = ?, shift = ?
-                     WHERE id = ?`;
-        await runExec(sql, [exam_id, centre_id, staff_id, assigned_role, vendor_name, duty_date, shift, req.params.id]);
-        res.json({ message: 'Deployment updated successfully' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 7. Staff Portal: All Duty Assignments & Complete Salary Ledger
+// 7. Staff Desk: Duties, Ledger & Role Forms
 app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
-
         const sqlDuties = `
             SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role,
-                   d.duty_amount, d.travel_allowance, d.other_allowance,
                    (d.duty_amount + d.travel_allowance + d.other_allowance) as total_payable,
                    e.exam_name, e.exam_conducting_agency,
                    e.s1_reporting_time, e.s1_start_time, e.s1_end_time,
-                   e.s2_reporting_time, e.s2_start_time, e.s2_end_time,
-                   e.s3_reporting_time, e.s3_start_time, e.s3_end_time,
                    c.centre_name, c.city, c.full_address, c.map_location,
                    a.id as attendance_id, a.punch_in_time, a.punch_out_time,
                    a.working_hours, a.sheet_verification_status, a.sheet_file,
@@ -639,39 +542,76 @@ app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
         `;
 
         const rows = await runQuery(sqlDuties, [today, req.user.id]);
-
-        let totalWorkedDays = 0;
-        let totalEarned = 0;
-        let totalReceived = 0;
-        let totalPending = 0;
+        let totalWorkedDays = 0, totalEarned = 0, totalReceived = 0, totalPending = 0;
 
         (rows || []).forEach(r => {
             const amount = parseFloat(r.total_payable) || 1900;
             if (r.punch_in_time) totalWorkedDays++;
             totalEarned += amount;
-
-            if (r.payment_status === 'Paid') {
-                totalReceived += amount;
-            } else {
-                totalPending += amount;
-            }
+            if (r.payment_status === 'Paid') totalReceived += amount;
+            else totalPending += amount;
         });
 
+        // Check if an operational form has already been submitted for today's deployment
+        const todayDep = rows.find(r => r.is_today === 1);
+        let formSubmission = null;
+        if (todayDep) {
+            const formRows = await runQuery(
+                "SELECT * FROM operational_forms WHERE deployment_id = ? ORDER BY id DESC LIMIT 1",
+                [todayDep.deployment_id]
+            );
+            formSubmission = formRows[0] || null;
+        }
+
         res.json({
-            summary: {
-                totalWorkedDays,
-                totalEarned,
-                totalReceived,
-                totalPending
-            },
-            history: rows || []
+            summary: { totalWorkedDays, totalEarned, totalReceived, totalPending },
+            history: rows || [],
+            roleFormSubmitted: !!formSubmission,
+            formData: formSubmission ? JSON.parse(formSubmission.form_data_json) : null
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 8. Staff Attendance & Uploads
+// 8. Submit Operational Role Form (CCTV / Lab Supervisor / Jammer / Security)
+app.post('/api/staff/submit-operational-form', authenticateToken, upload.single('photo_proof'), async (req, res) => {
+    try {
+        const { deployment_id, role, duty_date, form_fields } = req.body;
+        const photoPath = req.file ? `/uploads/${req.file.filename}` : null;
+
+        await runExec(
+            `INSERT INTO operational_forms (deployment_id, staff_id, role, duty_date, form_data_json, photo_proof_path)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [deployment_id, req.user.id, role, duty_date, form_fields, photoPath]
+        );
+
+        res.json({ message: `${role} Operational Form successfully logged & verified!` });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 9. Fetch Submitted Role Forms (For Admin Review)
+app.get('/api/admin/operational-forms', authenticateToken, async (req, res) => {
+    try {
+        const sql = `
+            SELECT f.*, u.name as staff_name, u.staff_id, c.centre_name, e.exam_name
+            FROM operational_forms f
+            JOIN users u ON f.staff_id = u.id
+            JOIN deployments d ON f.deployment_id = d.id
+            JOIN centres c ON d.centre_id = c.id
+            JOIN exams e ON d.exam_id = e.id
+            ORDER BY f.id DESC
+        `;
+        const rows = await runQuery(sql);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 10. Attendance Photo Punch & Sheet Upload
 app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
     try {
         const { deployment_id, photo_base64 } = req.body;
@@ -684,12 +624,13 @@ app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
         const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
         fs.writeFileSync(filepath, base64Data, 'base64');
 
-        const sql = `INSERT INTO attendance (deployment_id, staff_id, duty_date, punch_in_time, punch_in_photo)
-                     VALUES (?, ?, ?, ?, ?)`;
-        await runExec(sql, [deployment_id, req.user.id, today, timeStr, `/uploads/${filename}`]);
-        res.json({ message: 'Punch-in registered', punch_in_time: timeStr });
+        await runExec(
+            `INSERT INTO attendance (deployment_id, staff_id, duty_date, punch_in_time, punch_in_photo) VALUES (?, ?, ?, ?, ?)`,
+            [deployment_id, req.user.id, today, timeStr, `/uploads/${filename}`]
+        );
+        res.json({ message: 'Punch-in recorded', punch_in_time: timeStr });
     } catch (err) {
-        res.status(400).json({ error: 'Punch-in already recorded.' });
+        res.status(400).json({ error: 'Punch-in already registered.' });
     }
 });
 
@@ -706,25 +647,30 @@ app.post('/api/attendance/punch-out', authenticateToken, async (req, res) => {
 
         const records = await runQuery("SELECT * FROM attendance WHERE deployment_id = ?", [deployment_id]);
         const record = records[0];
-        if (!record) return res.status(400).json({ error: 'No punch-in recorded' });
+        if (!record) return res.status(400).json({ error: 'No punch-in found' });
 
         const [h1, m1] = record.punch_in_time.split(':').map(Number);
         const [h2, m2] = timeStr.split(':').map(Number);
         const diffMinutes = (h2 * 60 + m2) - (h1 * 60 + m1);
         const workingHours = `${Math.floor(diffMinutes / 60)}h ${diffMinutes % 60}m`;
 
-        const sql = `UPDATE attendance SET punch_out_time = ?, punch_out_photo = ?, working_hours = ? WHERE deployment_id = ?`;
-        await runExec(sql, [timeStr, `/uploads/${filename}`, workingHours, deployment_id]);
+        await runExec(
+            `UPDATE attendance SET punch_out_time = ?, punch_out_photo = ?, working_hours = ? WHERE deployment_id = ?`,
+            [timeStr, `/uploads/${filename}`, workingHours, deployment_id]
+        );
 
         const deps = await runQuery("SELECT duty_amount, travel_allowance, other_allowance FROM deployments WHERE id = ?", [deployment_id]);
         const dep = deps[0];
         if (dep) {
-            const total = dep.duty_amount + dep.travel_allowance + dep.other_allowance;
-            await runExec(
-                `INSERT INTO payments (attendance_id, staff_id, duty_amount, travel_allowance, other_allowance, total_payable, payment_status)
-                 VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
-                [record.id, req.user.id, dep.duty_amount, dep.travel_allowance, dep.other_allowance, total]
-            );
+            const total = (parseFloat(dep.duty_amount) || 1200) + (parseFloat(dep.travel_allowance) || 500) + (parseFloat(dep.other_allowance) || 200);
+            const existingPayment = await runQuery("SELECT id FROM payments WHERE attendance_id = ?", [record.id]);
+            if (!existingPayment || existingPayment.length === 0) {
+                await runExec(
+                    `INSERT INTO payments (attendance_id, staff_id, duty_amount, travel_allowance, other_allowance, total_payable, payment_status)
+                     VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
+                    [record.id, req.user.id, dep.duty_amount, dep.travel_allowance, dep.other_allowance, total]
+                );
+            }
         }
 
         res.json({ message: 'Punch-out recorded', punch_out_time: timeStr, working_hours: workingHours });
@@ -741,21 +687,20 @@ app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('atten
         const submissionTime = new Date().toLocaleTimeString('en-US', { hour12: false });
         const sheetFilePath = `/uploads/${req.file.filename}`;
 
-        const sql = `UPDATE attendance 
-                     SET sheet_file = ?, sheet_submission_time = ?, is_late_submission = ?, late_reason = ?, sheet_verification_status = 'Submitted'
-                     WHERE deployment_id = ?`;
-        await runExec(sql, [sheetFilePath, submissionTime, is_late === 'true' ? 1 : 0, late_reason || null, deployment_id]);
+        await runExec(
+            `UPDATE attendance SET sheet_file = ?, sheet_submission_time = ?, is_late_submission = ?, late_reason = ?, sheet_verification_status = 'Submitted' WHERE deployment_id = ?`,
+            [sheetFilePath, submissionTime, is_late === 'true' ? 1 : 0, late_reason || null, deployment_id]
+        );
         res.json({ message: 'Sheet submitted successfully', file: sheetFilePath });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 9. Verification & Payment Ledger Actions
+// 11. Verification & Payment Ledger Approvals
 app.get('/api/admin/attendance-sheets', authenticateToken, async (req, res) => {
     try {
-        const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name,
-                            c.centre_name, e.exam_name
+        const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name, c.centre_name, e.exam_name
                      FROM attendance a
                      JOIN users u ON a.staff_id = u.id
                      JOIN deployments d ON a.deployment_id = d.id
@@ -801,7 +746,7 @@ app.get('/api/admin/payments', authenticateToken, async (req, res) => {
 app.post('/api/admin/update-payment', authenticateToken, async (req, res) => {
     try {
         const { payment_id, status } = req.body;
-        const ref = status === 'Paid' ? 'TXN-GOV-' + Math.floor(10000000 + Math.random() * 90000000) : null;
+        const ref = status === 'Paid' ? 'TXN-DISB-' + Math.floor(10000000 + Math.random() * 90000000) : null;
         await runExec(`UPDATE payments SET payment_status = ?, reference_no = COALESCE(?, reference_no) WHERE id = ?`, [status, ref, payment_id]);
         res.json({ message: `Payment marked as ${status}` });
     } catch (err) {
@@ -814,5 +759,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`EMMS Server running on port ${PORT}`);
+    console.log(`EMMS Running on port ${PORT}`);
 });
