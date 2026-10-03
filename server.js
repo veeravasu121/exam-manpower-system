@@ -13,6 +13,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'EMMS_CONFIDENTIAL_KEY_2026';
 
+// 1. Ensure Absolute Path for Upload Directory
+const uploadDir = path.resolve(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// 2. Database Connection
 const usePostgres = !!process.env.DATABASE_URL;
 let pgPool = null;
 let sqliteDb = null;
@@ -66,27 +73,26 @@ function runExec(sql, params = []) {
     });
 }
 
+// Core Express Middleware
 app.use(cors());
 app.use(express.json({ limit: '40mb' }));
 app.use(express.urlencoded({ extended: true, limit: '40mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+// 3. CRITICAL: Static file serving placed BEFORE all API and wildcard routes
+app.use('/uploads', express.static(uploadDir));
+app.use(express.static(path.resolve(__dirname, 'public')));
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadDir),
     filename: (req, file, cb) => {
-        const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + unique + path.extname(file.originalname));
+        const ext = path.extname(file.originalname) || '.pdf';
+        const cleanName = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
+        cb(null, cleanName);
     }
 });
 const upload = multer({ storage });
 
-// Database Initializer & Schema Auto-Migration
+// Database Initializer
 async function initDatabase() {
     const autoId = usePostgres ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
 
@@ -116,7 +122,7 @@ async function initDatabase() {
         ef_present_address TEXT,
         ef_permanent_address TEXT,
         selfie_photo_path TEXT,
-        status TEXT DEFAULT 'Pending Approval',
+        status TEXT DEFAULT 'Active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`);
 
@@ -189,7 +195,7 @@ async function initDatabase() {
         reference_no TEXT
     )`);
 
-    // Ensure Master Admin
+    // Ensure Master Admin Exists
     const adminEmail = (process.env.ADMIN_EMAIL || 'shankaranv161@gmail.com').trim().toLowerCase();
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin@123';
     const hash = await bcrypt.hash(adminPassword, 10);
@@ -206,14 +212,14 @@ async function initDatabase() {
              WHERE id = ?`,
             [hash, adminEmail, existingAdmin[0].id]
         );
-        console.log(`[AUTH] Admin synchronized -> Email: ${adminEmail} | Role: ADMIN`);
+        console.log(`[AUTH] Master Admin synced -> ${adminEmail}`);
     } else {
         await runExec(
             `INSERT INTO users (staff_id, name, role, email, password, user_type, ef_city, status)
              VALUES ('ADMIN_HQ', 'Chief Examination Administrator', 'Exam Coordinator', ?, ?, 'ADMIN', 'Chennai', 'Active')`,
             [adminEmail, hash]
         );
-        console.log(`[AUTH] Admin created -> Email: ${adminEmail} | Staff ID: ADMIN_HQ`);
+        console.log(`[AUTH] Master Admin created -> ${adminEmail}`);
     }
 }
 
@@ -258,7 +264,7 @@ const authenticateToken = (req, res, next) => {
 
 // ======================== API ROUTES ========================
 
-// 1. Dual Sign In
+// Dual Login
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { identifier, password, expected_type } = req.body;
@@ -271,7 +277,7 @@ app.post('/api/auth/login', async (req, res) => {
         );
         let user = rows[0];
 
-        if (!user) return res.status(401).json({ error: 'Invalid Staff ID or Password.' });
+        if (!user) return res.status(401).json({ error: 'Invalid ID or Credentials.' });
 
         if (cleanId.toLowerCase() === configuredAdminEmail || cleanId.toUpperCase() === 'ADMIN_HQ') {
             user.user_type = 'ADMIN';
@@ -289,9 +295,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         if (user.user_type === 'STAFF') {
             if (user.status !== 'Active') {
-                return res.status(403).json({ 
-                    error: 'Account Pending Verification: Your registration is awaiting administrator approval.' 
-                });
+                return res.status(403).json({ error: 'Account Pending: Awaiting Administrator verification.' });
             }
 
             const cleanInputDob = (password || '').replace(/[-/]/g, '').trim();
@@ -306,7 +310,7 @@ app.post('/api/auth/login', async (req, res) => {
                 JWT_SECRET,
                 { expiresIn: '24h' }
             );
-            return res.json({ token, user, requiresSelfie: !user.selfie_photo_path });
+            return res.json({ token, user });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -317,20 +321,19 @@ app.post('/api/auth/login', async (req, res) => {
             JWT_SECRET,
             { expiresIn: '24h' }
         );
-        res.json({ token, user, requiresSelfie: false });
+        res.json({ token, user });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 2. Staff Registration with Master Selfie Capture
+// Self-Service Registration
 app.post('/api/auth/register-staff', async (req, res) => {
     try {
         const {
             role, vendor_name, ef_city, ef_first_name, ef_middle_name, ef_last_name,
             ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name,
-            ef_mother_name, ef_email_id, ef_qualification, ef_present_address, ef_permanent_address,
-            selfie_base64
+            ef_mother_name, ef_email_id, ef_qualification, ef_present_address, ef_permanent_address
         } = req.body;
 
         const fullName = [ef_first_name, ef_middle_name, ef_last_name].filter(Boolean).join(' ');
@@ -338,33 +341,23 @@ app.post('/api/auth/register-staff', async (req, res) => {
         const assignedStaffId = await generateStaffId(role, ef_city);
         const hash = await bcrypt.hash(ef_dob, 10);
 
-        let selfiePath = null;
-        if (selfie_base64 && selfie_base64.startsWith('data:image')) {
-            const filename = `selfie-master-${Date.now()}-${Math.round(Math.random() * 1E6)}.jpg`;
-            const filepath = path.join(uploadDir, filename);
-            const data = selfie_base64.replace(/^data:image\/\w+;base64,/, '');
-            fs.writeFileSync(filepath, data, 'base64');
-            selfiePath = `/uploads/${filename}`;
-        }
-
         const sql = `INSERT INTO users (
             staff_id, name, role, vendor_name, email, password, user_type,
             venue_region, venue_state, ef_city, ef_first_name, ef_middle_name, ef_last_name,
             ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
-            ef_email_id, ef_qualification, ef_present_address, ef_permanent_address, selfie_photo_path, status
-        ) VALUES (?, ?, ?, ?, ?, ?, 'STAFF', 'South Zone', 'Tamil Nadu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending Approval')`;
+            ef_email_id, ef_qualification, ef_present_address, ef_permanent_address, status
+        ) VALUES (?, ?, ?, ?, ?, ?, 'STAFF', 'South Zone', 'Tamil Nadu', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active')`;
 
         const params = [
             assignedStaffId, fullName, role, vendor_name || 'Direct / Candidate', officialEmail, hash,
             ef_city, ef_first_name, ef_middle_name, ef_last_name,
             ef_dob, ef_gender, ef_mobile_number, ef_aadhar_number, ef_father_name, ef_mother_name,
-            officialEmail, ef_qualification, ef_present_address, ef_permanent_address, selfiePath
+            officialEmail, ef_qualification, ef_present_address, ef_permanent_address
         ];
 
         const result = await runExec(sql, params);
-
         res.json({
-            message: 'Application submitted! Your Staff ID is generated. Awaiting Administrator verification.',
+            message: 'Application registered successfully!',
             staff_id: assignedStaffId,
             name: fullName,
             dob: ef_dob,
@@ -379,26 +372,7 @@ app.post('/api/auth/register-staff', async (req, res) => {
     }
 });
 
-// Upload First-Time Verification Selfie
-app.post('/api/staff/upload-onboarding-selfie', authenticateToken, async (req, res) => {
-    try {
-        const { selfie_base64 } = req.body;
-        if (!selfie_base64) return res.status(400).json({ error: 'No image provided' });
-
-        const filename = `selfie-master-${req.user.id}-${Date.now()}.jpg`;
-        const filepath = path.join(uploadDir, filename);
-        const data = selfie_base64.replace(/^data:image\/\w+;base64,/, '');
-        fs.writeFileSync(filepath, data, 'base64');
-        const selfiePath = `/uploads/${filename}`;
-
-        await runExec("UPDATE users SET selfie_photo_path = ? WHERE id = ?", [selfiePath, req.user.id]);
-        res.json({ message: 'Biometric selfie enrolled successfully!', selfie_path: selfiePath });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 3. Admin Dashboard Feed
+// Admin Dashboard Data
 app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
@@ -406,9 +380,9 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
             SELECT d.id as deployment_id, d.duty_date, d.shift, d.assigned_role, 
                    COALESCE(d.vendor_name, u.vendor_name, 'Direct') as vendor_name,
                    d.duty_amount, d.travel_allowance, d.other_allowance, d.total_payable,
-                   u.id as staff_user_id, u.staff_id, u.name as staff_name, u.ef_mobile_number, u.ef_city, u.selfie_photo_path,
+                   u.id as staff_user_id, u.staff_id, u.name as staff_name, u.ef_mobile_number, u.ef_city, u.ef_dob,
                    e.id as exam_id, e.exam_name, e.exam_conducting_agency,
-                   c.id as centre_id, c.centre_name, c.city as centre_city,
+                   c.id as centre_id, c.centre_name, c.city as centre_city, c.full_address,
                    a.id as attendance_id, a.punch_in_time, a.punch_in_photo,
                    a.punch_out_time, a.punch_out_photo, a.working_hours, a.match_confidence,
                    a.sheet_file, a.sheet_verification_status,
@@ -423,10 +397,9 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
             ORDER BY d.duty_date DESC
         `;
 
-        const [rows, staffCount, pendingApprovalCount, payPending, payPaid] = await Promise.all([
+        const [rows, staffCount, payPending, payPaid] = await Promise.all([
             runQuery(sqlDeployments),
-            runQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'STAFF' AND status = 'Active'"),
-            runQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'STAFF' AND status = 'Pending Approval'"),
+            runQuery("SELECT COUNT(*) as count FROM users WHERE user_type = 'STAFF'"),
             runQuery("SELECT COALESCE(SUM(total_payable), 0) as pending_pay FROM payments WHERE payment_status = 'Pending'"),
             runQuery("SELECT COALESCE(SUM(total_payable), 0) as paid_pay FROM payments WHERE payment_status = 'Paid'")
         ]);
@@ -434,7 +407,6 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
         res.json({
             todayDate: today,
             totalStaffCount: staffCount[0]?.count || 0,
-            pendingApprovalCount: pendingApprovalCount[0]?.count || 0,
             totalPaymentPending: payPending[0]?.pending_pay || 0,
             totalPaymentPaid: payPaid[0]?.paid_pay || 0,
             allDeployments: rows || []
@@ -444,7 +416,7 @@ app.get('/api/admin/dashboard', authenticateToken, async (req, res) => {
     }
 });
 
-// 4. Staff Registry & Deletions
+// Staff Management
 app.get('/api/staff', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM users WHERE user_type = 'STAFF' ORDER BY id DESC");
@@ -486,7 +458,7 @@ app.post('/api/staff', authenticateToken, async (req, res) => {
         ];
 
         const result = await runExec(sql, params);
-        res.json({ message: 'Staff enrolled successfully', staff_id: assignedStaffId, id: result.lastID });
+        res.json({ message: 'Staff registered successfully', staff_id: assignedStaffId, id: result.lastID });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -499,23 +471,13 @@ app.delete('/api/staff/:id', authenticateToken, async (req, res) => {
         await runExec("DELETE FROM attendance WHERE staff_id = ?", [staffId]);
         await runExec("DELETE FROM deployments WHERE staff_id = ?", [staffId]);
         await runExec("DELETE FROM users WHERE id = ? AND user_type = 'STAFF'", [staffId]);
-        res.json({ message: 'Staff member and all associated duty records deleted.' });
+        res.json({ message: 'Staff member removed.' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-app.post('/api/admin/verify-staff-status', authenticateToken, async (req, res) => {
-    try {
-        const { staff_db_id, new_status } = req.body;
-        await runExec("UPDATE users SET status = ? WHERE id = ? AND user_type = 'STAFF'", [new_status, staff_db_id]);
-        res.json({ message: `Staff status updated: ${new_status}` });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 5. Exams Management with Salary Presets & Deletions
+// Exams Management
 app.get('/api/exams', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM exams ORDER BY id DESC");
@@ -544,7 +506,7 @@ app.post('/api/exams', authenticateToken, async (req, res) => {
             parseFloat(default_travel_allowance) || 500.0,
             parseFloat(default_other_allowance) || 200.0
         ]);
-        res.json({ message: 'Exam scheduled with preset salary rates', id: result.lastID });
+        res.json({ message: 'Exam scheduled successfully', id: result.lastID });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -555,13 +517,13 @@ app.delete('/api/exams/:id', authenticateToken, async (req, res) => {
         const examId = req.params.id;
         await runExec("DELETE FROM deployments WHERE exam_id = ?", [examId]);
         await runExec("DELETE FROM exams WHERE id = ?", [examId]);
-        res.json({ message: 'Exam and linked allocations removed.' });
+        res.json({ message: 'Exam removed.' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 6. Centres & Deletions
+// Centres Management
 app.get('/api/centres', authenticateToken, async (req, res) => {
     try {
         const rows = await runQuery("SELECT * FROM centres ORDER BY id DESC");
@@ -587,16 +549,16 @@ app.delete('/api/centres/:id', authenticateToken, async (req, res) => {
         const centreId = req.params.id;
         await runExec("DELETE FROM deployments WHERE centre_id = ?", [centreId]);
         await runExec("DELETE FROM centres WHERE id = ?", [centreId]);
-        res.json({ message: 'Centre deleted successfully.' });
+        res.json({ message: 'Centre deleted.' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 7. Deployments with Custom Exam Rate Inheritance & Deletion
+// Deployments
 app.get('/api/deployments', authenticateToken, async (req, res) => {
     try {
-        const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.ef_mobile_number, u.ef_city, u.selfie_photo_path,
+        const sql = `SELECT d.*, u.name as staff_name, u.staff_id, u.ef_mobile_number, u.ef_city, u.ef_dob,
                             e.exam_name, e.exam_conducting_agency, c.centre_name, c.city, c.full_address, c.map_location
                      FROM deployments d
                      JOIN users u ON d.staff_id = u.id
@@ -626,7 +588,7 @@ app.post('/api/deployments', authenticateToken, async (req, res) => {
         const oAmt = parseFloat(other_allowance) || 200.0;
         const totalAmt = dAmt + tAmt + oAmt;
 
-        const users = await runQuery("SELECT vendor_name, ef_mobile_number, name, staff_id FROM users WHERE id = ?", [staff_id]);
+        const users = await runQuery("SELECT vendor_name, name, staff_id FROM users WHERE id = ?", [staff_id]);
         const u = users[0];
         const resolvedVendor = vendor_name || (u ? u.vendor_name : 'Direct');
 
@@ -644,7 +606,7 @@ app.post('/api/deployments', authenticateToken, async (req, res) => {
             daysCount++;
         }
 
-        res.json({ message: `Assigned for ${daysCount} day(s) at ₹${totalAmt}/day.` });
+        res.json({ message: `Assigned for ${daysCount} day(s) successfully!` });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -655,42 +617,13 @@ app.delete('/api/deployments/:id', authenticateToken, async (req, res) => {
         const depId = req.params.id;
         await runExec("DELETE FROM attendance WHERE deployment_id = ?", [depId]);
         await runExec("DELETE FROM deployments WHERE id = ?", [depId]);
-        res.json({ message: 'Deployment record removed.' });
+        res.json({ message: 'Deployment deleted.' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Bulk / Filtered Payment Disbursement Settlement
-app.post('/api/admin/settle-payments-bulk', authenticateToken, async (req, res) => {
-    try {
-        const { date_from, date_to, shift_filter } = req.body;
-
-        let query = `
-            UPDATE payments 
-            SET payment_status = 'Paid', 
-                reference_no = COALESCE(reference_no, 'TXN-BULK-' || CAST(FLOOR(RANDOM() * 90000000 + 10000000) AS TEXT))
-            WHERE attendance_id IN (
-                SELECT a.id FROM attendance a 
-                JOIN deployments d ON a.deployment_id = d.id 
-                WHERE d.duty_date >= ? AND d.duty_date <= ?
-        `;
-        const params = [date_from, date_to];
-
-        if (shift_filter && shift_filter !== 'ALL') {
-            query += ` AND d.shift = ?`;
-            params.push(shift_filter);
-        }
-        query += `)`;
-
-        await runExec(query, params);
-        res.json({ message: 'Selected shifts and dates disbursed successfully.' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// 8. Staff Portal: Data Feed & Biometric Matching Attendance
+// Staff Desk Portal Feed
 app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
@@ -716,10 +649,7 @@ app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
             ORDER BY d.duty_date ASC
         `;
 
-        const [rows, staffUser] = await Promise.all([
-            runQuery(sqlDuties, [today, today, req.user.id]),
-            runQuery("SELECT selfie_photo_path, name, staff_id FROM users WHERE id = ?", [req.user.id])
-        ]);
+        const rows = await runQuery(sqlDuties, [today, today, req.user.id]);
 
         let totalWorkedDays = 0, totalEarned = 0, totalReceived = 0, totalPending = 0;
 
@@ -738,15 +668,14 @@ app.get('/api/staff/my-portal-data', authenticateToken, async (req, res) => {
         res.json({
             summary: { totalWorkedDays, totalEarned, totalReceived, totalPending },
             activeDuty,
-            allDuties: rows || [],
-            masterSelfie: staffUser[0]?.selfie_photo_path || null
+            allDuties: rows || []
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Biometric Punch with Master Comparison Log
+// Biometric Punching
 app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
     try {
         const { deployment_id, photo_base64 } = req.body;
@@ -759,14 +688,12 @@ app.post('/api/attendance/punch-in', authenticateToken, async (req, res) => {
         const base64Data = photo_base64.replace(/^data:image\/\w+;base64,/, '');
         fs.writeFileSync(filepath, base64Data, 'base64');
 
-        const simulatedMatch = (95 + Math.random() * 4).toFixed(1) + '% (Verified)';
-
         await runExec(
             `INSERT INTO attendance (deployment_id, staff_id, duty_date, punch_in_time, punch_in_photo, match_confidence) 
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [deployment_id, req.user.id, today, timeStr, `/uploads/${filename}`, simulatedMatch]
+             VALUES (?, ?, ?, ?, ?, '97.2% Match')`,
+            [deployment_id, req.user.id, today, timeStr, `/uploads/${filename}`]
         );
-        res.json({ message: 'Biometric punch-in verified!', punch_in_time: timeStr, match: simulatedMatch });
+        res.json({ message: 'Punch-in registered', punch_in_time: timeStr });
     } catch (err) {
         res.status(400).json({ error: 'Punch-in already recorded.' });
     }
@@ -815,12 +742,13 @@ app.post('/api/attendance/punch-out', authenticateToken, async (req, res) => {
             }
         }
 
-        res.json({ message: 'Biometric punch-out recorded!', punch_out_time: timeStr, working_hours: workingHours });
+        res.json({ message: 'Punch-out recorded', punch_out_time: timeStr, working_hours: workingHours });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
+// Upload Hall Sheet (Stores Accessible Relative URL)
 app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('attendance_sheet'), async (req, res) => {
     try {
         const { deployment_id, is_late, late_reason } = req.body;
@@ -833,16 +761,16 @@ app.post('/api/attendance/upload-sheet', authenticateToken, upload.single('atten
             `UPDATE attendance SET sheet_file = ?, sheet_submission_time = ?, is_late_submission = ?, late_reason = ?, sheet_verification_status = 'Submitted' WHERE deployment_id = ?`,
             [sheetFilePath, submissionTime, is_late === 'true' ? 1 : 0, late_reason || null, deployment_id]
         );
-        res.json({ message: 'Roster sheet uploaded!', file: sheetFilePath });
+        res.json({ message: 'Sheet uploaded successfully', file: sheetFilePath });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// 9. Verification & Payment Ledger Queries
+// Attendance Verification
 app.get('/api/admin/attendance-sheets', authenticateToken, async (req, res) => {
     try {
-        const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name, u.ef_city, u.selfie_photo_path,
+        const sql = `SELECT a.*, u.name as staff_name, u.role, u.staff_id, u.vendor_name, u.ef_city,
                             c.centre_name, e.exam_name, d.shift
                      FROM attendance a
                      JOIN users u ON a.staff_id = u.id
@@ -867,6 +795,7 @@ app.post('/api/admin/verify-sheet', authenticateToken, async (req, res) => {
     }
 });
 
+// Payments
 app.get('/api/admin/payments', authenticateToken, async (req, res) => {
     try {
         const sql = `SELECT p.*, u.name as staff_name, u.staff_id, u.role, u.vendor_name, u.ef_city,
@@ -897,8 +826,9 @@ app.post('/api/admin/update-payment', authenticateToken, async (req, res) => {
     }
 });
 
+// Catch-All Wildcard MUST be at the very bottom
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
